@@ -1,0 +1,6 @@
+{
+  "colorizeOutput": false,
+  "errorsOnly": true,
+  "outputFormat": "json",
+  "produceImpactScore": false
+}
