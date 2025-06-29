@@ -21,7 +21,9 @@ automatically validate incoming HTTP requests based on the [OpenAPI Specificatio
 
 ## Documentation
 
-[API documentation is available on hexdocs.pm](https://hexdocs.pm/oaskit/).
+The [Documentation](https://hexdocs.pm/oaskit/) is available on hexdocs, including a [Quickstart Guide](https://hexdocs.pm/oaskit/0.1.0/quickstart.html) to dive right in.
+
+
 
 
 ## Installation
