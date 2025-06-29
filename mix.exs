@@ -8,6 +8,7 @@ defmodule Oaskit.MixProject do
     [
       app: :oaskit,
       version: @version,
+      source_url: @source_url,
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -17,7 +18,7 @@ defmodule Oaskit.MixProject do
       deps: deps(),
       dialyzer: dialyzer(),
       modkit: modkit(),
-      source_url: @source_url
+      versioning: versioning()
     ]
   end
 
@@ -168,5 +169,28 @@ defmodule Oaskit.MixProject do
         {Mix.Tasks.Oapi, :ignore}
       ]
     ]
+  end
+
+  defp versioning do
+    [
+      annotate: true,
+      before_commit: [
+        &update_readme/1,
+        {:add, "README.md"},
+        &gen_changelog/1,
+        {:add, "CHANGELOG.md"}
+      ]
+    ]
+  end
+
+  def update_readme(vsn) do
+    :ok = Readmix.update_file(Readmix.new(vars: %{app_vsn: vsn}), "README.md")
+  end
+
+  defp gen_changelog(vsn) do
+    case System.cmd("git", ["cliff", "--tag", vsn, "-o", "CHANGELOG.md"], stderr_to_stdout: true) do
+      {_, 0} -> IO.puts("Updated CHANGELOG.md with #{vsn}")
+      {out, _} -> {:error, "Could not update CHANGELOG.md:\n\n #{out}"}
+    end
   end
 end
