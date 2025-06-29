@@ -1,0 +1,291 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Alchemy Lab API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "AlchemistsPage": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.Alchemist"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CreatePotionBody": {
+        "properties": {
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/Ingredient"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "ingredients"
+        ],
+        "type": "object"
+      },
+      "Ingredient": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "unit": {
+            "enum": [
+              "pinch",
+              "dash",
+              "scoop",
+              "whiff",
+              "nub"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "quantity",
+          "unit"
+        ],
+        "type": "object"
+      },
+      "LaboratorySlug": {
+        "pattern": "[a-zA-Z0-9_-]",
+        "type": "string"
+      },
+      "Oaskit.TestWeb.Schemas.Alchemist": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "titles"
+        ],
+        "type": "object"
+      },
+      "Potion": {
+        "properties": {
+          "brewingTime": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/Ingredient"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ingredients"
+        ],
+        "type": "object"
+      }
+    },
+    "responses": {
+      "AlchemistsPage": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AlchemistsPage"
+            }
+          }
+        },
+        "description": "Page of Alchemists listing"
+      },
+      "BadRequest": {
+        "content": {
+          "application/json": {
+            "schema": true
+          }
+        },
+        "description": "Bad request"
+      },
+      "PotionCreated": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Potion"
+            }
+          }
+        },
+        "description": "Potion created successfully"
+      }
+    },
+    "parameters": {
+      "DryRun": {
+        "in": "query",
+        "name": "dry_run",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "LaboratorySlug": {
+        "in": "path",
+        "name": "lab",
+        "schema": {
+          "$ref": "#/components/parameters/LaboratorySlug"
+        }
+      },
+      "Page": {
+        "in": "query",
+        "name": "page",
+        "schema": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "PerPage": {
+        "in": "query",
+        "name": "per_page",
+        "schema": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "Q": {
+        "in": "query",
+        "name": "q",
+        "schema": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "Source": {
+        "in": "query",
+        "name": "source",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "pathItems": {
+      "AlchemistsPath": {
+        "get": {
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/AlchemistsPage"
+            },
+            "400": {
+              "$ref": "#/components/responses/BadRequest"
+            }
+          },
+          "operationId": "listAlchemists",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/PerPage"
+            },
+            {
+              "$ref": "#/components/parameters/Page"
+            }
+          ]
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LaboratorySlug"
+          },
+          {
+            "$ref": "#/components/parameters/Q"
+          }
+        ],
+        "post": {
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/AlchemistsPage"
+            }
+          },
+          "operationId": "searchAlchemists",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "q",
+              "schema": {
+                "minLength": 0,
+                "type": "string"
+              }
+            },
+            {
+              "in": "query",
+              "name": "lab",
+              "schema": {
+                "pattern": "^someprefix:[a-z]+",
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "CreatePotionPath": {
+        "post": {
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/PotionCreated"
+            }
+          },
+          "operationId": "createPotion",
+          "parameters": [
+            {
+              "$ref": "#/components/parameters/DryRun"
+            },
+            {
+              "$ref": "#/components/parameters/Source"
+            }
+          ],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/CreatePotionRequest"
+          }
+        }
+      }
+    },
+    "requestBodies": {
+      "CreatePotionRequest": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreatePotionBody"
+            }
+          }
+        },
+        "required": true
+      }
+    }
+  },
+  "paths": {
+    "/potions": {
+      "$ref": "#/components/pathItems/CreatePotionPath"
+    },
+    "/{lab}/alchemists": {
+      "$ref": "#/components/pathItems/AlchemistsPath"
+    }
+  }
+}

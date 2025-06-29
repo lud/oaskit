@@ -62,7 +62,7 @@ defmodule Oaskit.SpecTest do
     # test when normalizing/building from a raw document, notably using
     # references for various components.
     assert %Oaskit.Spec.OpenAPI{
-             openapi: "3.1.0",
+             openapi: "3.1.1",
              info: %Oaskit.Spec.Info{
                title: "Alchemy Lab API",
                version: "1.0.0"

@@ -3,6 +3,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
   alias Oaskit.Errors.InvalidParameterError
   alias Oaskit.Errors.MissingParameterError
   alias Oaskit.Errors.UnsupportedMediaTypeError
+  alias Oaskit.Plugs.SpecProvider
   alias Plug.Conn
   require Logger
 
@@ -260,7 +261,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
   end
 
   defp fetch_validations(conn, operation_id) do
-    spec_module = fetch_spec_module!(conn)
+    spec_module = SpecProvider.fetch_spec_module!(conn)
     {validations, jsv_root} = Oaskit.build_spec!(spec_module)
 
     case validations do
@@ -280,30 +281,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
       :__undef__ ->
         warn_undef_action(controller, action, conn.method)
         {:skip, :unhandled_action}
-    end
-  end
-
-  defp fetch_spec_module!(conn) do
-    case conn do
-      %{private: %{oaskit: %{spec: module}}} ->
-        module
-
-      _ ->
-        raise """
-        #{inspect(__MODULE__)} was called but #{inspect(Oaskit.Plugs.SpecProvider)} was not called upstream
-
-        Make sure to provide a spec module before calling #{inspect(__MODULE__)}:
-
-        pipeline :api do
-          plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.PathsApiSpec
-        end
-
-        scope "/api", MyAppWeb.Api do
-          pipe_through :api
-
-          get "/hello", HelloController, :hello
-        end
-        """
     end
   end
 

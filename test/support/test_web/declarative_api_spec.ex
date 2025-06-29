@@ -8,7 +8,7 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
   @moduledoc false
 
   @api_spec %{
-    "openapi" => "3.1.0",
+    "openapi" => "3.1.1",
     "info" => %{
       "title" => "Alchemy Lab API",
       "version" => "1.0.0"
@@ -85,12 +85,12 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
         "PerPage" => %{
           "name" => "per_page",
           "in" => "query",
-          "schema" => %{"type" => "integer", minimum: 1}
+          "schema" => %{"type" => "integer", "minimum" => 1}
         },
         "Page" => %{
           "name" => "page",
           "in" => "query",
-          "schema" => %{"type" => "integer", minimum: 1}
+          "schema" => %{"type" => "integer", "minimum" => 1}
         },
         "LaboratorySlug" => %{
           "name" => "lab",

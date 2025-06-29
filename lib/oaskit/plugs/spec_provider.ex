@@ -51,4 +51,36 @@ defmodule Oaskit.Plugs.SpecProvider do
   def call(conn, module) do
     Plug.Conn.put_private(conn, :oaskit, %{spec: module})
   end
+
+  @doc """
+  Returns the spec module from a conn if the conn went through this plug, raises
+  an error otherwise.
+  """
+  def fetch_spec_module!(conn) do
+    case conn do
+      %{private: %{oaskit: %{spec: module}}} ->
+        module
+
+      _ ->
+        raise """
+        cannot fetch spec module, missing  #{inspect(Oaskit.Plugs.SpecProvider)} plug in pipeline
+
+        Make sure to provide a spec module:
+
+        1. First define a pipeline with the provider plug:
+
+            pipeline :api do
+              plug Oaskit.Plugs.SpecProvider, spec: MyAppWeb.OpenAPISpec
+            end
+
+        2. Use the validation plug or spec controller in a scope using that pipeline:
+
+            scope "/api", MyAppWeb.Api do
+              pipe_through :api
+
+              get "/hello", HelloController, :hello
+            end
+        """
+    end
+  end
 end

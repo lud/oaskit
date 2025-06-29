@@ -14,6 +14,16 @@ defmodule Oaskit.TestWeb.Router do
   scope "/generated" do
     pipe_through :api_from_paths
 
+    # Spec controller route for PathsApiSpec
+    get "/openapi.json", Oaskit.SpecController, :show
+
+    get "/redoc", Oaskit.SpecController,
+      redoc: "/generated/openapi.json",
+      redoc_config: %{
+        "minCharacterLengthToInitSearch" => 1,
+        "hideDownloadButtons" => true
+      }
+
     scope "/meta", Oaskit.TestWeb do
       get "/before-metas", MetaController, :before_metas
       get "/after-metas", MetaController, :after_metas
@@ -64,23 +74,29 @@ defmodule Oaskit.TestWeb.Router do
     end
 
     scope "/method", Oaskit.TestWeb do
-      get "/p", MethodController, :single_fun
-      post "/p", MethodController, :single_fun
-      put "/p", MethodController, :single_fun
-      patch "/p", MethodController, :single_fun
-      delete "/p", MethodController, :single_fun
-      options "/p", MethodController, :single_fun
-      trace("/p", MethodController, :single_fun)
-      head "/p", MethodController, :single_fun
+      get "/p", MethodController, :same_fun
+      post "/p", MethodController, :same_fun
+      put "/p", MethodController, :same_fun
+      patch "/p", MethodController, :same_fun
+      delete "/p", MethodController, :same_fun
+      options "/p", MethodController, :same_fun
+      trace("/p", MethodController, :same_fun)
+      head "/p", MethodController, :same_fun
     end
   end
 
   scope "/provided" do
     pipe_through :api_from_doc
+
+    # Spec controller route for DeclarativeApiSpec
+
     post "/potions", Oaskit.TestWeb.LabController, :create_potion
     get "/:lab/alchemists", Oaskit.TestWeb.LabController, :list_alchemists
     post "/:lab/alchemists", Oaskit.TestWeb.LabController, :search_alchemists
   end
+
+  # outside of the scope but we pass the spec
+  get "/provided-openapi.json", Oaskit.SpecController, spec: Oaskit.TestWeb.DeclarativeApiSpec
 
   match :*, "/*path", Oaskit.TestWeb.Router.Catchall, :not_found, warn_on_verify: true
 end

@@ -130,7 +130,7 @@ defmodule Oaskit.MixProject do
   defp groups_for_modules do
     [
       "Main API": [Oaskit, Oaskit.Controller],
-      Plugs: ~r{Oaskit\.Plugs\.},
+      Plugs: [~r{Oaskit\.Plugs\.}, Oaskit.SpecController],
       "Error Handling": ~r{Oaskit\.ErrorHandler},
       Testing: [Oaskit.Test],
       "OpenAPI Spec 3.1": ~r{Oaskit\.Spec\.},

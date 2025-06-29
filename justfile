@@ -30,7 +30,8 @@ css-min:
   npx css-minify -f priv/assets/error.css -o priv/assets
 
 dump:
-  mix openapi.dump Oaskit.TestWeb.PathsApiSpec --pretty -o samples/openapi.json
+  mix openapi.dump Oaskit.TestWeb.PathsApiSpec --pretty -o samples/path-api.json
+  mix openapi.dump Oaskit.TestWeb.DeclarativeApiSpec --pretty -o samples/decl-api.json
 
 docs:
   mix docs

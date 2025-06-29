@@ -337,6 +337,7 @@ defmodule MyAppWeb.UserControllerTest do
 end
 ```
 
+
 ## Generating OpenAPI Documentation
 
 Once you have your operations defined, you can generate an OpenAPI specification
@@ -349,11 +350,36 @@ mix openapi.dump MyAppWeb.ApiSpec --pretty -o priv/openapi.json
 This generates a complete OpenAPI 3.1 specification file that can be used with
 various tools like client generators for TypeScript or Elixir.
 
-For now there is no built-in way to serve the spec or display it in a UI (coming
-soon)!
+
+## Serving OpenAPI Specifications
+
+You can serve your OpenAPI specification dynamically using the
+`Oaskit.SpecController`. This controller serves your specification as JSON at an
+HTTP endpoint.
+
+Add the controller to your router:
+
+```elixir
+get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
+```
+
+This will serve your OpenAPI specification at `/openapi.json`. Pass `?pretty=1`
+to get pretty printed JSON.
+
+You can also use that controller to serve Redoc UI. Pass the full URL path to
+the json route you just defined:
+
+```elixir
+get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
+```
+
+Redoc allows you to browse your API endpoints, view request/response schemas,
+and see examples, but note that it is read-only and doesn't allow testing the
+API directly.
 
 ## Ask for help!
 
-If anything is unclear, or if you would like to see more features, plase fill an issue in the [Github repository](https://github.com/lud/oaskit).
+If anything is unclear, or if you would like to see more features, plase fill an
+issue in the [Github repository](https://github.com/lud/oaskit).
 
-Happy coding.
+Happy coding!

@@ -182,4 +182,21 @@ defmodule Oaskit do
   def normalize_spec!(data) do
     Normalizer.normalize!(data)
   end
+
+  @doc """
+  Returns a JSON representation of the given OpenAPI specification module.
+
+  ### Options
+
+  * `:pretty` - A boolean to control JSON pretty printing.
+  * `:validation_error_handler` - A function accepting a `JSV.ValidationError`
+    struct. The JSON generation does not fail on validation error unless you
+    raise from that function.
+  """
+  @spec to_json!(module, keyword | map) :: String.t()
+  def to_json!(module, opts) do
+    module.spec()
+    |> normalize_spec!()
+    |> Oaskit.Internal.SpecDumper.to_json(Map.new(opts))
+  end
 end

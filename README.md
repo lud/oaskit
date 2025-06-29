@@ -52,7 +52,6 @@ Pull requests are welcome, provided they include appropriate tests and documenta
 
 ## Roadmap
 
-* Automatically serve the specification using SwaggerUI or redoc. Or at least
-  the JSON document.
+* Serve SwaggerUI or redoc.
 * Provide header validation.
 * Define JSON schemas for the default error handler responses.
