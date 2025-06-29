@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb.Schemas.SoilSchema do
+  @moduledoc false
+
   alias JSV.Schema
 
   require(JSV).defschema(%{

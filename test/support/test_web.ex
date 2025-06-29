@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb do
+  @moduledoc false
+
   def controller do
     quote do
       use Oaskit.Controller
@@ -26,11 +28,5 @@ defmodule Oaskit.TestWeb do
 
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
-  end
-end
-
-defmodule Oaskit.TestWeb.Helpers do
-  def dummy_responses do
-    [ok: {%{_dummy_schema: true}, []}]
   end
 end

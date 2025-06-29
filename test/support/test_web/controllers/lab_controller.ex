@@ -2,6 +2,8 @@ defmodule Oaskit.TestWeb.LabController do
   alias Oaskit.TestWeb.Responder
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   use_operation :create_potion, "createPotion"
 
   def create_potion(conn, params) do

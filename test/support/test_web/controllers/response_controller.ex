@@ -3,6 +3,8 @@ defmodule Oaskit.TestWeb.ResponseController do
   alias Oaskit.TestWeb.Schemas.GenericError
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   @fortunes [
     %{category: "wisdom", message: "Patience is the greatest potion ingredient."},
     %{category: "humor", message: "Never trust a wizard with purple socks."},

@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb.Schemas.FortuneCookie do
+  @moduledoc false
+
   require(JSV).defschema(%{
     type: :object,
     properties: %{

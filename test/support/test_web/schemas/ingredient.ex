@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb.Schemas.Ingredient do
+  @moduledoc false
+
   require(JSV).defschema(%{
     "type" => "object",
     "properties" => %{

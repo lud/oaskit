@@ -4,6 +4,8 @@ defmodule Oaskit.TestWeb.BodyController do
   alias Oaskit.TestWeb.Schemas.PlantSchema
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   @plant_schema %{
     type: :object,
     title: "InlinePlantSchema",

@@ -3,6 +3,8 @@ defmodule Oaskit.TestWeb.MethodController do
   alias Oaskit.TestWeb.Schemas.RespSchema
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   response = RespSchema
 
   operation :single_fun, operation_id: "mGET", responses: [ok: response], method: :get

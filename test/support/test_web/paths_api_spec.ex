@@ -3,6 +3,8 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
   alias Oaskit.Spec.Server
   use Oaskit
 
+  @moduledoc false
+
   @impl true
   def spec do
     %{

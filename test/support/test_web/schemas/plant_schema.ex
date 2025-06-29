@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb.Schemas.PlantSchema do
+  @moduledoc false
+
   alias JSV.Schema
   alias Oaskit.TestWeb.Schemas.SoilSchema
 

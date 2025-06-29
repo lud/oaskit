@@ -1,6 +1,8 @@
 defmodule Oaskit.TestWeb.Router do
   use Phoenix.Router
 
+  @moduledoc false
+
   pipeline :api_from_paths do
     plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.PathsApiSpec
   end
@@ -88,6 +90,7 @@ defmodule Oaskit.TestWeb.Router.Catchall do
     formats: [:html, :json],
     layouts: []
 
+  @moduledoc false
   @spec not_found(term, term) :: no_return()
   def not_found(conn, _) do
     send_resp(conn, 404, "Not Found (catchall)")

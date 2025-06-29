@@ -1,4 +1,6 @@
 defmodule Oaskit.TestWeb.Schemas.CreatePotionBody do
+  @moduledoc false
+
   require(JSV).defschema(%{
     "type" => "object",
     "properties" => %{

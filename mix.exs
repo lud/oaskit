@@ -21,7 +21,7 @@ defmodule Oaskit.MixProject do
     ]
   end
 
-  defp elixirc_paths(noweb) when noweb in [:prod, :doc] do
+  defp elixirc_paths(:prod) do
     ["lib"]
   end
 
@@ -130,6 +130,7 @@ defmodule Oaskit.MixProject do
     [
       "Main API": [Oaskit, Oaskit.Controller],
       Plugs: ~r{Oaskit\.Plugs\.},
+      "Error Handling": ~r{Oaskit\.ErrorHandler},
       Testing: [Oaskit.Test],
       "OpenAPI Spec 3.1": ~r{Oaskit\.Spec\.},
       Parsers: ~r{Oaskit\.Parsers\.},
@@ -141,8 +142,7 @@ defmodule Oaskit.MixProject do
     [
       preferred_envs: [
         dialyzer: :test,
-        "oapi.phx.test": :test,
-        docs: :doc
+        "oapi.phx.test": :test
       ]
     ]
   end

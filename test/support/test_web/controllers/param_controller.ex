@@ -3,6 +3,8 @@ defmodule Oaskit.TestWeb.ParamController do
   alias Oaskit.TestWeb.Responder
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   @shape Schema.string_to_atom_enum([:square, :circle])
   @theme Schema.string_to_atom_enum([:dark, :light])
   @color Schema.string_to_atom_enum([:red, :blue])

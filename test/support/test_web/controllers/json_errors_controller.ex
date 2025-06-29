@@ -11,6 +11,8 @@ defmodule Oaskit.TestWeb.JsonErrorsController do
   plug Oaskit.Plugs.ValidateRequest, html_errors: false
   # ---------------------------------------------------------------------------
 
+  @moduledoc false
+
   operation :create_plant,
     parameters: [
       an_int: [in: :query, required: true, schema: %{type: :integer}]

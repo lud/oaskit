@@ -5,6 +5,8 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
   alias Oaskit.TestWeb.Schemas.Potion
   use Oaskit
 
+  @moduledoc false
+
   @api_spec %{
     "openapi" => "3.1.0",
     "info" => %{

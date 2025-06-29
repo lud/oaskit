@@ -1,6 +1,8 @@
 defmodule Oaskit.TestWeb.Responder do
   alias Plug.Conn
 
+  @moduledoc false
+
   def embed_responder(conn, fun) do
     conn
     |> Conn.put_private(:responder_fun, fun)

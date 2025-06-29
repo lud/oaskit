@@ -1,6 +1,8 @@
 defmodule Oaskit.TestWeb.MetaController do
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   operation :before_metas,
     operation_id: "meta_before",
     responses: dummy_responses()
