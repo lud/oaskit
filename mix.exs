@@ -8,7 +8,7 @@ defmodule OpenApify.MixProject do
     [
       app: :open_apify,
       version: @version,
-      elixir: "~> 1.18",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       docs: docs(),
