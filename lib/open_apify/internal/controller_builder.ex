@@ -4,11 +4,12 @@ defmodule OpenApify.Internal.ControllerBuilder do
   @moduledoc false
 
   @undef :__undef__
-  def build(opts, target) when is_list(opts) when is_map(opts) do
+
+  def make(opts, target) when is_list(opts) when is_map(opts) do
     {target, opts, %{}}
   end
 
-  def build(other, target) do
+  def make(other, target) do
     raise ArgumentError,
           "invalid value for Open API model #{inspect(target)} in controller, " <>
             "expected keyword list or map, got: #{inspect(other)}"

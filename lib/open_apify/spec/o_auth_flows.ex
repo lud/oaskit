@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.OAuthFlows do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Configures supported OAuth Flows for a security scheme.
-  JSV.defschema(%{
+  defschema %{
     title: "OAuthFlows",
     type: :object,
     description: "Configures supported OAuth Flows for a security scheme.",
@@ -14,7 +14,7 @@ defmodule OpenApify.Spec.OAuthFlows do
       authorizationCode: OpenApify.Spec.OAuthFlow
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

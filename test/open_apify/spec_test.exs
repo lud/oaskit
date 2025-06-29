@@ -315,7 +315,7 @@ defmodule OpenApify.SpecTest do
     defmodule PetSchema do
       import JSV
 
-      defschema(%{
+      defschema %{
         title: "Pet",
         type: "object",
         properties: %{
@@ -323,20 +323,20 @@ defmodule OpenApify.SpecTest do
           species: %{type: "string"}
         },
         required: [:name, :species]
-      })
+      }
     end
 
     defmodule OccupationSchema do
       import JSV
 
-      defschema(%{
+      defschema %{
         title: "Occupation",
         type: "object",
         properties: %{
           title: %{type: :string}
         },
         required: [:title]
-      })
+      }
     end
 
     test "preexisting schemas in components" do
@@ -381,7 +381,7 @@ defmodule OpenApify.SpecTest do
     defmodule IceCubeSchema do
       import JSV
 
-      defschema(%{
+      defschema %{
         # Here the title is set to the predefined refname of the DrinkSchema. It
         # should not override the DrinkSchema, and will be incremented
         title: "SomeNameThatShouldNotChange",
@@ -390,13 +390,13 @@ defmodule OpenApify.SpecTest do
           shape: %{enum: ["cube", "not actually a cube"]}
         },
         required: [:shape]
-      })
+      }
     end
 
     defmodule DrinkSchema do
       import JSV
 
-      defschema(%{
+      defschema %{
         title: "Drink",
         type: "object",
         properties: %{
@@ -405,7 +405,7 @@ defmodule OpenApify.SpecTest do
           ice: IceCubeSchema
         },
         required: [:name, :alcohol_degree]
-      })
+      }
     end
 
     test "preexisting schemas in components with a module" do

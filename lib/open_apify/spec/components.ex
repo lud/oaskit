@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Components do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Holds reusable objects for different aspects of the OpenAPI Specification.
-  JSV.defschema(%{
+  defschema %{
     title: "Components",
     type: :object,
     description:
@@ -61,7 +61,7 @@ defmodule OpenApify.Spec.Components do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

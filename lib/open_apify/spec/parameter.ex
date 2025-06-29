@@ -1,11 +1,11 @@
 defmodule OpenApify.Spec.Parameter do
   alias OpenApify.Spec.Reference
   import OpenApify.Internal.ControllerBuilder
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Describes a single operation parameter.
-  JSV.defschema(%{
+  defschema %{
     title: "Parameter",
     type: :object,
     description: "Describes a single operation parameter.",
@@ -74,7 +74,7 @@ defmodule OpenApify.Spec.Parameter do
       # }
     },
     required: [:name, :in]
-  })
+  }
 
   # TODO(doc) content is not supported, always use schema
 
@@ -103,7 +103,7 @@ defmodule OpenApify.Spec.Parameter do
 
   def from_controller!(name, spec) when is_atom(name) and is_list(spec) do
     spec
-    |> build(__MODULE__)
+    |> make(__MODULE__)
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)

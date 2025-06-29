@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.ServerVariable do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Object representing a server variable for server URL template substitution.
-  JSV.defschema(%{
+  defschema %{
     title: "ServerVariable",
     type: :object,
     description: "Object representing a server variable for server URL template substitution.",
@@ -23,7 +23,7 @@ defmodule OpenApify.Spec.ServerVariable do
       }
     },
     required: [:default]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

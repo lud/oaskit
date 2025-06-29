@@ -1,5 +1,4 @@
 defmodule OpenApify.Spec.Paths do
-  require JSV
   use OpenApify.Internal.SpecObject
 
   # Holds the relative paths to individual endpoints and their operations.

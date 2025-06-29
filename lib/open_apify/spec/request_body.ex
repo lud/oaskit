@@ -2,11 +2,11 @@ defmodule OpenApify.Spec.RequestBody do
   alias OpenApify.Spec.MediaType
   alias OpenApify.Spec.Reference
   import OpenApify.Internal.ControllerBuilder
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Describes a single request body.
-  JSV.defschema(%{
+  defschema %{
     title: "RequestBody",
     type: :object,
     description: "Describes a single request body.",
@@ -24,7 +24,7 @@ defmodule OpenApify.Spec.RequestBody do
       }
     },
     required: [:content]
-  })
+  }
 
   @doc false
   def from_controller(spec) do
@@ -59,7 +59,7 @@ defmodule OpenApify.Spec.RequestBody do
 
   def from_controller!(spec) when is_list(spec) do
     spec
-    |> build(__MODULE__)
+    |> make(__MODULE__)
     |> take_required(:content, &cast_content/1)
     |> take_default(:required, false)
     |> into()

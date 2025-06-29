@@ -1,5 +1,5 @@
 defmodule OpenApify.Spec.PathItem do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   def verbs do
@@ -7,7 +7,7 @@ defmodule OpenApify.Spec.PathItem do
   end
 
   # Describes operations available on a single path.
-  JSV.defschema(%{
+  defschema %{
     title: "PathItem",
     type: :object,
     description: "Describes operations available on a single path.",
@@ -40,7 +40,7 @@ defmodule OpenApify.Spec.PathItem do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

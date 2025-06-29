@@ -1,0 +1,365 @@
+# OpenApify Quickstart Guide
+
+Welcome to OpenApify! This guide will walk you through setting up and using OpenApify to validate HTTP requests in your Phoenix application based on OpenAPI 3.1 specifications.
+
+
+## Installation
+
+First, add OpenApify to your dependencies in `mix.exs`:
+
+<!-- rdmx :app_dep vsn:$app_vsn -->
+```elixir
+def deps do
+  [
+    {:open_apify, "~> 0.1"},
+  ]
+end
+```
+<!-- rdmx /:app_dep -->
+
+You can also add the [AbnfParsec](https://hex.pm/packages/abnf_parsec)
+dependency to support [more
+formats](https://hexdocs.pm/jsv/validation-basics.html#formats) in the JSON
+schema `format` keyword.
+
+Finally, you will most probably use macros from this library, import formatter
+rules in your `.formatter.exs` file:
+
+```elixir
+# .formatter.exs
+[
+  import_deps: [:open_apify]
+]
+```
+
+
+## Creating an API Specification Module
+
+Create a module that defines your OpenAPI specification using the `OpenApify`
+module. This module will serve as the central definition of your API:
+
+```elixir
+defmodule MyAppWeb.ApiSpec do
+  alias OpenApify.Spec.Paths
+  alias OpenApify.Spec.Server
+  use OpenApify
+
+  @impl true
+  def spec do
+    %{
+      openapi: "3.1.1",
+      info: %{
+        title: "My App API",
+        version: "1.0.0",
+        description: "Main HTTP API for My App"
+      },
+      servers: [Server.from_config(:my_app, MyAppWeb.Endpoint)],
+      paths: Paths.from_router(MyAppWeb.Router, filter: &String.starts_with?(&1.path, "/api/"))
+    }
+  end
+end
+```
+
+The `OpenApify.Spec.Paths.from_router/2` function automatically extracts API
+paths from your Phoenix router, focusing only on controller actions that have
+operations defined. The optional `:filter` function lets you limit which routes
+are included in your specification.
+
+
+## Setting Up Router Pipelines
+
+Configure your Phoenix router to use OpenApify validation with your API spec
+module by setting up a pipeline with the `OpenApify.Plugs.SpecProvider` plug:
+
+```elixir
+defmodule MyAppWeb.Router do
+  use Phoenix.Router
+
+  # Define a pipeline for API routes with OpenApify validation
+  pipeline :api do
+    plug :accepts, ["json"]
+    plug OpenApify.Plugs.SpecProvider, spec: MyAppWeb.ApiSpec
+  end
+
+  # Apply the pipeline to your API routes
+  scope "/api", MyAppWeb do
+    pipe_through :api
+
+    resources "/users", UserController, only: [:index, :show, :create]
+    resources "/posts", PostController, only: [:index, :show, :create, :update]
+  end
+end
+```
+
+The `OpenApify.Plugs.SpecProvider` plug is required as a controller action and
+its defined OpenAPI operation can be referenced in multiple specifications.
+
+
+## Configuring Controllers
+
+Set up your controllers to use OpenApify validation. You can do this globally in
+your `MyAppWeb` module:
+
+```elixir
+defmodule MyAppWeb do
+  def controller do
+    quote do
+      use Phoenix.Controller,
+        formats: [:html, :json],
+        layouts: [html: MyAppWeb.Layouts]
+
+      # Add OpenApify controller macros
+      use OpenApify.Controller
+
+      # Add the validation plug
+      plug OpenApify.Plugs.ValidateRequest
+
+      import Plug.Conn
+      use Gettext, backend: MyAppWeb.Gettext
+
+      unquote(verified_routes())
+    end
+  end
+
+  # ...
+end
+```
+
+This setup ensures all controllers using `use MyAppWeb, :controller` will have
+OpenApify validation enabled. See the documentation of
+`OpenApify.Plugs.ValidateRequest` to configure the plug globally for only a
+subset of your controllers.
+
+
+## Defining Operations in Controllers
+
+Now you can define operations in your controllers using the
+`OpenApify.Controller.operation/2` macro.
+
+To import the macros, use your `:controller` helper as usual since you've added
+`use OpenApify.Controller` in the previous step.
+
+```elixir
+defmodule MyAppWeb.UserController do
+  use MyAppWeb, :controller
+
+  # ...
+end
+```
+
+The operation macro takes the function name and the operation specs as
+arguments.
+
+In this example we use syntax shortcuts to refer directly to schemas, but the
+operation macro lets you define responses or requests with multiple content
+types, custom descriptions and many other options. Make sure to read the docs!
+
+```elixir
+operation :create,
+  summary: "Create a new user",
+  request_body: {
+    %{
+      type: :object,
+      properties: %{
+        name: %{type: :string, minLength: 1},
+        email: %{type: :string, format: :email},
+        age: %{type: :integer, minimum: 18}
+      },
+      required: [:name, :email]
+    },
+    description: "The user payload"
+  },
+  parameters: [
+    source: [in: :query, schema: %{type: :string}, required: false]
+  ],
+  responses: [
+    created: UserSchema,
+    unprocessable_entity: ErrorSchema
+  ]
+
+def create(conn, _params) do
+  # The `_params` variable from phoenix is not changed by the validation plug.
+  #
+  # Validated and cast data is stored in `conn.private.open_apify`.
+  #
+  # You may explore what's in there (or read the docs), or you may use the
+  # various helpers from the `OpenApify.Controller` module:
+  user_data = body_params(conn)
+  source = query_param(conn, :source)
+
+  case create_user(user_data, source) do
+    # ...
+  end
+end
+```
+
+
+### Defining JSON Schemas
+
+There are two ways to provide schemas in the various macros, either inline or
+using modules.
+
+#### Inline schemas
+
+Inline schemas are maps (with atoms or binary keys and values) or booleans.
+
+```elixir
+@user_schema %{
+  type: :object,
+  title: "User",
+  properties: %{
+    name: %{type: :string, minLength: 1},
+    email: %{type: :string, format: :email},
+    age: %{type: :integer, minimum: 0}
+  },
+  required: [:name, :email]
+}
+
+operation :create,
+  request_body: {@user_schema, [required: true]},
+  responses: [ok: {@user_schema, []}]
+```
+
+While they are practical, such maps are duplicated in the compiled module as
+well as in the OpenAPI specification document.
+
+
+#### Module-based schemas
+
+A module-based schema is any module that exports a `schema/0` function returning
+a valid JSON schema.
+
+OpenApify uses [JSV](https://hex.pm/packages/jsv). Module-based schemas defined
+with `JSV.defschema/1` are automatically cast to structs when validation
+succeeds, making them convenient to work with, notably thanks to the new Elixir
+types compiler!
+
+Make sure to check the [JSV
+documentation](https://hexdocs.pm/jsv/defining-schemas.html) for additional
+features.
+
+```elixir
+defmodule MyAppWeb.Schemas.UserSchema do
+  import JSV
+
+  defschema %{
+    type: :object,
+    title: "User",
+    properties: %{
+      id: %{type: :integer},
+      name: %{type: :string, minLength: 1},
+      email: %{type: :string, format: :email},
+      age: %{type: :integer, minimum: 18}
+    },
+    required: [:id, :name, :email]
+  }
+end
+
+# Use the module directly in operations in place of a schema
+operation :show,
+  responses: [ok: MyAppWeb.Schemas.UserSchema]
+```
+
+Such schemas are collected into the `#/components/schemas` section of the
+OpenAPI specification, which makes that document shorter, easier to navigate,
+and limits the memory usage at runtime.
+
+
+### Shared tags and parameters
+
+OpenApify provides the `OpenApify.Controller.tags/1` and
+`OpenApify.Controller.parameter/2` macros for shared elements between
+operations.
+
+Those macros only apply to operations defined _after_ them.
+
+```elixir
+# Add tags to group operations in documentation
+tags ["users", "public"]
+
+# Define parameters once for multiple operations
+parameter :page, in: :query, schema: %{type: :integer}
+parameter :per_page, in: :query, schema: %{type: :integer}
+```
+
+
+## Testing with OpenApify.Test
+
+The `valid_response/3` helper validates that the response matches your OpenAPI
+specification, including status code, content type, and response body schema. It
+returns the parsed response data for further assertions.
+
+```elixir
+defmodule MyAppWeb.UserControllerTest do
+  use MyAppWeb.ConnCase
+
+  # Helper to wrap OpenApify.Test.valid_response/3
+  # Feel free to add it directly into your ConnCase module!
+  defp valid_response(conn, status) do
+    OpenApify.Test.valid_response(MyAppWeb.ApiSpec, conn, status)
+  end
+
+  test "create user with valid data", %{conn: conn} do
+    user_params = %{
+      name: "John Doe",
+      email: "john@example.com",
+      age: 25
+    }
+
+    conn = post(conn, ~p"/api/users", user_params)
+
+    # Validate the response against your OpenAPI specification. It returns
+    # decoded data for JSON content-types.
+    assert %{
+            "name" => "John Doe",
+            "email" => "john@example.com",
+            "age" => 25
+          } =
+            valid_response(conn, 201)
+  end
+
+  test "create user with invalid data returns validation errors", %{conn: conn} do
+    invalid_params = %{
+      name: "",
+      email: "invalid-email",
+      age: 15
+    }
+
+    conn = post(conn, ~p"/api/users", invalid_params)
+
+    # You can use `valid_response` if you define a response schema for the
+    # errors. This library will soon ship with a predefined one so you don't
+    # have to.
+    #
+    # In the meantime, using the good old `json_response` works fine!
+    assert json_response(conn, 422)
+  end
+end
+```
+
+## Generating OpenAPI Documentation
+
+Once you have your operations defined, you can generate an OpenAPI specification
+file using the Mix task:
+
+```bash
+mix openapi.dump MyAppWeb.ApiSpec --pretty -o priv/openapi.json
+```
+
+This generates a complete OpenAPI 3.1 specification file that can be used with
+various tools like client generators for TypeScript or Elixir.
+
+For now there is no built-in way to serve the spec or display it in a UI (coming
+soon)!
+
+## Next Steps
+
+You're now ready to build robust, validated APIs with OpenApify! Consider exploring:
+
+- Advanced schema patterns with JSV
+- Custom error handlers for different response formats
+- Integration with API documentation tools
+- Response validation in tests for comprehensive API testing
+- Using provided specifications for APIs you don't control
+
+For more detailed information, check out the [full documentation](https://hexdocs.pm/open_apify/).

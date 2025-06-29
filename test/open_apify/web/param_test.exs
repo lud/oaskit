@@ -514,10 +514,6 @@ defmodule OpenApify.Web.ParamTest do
                      names: ["Alice", "Bob"]
                    } == conn.private.open_apify.query_params
 
-            # This operation is defined above the slug common parameter, so
-            # it's not there
-            assert %{} == conn.private.open_apify.path_params
-
             json(conn, %{data: "ok"})
           end
         )

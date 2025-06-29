@@ -1,5 +1,4 @@
 defmodule OpenApify.Spec.SecurityRequirement do
-  require JSV
   use OpenApify.Internal.SpecObject
 
   # Lists required security schemes to execute an operation.

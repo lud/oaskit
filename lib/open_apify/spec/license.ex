@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.License do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # License information for the exposed API.
-  JSV.defschema(%{
+  defschema %{
     title: "License",
     type: :object,
     description: "License information for the exposed API.",
@@ -19,7 +19,7 @@ defmodule OpenApify.Spec.License do
       }
     },
     required: [:name]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

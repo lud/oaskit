@@ -1,8 +1,8 @@
 defmodule OpenApify.Spec.Encoding do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
-  JSV.defschema(%{
+  defschema %{
     title: "Encoding",
     type: :object,
     description: "A single encoding definition applied to a single schema property.",
@@ -18,7 +18,7 @@ defmodule OpenApify.Spec.Encoding do
       allowReserved: %{type: :boolean, description: "Allow reserved"}
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

@@ -1,10 +1,10 @@
 defmodule OpenApify.Spec.SecurityScheme do
   alias JSV.Schema
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Defines a security scheme for operations.
-  JSV.defschema(%{
+  defschema %{
     title: "SecurityScheme",
     type: :object,
     description: "Defines a security scheme for operations.",
@@ -57,7 +57,7 @@ defmodule OpenApify.Spec.SecurityScheme do
       }
     },
     required: [:type]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

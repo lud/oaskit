@@ -4,13 +4,11 @@ defmodule OpenApify.Spec.Operation do
   alias OpenApify.Spec.RequestBody
   alias OpenApify.Spec.Response
   import OpenApify.Internal.ControllerBuilder
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
-  # TODO do not render :method in JSON as it is for internal use
-
   # Describes a single API operation on a path.
-  JSV.defschema(%{
+  defschema %{
     title: "Operation",
     type: :object,
     description: "Describes a single API operation on a path.",
@@ -53,14 +51,9 @@ defmodule OpenApify.Spec.Operation do
         items: OpenApify.Spec.Server,
         description: "Alternative servers array for this operation."
       }
-      # TODO do not use and remove
-      # method: %{
-      #   description: "HTTP method used for this operation. This field is for internal use.",
-      #   enum: [nil | PathItem.verbs()]
-      # }
     },
     required: [:responses, :operationId]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do
@@ -90,7 +83,7 @@ defmodule OpenApify.Spec.Operation do
     shared_tags = Keyword.get(opts, :shared_tags, [])
 
     spec
-    |> build(__MODULE__)
+    |> make(__MODULE__)
     |> rename_input(:operation_id, :operationId)
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)

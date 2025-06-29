@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.XML do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Metadata for fine-tuned XML model definitions.
-  JSV.defschema(%{
+  defschema %{
     title: "XML",
     type: :object,
     description: "Metadata for fine-tuned XML model definitions.",
@@ -24,7 +24,7 @@ defmodule OpenApify.Spec.XML do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

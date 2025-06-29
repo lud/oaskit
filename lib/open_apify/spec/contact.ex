@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Contact do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Contact information for the exposed API.
-  JSV.defschema(%{
+  defschema %{
     title: "Contact",
     type: :object,
     description: "Contact information for the exposed API.",
@@ -19,7 +19,7 @@ defmodule OpenApify.Spec.Contact do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

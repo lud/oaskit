@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Server do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # An object representing a server for the API.
-  JSV.defschema(%{
+  defschema %{
     title: "Server",
     type: :object,
     description: "An object representing a server.",
@@ -24,7 +24,7 @@ defmodule OpenApify.Spec.Server do
       }
     },
     required: [:url]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

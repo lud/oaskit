@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Header do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Describes a single header.
-  JSV.defschema(%{
+  defschema %{
     title: "Header",
     type: :object,
     description: "Describes a single header.",
@@ -39,7 +39,7 @@ defmodule OpenApify.Spec.Header do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

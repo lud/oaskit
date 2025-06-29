@@ -1,8 +1,8 @@
 defmodule OpenApify.Spec.Link do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
-  JSV.defschema(%{
+  defschema %{
     title: "Link",
     type: :object,
     description: "Represents a possible design-time link for a response.",
@@ -19,7 +19,7 @@ defmodule OpenApify.Spec.Link do
       server: OpenApify.Spec.Server
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

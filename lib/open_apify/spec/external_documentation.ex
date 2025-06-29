@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.ExternalDocumentation do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Allows referencing an external resource for extended documentation.
-  JSV.defschema(%{
+  defschema %{
     title: "ExternalDocumentation",
     type: :object,
     description: "Allows referencing an external resource for extended documentation.",
@@ -12,7 +12,7 @@ defmodule OpenApify.Spec.ExternalDocumentation do
       url: %{type: :string, description: "A URI for the target documentation. Required."}
     },
     required: [:url]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

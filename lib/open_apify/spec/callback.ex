@@ -1,5 +1,4 @@
 defmodule OpenApify.Spec.Callback do
-  require JSV
   use OpenApify.Internal.SpecObject
 
   # Map of possible out-of-band callbacks related to the parent operation.

@@ -2,11 +2,11 @@ defmodule OpenApify.Spec.Response do
   alias OpenApify.Spec.MediaType
   alias OpenApify.Spec.Reference
   import OpenApify.Internal.ControllerBuilder
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Describes a single response from an API operation.
-  JSV.defschema(%{
+  defschema %{
     title: "Response",
     type: :object,
     description: "Describes a single response from an API operation.",
@@ -29,7 +29,7 @@ defmodule OpenApify.Spec.Response do
       }
     },
     required: [:description]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do
@@ -78,7 +78,7 @@ defmodule OpenApify.Spec.Response do
 
   def from_controller!(spec) when is_list(spec) when is_map(spec) do
     spec
-    |> build(__MODULE__)
+    |> make(__MODULE__)
     |> take_required(:description)
     |> take_default(:content, nil, &cast_content/1)
     |> take_default(:headers, nil)

@@ -1,10 +1,10 @@
 defmodule OpenApify.Spec.MediaType do
   alias OpenApify.Spec.Reference
   import OpenApify.Internal.ControllerBuilder
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
-  JSV.defschema(%{
+  defschema %{
     title: "MediaType",
     type: :object,
     description: "Provides schema and examples for a media type.",
@@ -22,7 +22,7 @@ defmodule OpenApify.Spec.MediaType do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do
@@ -43,7 +43,7 @@ defmodule OpenApify.Spec.MediaType do
 
   def from_controller!(spec) do
     spec
-    |> build(__MODULE__)
+    |> make(__MODULE__)
     |> take_required(:schema)
     |> take_default_lazy(:examples, fn ->
       case Access.fetch(spec, :example) do

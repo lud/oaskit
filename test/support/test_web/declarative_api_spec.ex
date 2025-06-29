@@ -3,7 +3,6 @@ defmodule OpenApify.TestWeb.DeclarativeApiSpec do
   alias OpenApify.TestWeb.Schemas.CreatePotionBody
   alias OpenApify.TestWeb.Schemas.Ingredient
   alias OpenApify.TestWeb.Schemas.Potion
-  require JSV
   use OpenApify
 
   @api_spec %{

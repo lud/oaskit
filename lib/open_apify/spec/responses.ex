@@ -1,5 +1,4 @@
 defmodule OpenApify.Spec.Responses do
-  require JSV
   use OpenApify.Internal.SpecObject
 
   # Container for expected responses of an operation.

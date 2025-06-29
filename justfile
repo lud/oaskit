@@ -23,9 +23,6 @@ _mix_check:
 _git_status:
   git status
 
-docs:
-  mix docs
-
 changelog:
   git cliff -o CHANGELOG.md
 
@@ -34,6 +31,11 @@ css-min:
 
 dump:
   mix openapi.dump OpenApify.TestWeb.PathsApiSpec --pretty -o samples/openapi.json
+
+docs:
+  mix docs
+  mix rdmx.update README.md
+  mix rdmx.update guides/quickstart.md
 
 check: deps _mix_format dump _mix_check docs  _git_status
 

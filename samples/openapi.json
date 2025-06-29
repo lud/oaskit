@@ -103,7 +103,7 @@
   "paths": {
     "/generated/body/boolean-schema-false": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -116,8 +116,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_boolean_schema_false_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_boolean_schema_false_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -130,7 +130,7 @@
     },
     "/generated/body/form": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -143,8 +143,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_handle_form_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_handle_form_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
@@ -159,7 +159,7 @@
     },
     "/generated/body/inline-single": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -172,8 +172,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_inline_single_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_inline_single_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -208,7 +208,7 @@
     },
     "/generated/body/manual-form-handle": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -221,8 +221,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_manual_form_handle_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_manual_form_handle_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
@@ -237,7 +237,7 @@
     },
     "/generated/body/manual-form-show": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -250,13 +250,13 @@
             "description": "no description"
           }
         },
-        "operationId": "body_manual_form_show_4REA4AI",
-        "parameters": [ ]
+        "operationId": "body_manual_form_show_BPGHEWQ",
+        "parameters": []
       }
     },
     "/generated/body/module-single": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -270,7 +270,7 @@
           }
         },
         "operationId": "custom_operation_id_module_single",
-        "parameters": [ ],
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -285,7 +285,7 @@
     },
     "/generated/body/module-single-no-required": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -298,8 +298,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_module_single_not_required_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_module_single_not_required_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -314,7 +314,7 @@
     },
     "/generated/body/wildcard": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -327,8 +327,8 @@
             "description": "no description"
           }
         },
-        "operationId": "body_wildcard_media_type_4REA4AI",
-        "parameters": [ ],
+        "operationId": "body_wildcard_media_type_BPGHEWQ",
+        "parameters": [],
         "requestBody": {
           "content": {
             "*/*": {
@@ -397,7 +397,7 @@
     },
     "/generated/meta/before-metas": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -411,7 +411,7 @@
           }
         },
         "operationId": "meta_before",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/meta/overrides-param": {
@@ -460,7 +460,7 @@
     },
     "/generated/method/p": {
       "delete": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -474,10 +474,10 @@
           }
         },
         "operationId": "mDELETE",
-        "parameters": [ ]
+        "parameters": []
       },
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -491,10 +491,10 @@
           }
         },
         "operationId": "mGET",
-        "parameters": [ ]
+        "parameters": []
       },
       "head": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -508,10 +508,10 @@
           }
         },
         "operationId": "mHEAD",
-        "parameters": [ ]
+        "parameters": []
       },
       "options": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -525,10 +525,10 @@
           }
         },
         "operationId": "mOPTIONS",
-        "parameters": [ ]
+        "parameters": []
       },
       "patch": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -542,10 +542,10 @@
           }
         },
         "operationId": "mPATCH",
-        "parameters": [ ]
+        "parameters": []
       },
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -559,10 +559,10 @@
           }
         },
         "operationId": "mPOST",
-        "parameters": [ ]
+        "parameters": []
       },
       "put": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -576,10 +576,10 @@
           }
         },
         "operationId": "mPUT",
-        "parameters": [ ]
+        "parameters": []
       },
       "trace": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -593,12 +593,12 @@
           }
         },
         "operationId": "mTRACE",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/no-html-errors": {
       "post": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -609,7 +609,7 @@
             "description": "no description"
           }
         },
-        "operationId": "json_errors_create_plant_OMWLINA",
+        "operationId": "json_errors_create_plant_EVC6DKI",
         "parameters": [
           {
             "in": "query",
@@ -639,7 +639,7 @@
     },
     "/generated/no-params": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -650,13 +650,13 @@
             "description": "no description"
           }
         },
-        "operationId": "param_no_params_KN6VVKI",
-        "parameters": [ ]
+        "operationId": "param_no_params_BAQUDGY",
+        "parameters": []
       }
     },
     "/generated/params/{slug}/arrays": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -669,7 +669,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_array_types_KN6VVKI",
+        "operationId": "param_array_types_BAQUDGY",
         "parameters": [
           {
             "in": "query",
@@ -692,13 +692,22 @@
               },
               "type": "array"
             }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
           }
         ]
       }
     },
     "/generated/params/{slug}/boolean-schema-false": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -711,7 +720,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_boolean_schema_false_KN6VVKI",
+        "operationId": "param_boolean_schema_false_BAQUDGY",
         "parameters": [
           {
             "in": "query",
@@ -739,7 +748,7 @@
     },
     "/generated/params/{slug}/generic": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -752,7 +761,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_generic_param_types_KN6VVKI",
+        "operationId": "param_generic_param_types_BAQUDGY",
         "parameters": [
           {
             "in": "query",
@@ -800,7 +809,7 @@
     },
     "/generated/params/{slug}/s/{shape}": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -813,7 +822,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_scope_only_KN6VVKI",
+        "operationId": "param_scope_only_BAQUDGY",
         "parameters": [
           {
             "in": "path",
@@ -841,7 +850,7 @@
     },
     "/generated/params/{slug}/s/{shape}/t/{theme}": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -854,7 +863,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_scope_and_single_KN6VVKI",
+        "operationId": "param_scope_and_single_BAQUDGY",
         "parameters": [
           {
             "in": "path",
@@ -894,7 +903,7 @@
     },
     "/generated/params/{slug}/s/{shape}/t/{theme}/c/{color}": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -907,7 +916,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_scope_and_two_path_params_KN6VVKI",
+        "operationId": "param_scope_and_two_path_params_BAQUDGY",
         "parameters": [
           {
             "in": "path",
@@ -995,7 +1004,7 @@
     },
     "/generated/params/{slug}/t/{theme}": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1008,7 +1017,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_single_path_param_KN6VVKI",
+        "operationId": "param_single_path_param_BAQUDGY",
         "parameters": [
           {
             "in": "path",
@@ -1036,7 +1045,7 @@
     },
     "/generated/params/{slug}/t/{theme}/c/{color}": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1049,7 +1058,7 @@
             "description": "no description"
           }
         },
-        "operationId": "param_two_path_params_KN6VVKI",
+        "operationId": "param_two_path_params_BAQUDGY",
         "parameters": [
           {
             "in": "path",
@@ -1089,7 +1098,7 @@
     },
     "/generated/resp/fortune-200-bad-content-type": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1103,12 +1112,12 @@
           }
         },
         "operationId": "fortune_bad_content_type",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/resp/fortune-200-invalid": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1122,24 +1131,24 @@
           }
         },
         "operationId": "fortune_invalid",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/resp/fortune-200-no-content-def": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "description": "Hello"
           }
         },
         "operationId": "fortune_no_content_def",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/resp/fortune-200-valid": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1153,12 +1162,12 @@
           }
         },
         "operationId": "fortune_valid",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/resp/fortune-500-bad-default-resp": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1182,12 +1191,12 @@
           }
         },
         "operationId": "fortune_invalid_default_resp",
-        "parameters": [ ]
+        "parameters": []
       }
     },
     "/generated/resp/fortune-500-default-resp": {
       "get": {
-        "tags": [ ],
+        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1211,7 +1220,7 @@
           }
         },
         "operationId": "fortune_default_resp",
-        "parameters": [ ]
+        "parameters": []
       }
     }
   }

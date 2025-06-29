@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Discriminator do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Provides a hint about the expected schema when request bodies or responses may be one of several schemas.
-  JSV.defschema(%{
+  defschema %{
     title: "Discriminator",
     type: :object,
     description:
@@ -21,7 +21,7 @@ defmodule OpenApify.Spec.Discriminator do
       }
     },
     required: [:propertyName]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

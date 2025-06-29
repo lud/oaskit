@@ -1,10 +1,13 @@
 defmodule OpenApify.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/lud/open_apify"
+  @version "0.1.0"
+
   def project do
     [
       app: :open_apify,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -41,6 +44,7 @@ defmodule OpenApify.MixProject do
 
       # Dev
       {:libdev, "~> 0.1.0", only: [:dev, :test, :doc], runtime: false},
+      {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
 
       # Test
       {:bandit, "~> 1.0", only: [:dev, :test]}
@@ -49,15 +53,62 @@ defmodule OpenApify.MixProject do
 
   defp docs do
     [
-      groups_for_modules: [
-        "Main API": [OpenApify, OpenApify.Controller],
-        Plugs: ~r{OpenApify\.Plugs\.},
-        Testing: [OpenApify.Test],
-        "OpenAPI Spec 3.1": ~r{OpenApify\.Spec\.},
-        Parsers: ~r{OpenApify\.Parsers\.},
-        "JSON Schema Extensions": ~r{OpenApify\.JsonSchema\.}
-      ],
+      main: "readme",
+      extra_section: "GUIDES",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: doc_extras(),
+      groups_for_extras: groups_for_extras(),
+      groups_for_modules: groups_for_modules(),
+      groups_for_modules: groups_for_modules(),
       nest_modules_by_prefix: [OpenApify.Spec]
+    ]
+  end
+
+  def doc_extras do
+    existing_guides = Path.wildcard("guides/**/*.md")
+
+    defined_guides = [
+      "CHANGELOG.md",
+      "README.md",
+      "guides/quickstart.md"
+    ]
+
+    case existing_guides -- defined_guides do
+      [] ->
+        :ok
+        defined_guides
+
+      missed ->
+        IO.warn("""
+
+        unreferenced guides
+
+        #{Enum.map(missed, &[inspect(&1), ",\n"])}
+
+
+        """)
+
+        defined_guides ++ missed
+    end
+  end
+
+  defp groups_for_extras do
+    [
+      Schemas: ~r/guides\/schemas\/.?/,
+      Build: ~r/guides\/build\/.?/,
+      Validation: ~r/guides\/validation\/.?/
+    ]
+  end
+
+  defp groups_for_modules do
+    [
+      "Main API": [OpenApify, OpenApify.Controller],
+      Plugs: ~r{OpenApify\.Plugs\.},
+      Testing: [OpenApify.Test],
+      "OpenAPI Spec 3.1": ~r{OpenApify\.Spec\.},
+      Parsers: ~r{OpenApify\.Parsers\.},
+      "JSON Schema Extensions": ~r{OpenApify\.JsonSchema\.}
     ]
   end
 

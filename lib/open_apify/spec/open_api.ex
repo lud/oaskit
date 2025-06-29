@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.OpenAPI do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Root object describing the entire OpenAPI document and its structure.
-  JSV.defschema(%{
+  defschema %{
     title: "OpenAPI",
     type: :object,
     description:
@@ -17,6 +17,7 @@ defmodule OpenApify.Spec.OpenAPI do
       info: OpenApify.Spec.Info,
       jsonSchemaDialect: %{
         type: :string,
+        default: "https://json-schema.org/draft/2020-12/schema",
         description: "The default value for the $schema keyword within Schema Objects."
       },
       servers: %{
@@ -44,7 +45,7 @@ defmodule OpenApify.Spec.OpenAPI do
       externalDocs: OpenApify.Spec.ExternalDocumentation
     },
     required: [:openapi, :info, :paths]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do
@@ -55,6 +56,7 @@ defmodule OpenApify.Spec.OpenAPI do
       externalDocs: OpenApify.Spec.ExternalDocumentation,
       info: OpenApify.Spec.Info,
       openapi: :default,
+      jsonSchemaDialect: :default,
       paths: OpenApify.Spec.Paths,
       security: {:list, OpenApify.Spec.SecurityRequirement},
       servers: {:list, OpenApify.Spec.Server},

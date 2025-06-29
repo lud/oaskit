@@ -10,17 +10,6 @@ defmodule OpenApify.TestWeb.ParamController do
 
   # TODO(doc) import formatter in readme
 
-  operation :array_types,
-    parameters: [
-      numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
-      names: [in: :query, schema: Schema.array_of(Schema.string())]
-    ],
-    responses: dummy_responses()
-
-  def array_types(conn, params) do
-    Responder.reply(conn, params)
-  end
-
   operation :no_params, responses: [ok: true]
 
   def no_params(conn, params) do
@@ -93,7 +82,9 @@ defmodule OpenApify.TestWeb.ParamController do
       color: [in: :path, schema: @color],
       shape: [in: :query, schema: @query_int, required: true],
       theme: [in: :query, schema: @query_int],
-      # That last param uses a self ref and it should work
+      # That last param uses a self ref and it should work. But it causes a
+      # problem with the openapi-spec-validator python tool because it seem to
+      # only validate according to Draft 7.
       color: [
         in: :query,
         schema: %{
@@ -117,6 +108,17 @@ defmodule OpenApify.TestWeb.ParamController do
     responses: dummy_responses()
 
   def boolean_schema_false(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :array_types,
+    parameters: [
+      numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
+      names: [in: :query, schema: Schema.array_of(Schema.string())]
+    ],
+    responses: dummy_responses()
+
+  def array_types(conn, params) do
     Responder.reply(conn, params)
   end
 end

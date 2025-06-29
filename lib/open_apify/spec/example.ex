@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Example do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Groups an example value with metadata.
-  JSV.defschema(%{
+  defschema %{
     title: "Example",
     type: :object,
     description: "Groups an example value with metadata.",
@@ -17,7 +17,7 @@ defmodule OpenApify.Spec.Example do
       }
     },
     required: []
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

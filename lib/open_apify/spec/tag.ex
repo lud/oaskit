@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Tag do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Adds metadata to a single tag.
-  JSV.defschema(%{
+  defschema %{
     title: "Tag",
     type: :object,
     description: "Adds metadata to a single tag.",
@@ -13,7 +13,7 @@ defmodule OpenApify.Spec.Tag do
       externalDocs: OpenApify.Spec.ExternalDocumentation
     },
     required: [:name]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

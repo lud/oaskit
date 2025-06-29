@@ -1,9 +1,9 @@
 defmodule OpenApify.Spec.Info do
-  require JSV
+  import JSV
   use OpenApify.Internal.SpecObject
 
   # Provides metadata about the API, such as title, version, and contact information.
-  JSV.defschema(%{
+  defschema %{
     title: "Info",
     type: :object,
     description: "Metadata about the API.",
@@ -17,7 +17,7 @@ defmodule OpenApify.Spec.Info do
       version: %{type: :string, description: "The version of the OpenAPI document. Required."}
     },
     required: [:title, :version]
-  })
+  }
 
   @impl true
   def normalize!(data, ctx) do

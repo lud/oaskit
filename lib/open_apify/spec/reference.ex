@@ -1,8 +1,8 @@
 defmodule OpenApify.Spec.Reference do
-  require JSV
+  import JSV
 
   # Allows referencing other components in the OpenAPI Description.
-  JSV.defschema(%{
+  defschema %{
     title: "Reference",
     type: :object,
     description:
@@ -23,5 +23,5 @@ defmodule OpenApify.Spec.Reference do
     },
     additionalProperties: false,
     required: [:"$ref"]
-  })
+  }
 end
