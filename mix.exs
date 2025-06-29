@@ -11,10 +11,13 @@ defmodule Oaskit.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      description: description(),
+      package: package(),
       docs: docs(),
       deps: deps(),
       dialyzer: dialyzer(),
-      modkit: modkit()
+      modkit: modkit(),
+      source_url: @source_url
     ]
   end
 
@@ -54,6 +57,22 @@ defmodule Oaskit.MixProject do
       {:ex_doc, "~> 0.38", only: [:dev, :test, :doc], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp description do
+    "A set of macros and plugs for Elixir/Phoenix applications to automatically " <>
+      "validate incoming HTTP requests based on the OpenAPI Specification v3.1."
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
+      },
+      files: ~w(lib priv .formatter.exs mix.exs README* LICENSE* CHANGELOG*)
     ]
   end
 
