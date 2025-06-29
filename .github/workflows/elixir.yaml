@@ -1,0 +1,93 @@
+name: Elixir Checks
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+  cache_vsn: "v1"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    # Run only on pull requests when the PR comes from another repository. This
+    # avoids to run the workflow twice on pull requests from the same repository
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        elixir: ["1.18.4-otp-27","1.17.3"]
+        otp: ["28.0","27.3"]
+        exclude: [{"otp":"28.0","elixir":"1.17.3"}]
+
+
+    name: "Test ${{matrix.elixir}}-otp-${{matrix.otp}}"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Dependencies build cache
+        uses: actions/cache@v4
+        id: mix-deps
+        with:
+          path: |
+            deps
+            _build
+            !_build/plts
+          key: ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+          # For the build we want them compiled on the same versions.
+          restore-keys: |
+            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.lock') }}
+            ${{ env.cache_vsn }}-deps-build-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--
+
+      - name: Install Dependencies
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get --check-locked
+
+      # Use force as we use a template config so we do not want to ignore a
+      # specific directory from the cache. So we always want to compile all the
+      # code. We will also `mix clean` at the end.
+      - name: Compile Project
+        run: mix compile --force --warnings-as-errors
+
+      - name: Run Tests
+        run: mix test
+
+      - name: Check Formatting
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Retrieve PLT Cache
+        uses: actions/cache@v4
+        id: dialyzer-plts
+        with:
+          path: _build/plts
+          key: ${{ env.cache_vsn }}-dialyzer-plts-${{ runner.os }}--${{ matrix.otp }}--${{ matrix.elixir }}--${{ hashFiles('mix.exs', 'mix.lock') }}
+
+      - name: Run dialyzer
+        run: mix dialyzer --halt-exit-status
+
+        # Remove generated application beam files to prevent caching them. We
+        # also use `mix compile --force` to always check that the code compiles.
+      - name: Clean
+        run: mix clean
