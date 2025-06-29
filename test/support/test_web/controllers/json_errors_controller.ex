@@ -1,8 +1,8 @@
 defmodule OpenApify.TestWeb.JsonErrorsController do
   alias OpenApify.TestWeb.Schemas.PlantSchema
   # -- equivalent of using the web :controller --------------------------------
-  use OpenApify.Controller
   import Plug.Conn
+  use OpenApify.Controller
 
   use Phoenix.Controller,
     formats: [:html, :json],
@@ -24,8 +24,7 @@ defmodule OpenApify.TestWeb.JsonErrorsController do
     ],
     responses: [ok: true]
 
-  def create_plant(conn, _params) do
-    conn.private.open_apify |> dbg()
+  def create_plant(_conn, _params) do
     raise "only used with erroring payloads"
   end
 end
