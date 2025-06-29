@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2025-06-29
+
+### 📚 Documentation
+
+- Fix doc rendering on hexdocs.pm
+
+### ⚙️ Miscellaneous Tasks
+
+- Setup versioning
+
 ## [0.1.0] - 2025-06-29
 
 ### 🚀 Features
