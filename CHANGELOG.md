@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2025-06-30
+
+### 🚀 Features
+
+- Provide a controller to serve the specs and Redoc UI
+
 ## [0.1.1] - 2025-06-29
 
 ### 📚 Documentation
