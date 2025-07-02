@@ -11,7 +11,8 @@
 <!-- rdmx /:badges -->
 
 Oaskit is a set of macros and plugs for Elixir/Phoenix applications to
-automatically validate incoming HTTP requests based on the [OpenAPI Specification v3.1](https://spec.openapis.org/oas/v3.1.1.html).
+automatically validate incoming HTTP requests based on the [OpenAPI
+Specification v3.1](https://spec.openapis.org/oas/v3.1.1.html).
 
 * Request bodies, path and query parameters validation with JSON schemas
   supported by [JSV](https://hex.pm/packages/jsv).
@@ -21,9 +22,9 @@ automatically validate incoming HTTP requests based on the [OpenAPI Specificatio
 
 ## Documentation
 
-The [Documentation](https://hexdocs.pm/oaskit/) is available on hexdocs, including a [Quickstart Guide](https://hexdocs.pm/oaskit/0.1.0/quickstart.html) to dive right in.
-
-
+The [Documentation](https://hexdocs.pm/oaskit/) is available on hexdocs,
+including a [Quickstart Guide](https://hexdocs.pm/oaskit/quickstart.html) to
+dive right in.
 
 
 ## Installation
@@ -48,7 +49,8 @@ You can also import formatter rules in your `.formatter.exs` file:
 
 ## Contributing
 
-Pull requests are welcome, provided they include appropriate tests and documentation.
+Pull requests are welcome, provided they include appropriate tests and
+documentation.
 
 ## Roadmap
 
