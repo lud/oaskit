@@ -25,12 +25,14 @@ schema `format` keyword.
 Finally, you will most probably use macros from this library, import formatter
 rules in your `.formatter.exs` file:
 
+<!-- rdmx :section name:formatter_config format: true -->
 ```elixir
 # .formatter.exs
 [
   import_deps: [:oaskit]
 ]
 ```
+<!-- rdmx /:section -->
 
 
 ## Creating an API Specification Module
@@ -38,6 +40,7 @@ rules in your `.formatter.exs` file:
 Create a module that defines your OpenAPI specification using the `Oaskit`
 module. This module will serve as the central definition of your API:
 
+<!-- rdmx :section name:api_spec_module format: true -->
 ```elixir
 defmodule MyAppWeb.ApiSpec do
   alias Oaskit.Spec.Paths
@@ -59,6 +62,7 @@ defmodule MyAppWeb.ApiSpec do
   end
 end
 ```
+<!-- rdmx /:section -->
 
 The `Oaskit.Spec.Paths.from_router/2` function automatically extracts API
 paths from your Phoenix router, focusing only on controller actions that have
@@ -71,6 +75,7 @@ are included in your specification.
 Configure your Phoenix router to use Oaskit validation with your API spec
 module by setting up a pipeline with the `Oaskit.Plugs.SpecProvider` plug:
 
+<!-- rdmx :section name:router_pipeline format: true -->
 ```elixir
 defmodule MyAppWeb.Router do
   use Phoenix.Router
@@ -90,6 +95,7 @@ defmodule MyAppWeb.Router do
   end
 end
 ```
+<!-- rdmx /:section -->
 
 The `Oaskit.Plugs.SpecProvider` plug is required as a controller action and
 its defined OpenAPI operation can be referenced in multiple specifications.
@@ -100,6 +106,7 @@ its defined OpenAPI operation can be referenced in multiple specifications.
 Set up your controllers to use Oaskit validation. You can do this globally in
 your `MyAppWeb` module:
 
+<!-- rdmx :section name:controller_config format: true -->
 ```elixir
 defmodule MyAppWeb do
   def controller do
@@ -124,6 +131,7 @@ defmodule MyAppWeb do
   # ...
 end
 ```
+<!-- rdmx /:section -->
 
 This setup ensures all controllers using `use MyAppWeb, :controller` will have
 Oaskit validation enabled. See the documentation of
@@ -139,6 +147,7 @@ Now you can define operations in your controllers using the
 To import the macros, use your `:controller` helper as usual since you've added
 `use Oaskit.Controller` in the previous step.
 
+<!-- rdmx :section name:controller_use format: true -->
 ```elixir
 defmodule MyAppWeb.UserController do
   use MyAppWeb, :controller
@@ -146,6 +155,7 @@ defmodule MyAppWeb.UserController do
   # ...
 end
 ```
+<!-- rdmx /:section -->
 
 The operation macro takes the function name and the operation specs as
 arguments.
@@ -154,6 +164,7 @@ In this example we use syntax shortcuts to refer directly to schemas, but the
 operation macro lets you define responses or requests with multiple content
 types, custom descriptions and many other options. Make sure to read the docs!
 
+<!-- rdmx :section name:operation_definition format: true -->
 ```elixir
 operation :create,
   summary: "Create a new user",
@@ -192,6 +203,7 @@ def create(conn, _params) do
   end
 end
 ```
+<!-- rdmx /:section -->
 
 
 ### Defining JSON Schemas
@@ -203,6 +215,7 @@ using modules.
 
 Inline schemas are maps (with atoms or binary keys and values) or booleans.
 
+<!-- rdmx :section name:inline_schemas format: true -->
 ```elixir
 @user_schema %{
   type: :object,
@@ -219,6 +232,7 @@ operation :create,
   request_body: {@user_schema, [required: true]},
   responses: [ok: {@user_schema, []}]
 ```
+<!-- rdmx /:section -->
 
 While they are practical, such maps are duplicated in the compiled module as
 well as in the OpenAPI specification document.
@@ -238,6 +252,7 @@ Make sure to check the [JSV
 documentation](https://hexdocs.pm/jsv/defining-schemas.html) for additional
 features.
 
+<!-- rdmx :section name:module_schemas format: true -->
 ```elixir
 defmodule MyAppWeb.Schemas.UserSchema do
   import JSV
@@ -259,6 +274,7 @@ end
 operation :show,
   responses: [ok: MyAppWeb.Schemas.UserSchema]
 ```
+<!-- rdmx /:section -->
 
 Such schemas are collected into the `#/components/schemas` section of the
 OpenAPI specification, which makes that document shorter, easier to navigate,
@@ -273,6 +289,7 @@ operations.
 
 Those macros only apply to operations defined _after_ them.
 
+<!-- rdmx :section name:shared_elements format: true -->
 ```elixir
 # Add tags to group operations in documentation
 tags ["users", "public"]
@@ -281,6 +298,7 @@ tags ["users", "public"]
 parameter :page, in: :query, schema: %{type: :integer}
 parameter :per_page, in: :query, schema: %{type: :integer}
 ```
+<!-- rdmx /:section -->
 
 
 ## Testing with Oaskit.Test
@@ -289,6 +307,7 @@ The `valid_response/3` helper validates that the response matches your OpenAPI
 specification, including status code, content type, and response body schema. It
 returns the parsed response data for further assertions.
 
+<!-- rdmx :section name:test_example format: true -->
 ```elixir
 defmodule MyAppWeb.UserControllerTest do
   use MyAppWeb.ConnCase
@@ -311,11 +330,11 @@ defmodule MyAppWeb.UserControllerTest do
     # Validate the response against your OpenAPI specification. It returns
     # decoded data for JSON content-types.
     assert %{
-            "name" => "John Doe",
-            "email" => "john@example.com",
-            "age" => 25
-          } =
-            valid_response(conn, 201)
+             "name" => "John Doe",
+             "email" => "john@example.com",
+             "age" => 25
+           } =
+             valid_response(conn, 201)
   end
 
   test "create user with invalid data returns validation errors", %{conn: conn} do
@@ -336,6 +355,7 @@ defmodule MyAppWeb.UserControllerTest do
   end
 end
 ```
+<!-- rdmx /:section -->
 
 
 ## Generating OpenAPI Documentation
@@ -343,9 +363,11 @@ end
 Once you have your operations defined, you can generate an OpenAPI specification
 file using the Mix task:
 
+<!-- rdmx :section name:openapi_dump format: true -->
 ```bash
 mix openapi.dump MyAppWeb.ApiSpec --pretty -o priv/openapi.json
 ```
+<!-- rdmx /:section -->
 
 This generates a complete OpenAPI 3.1 specification file that can be used with
 various tools like client generators for TypeScript or Elixir.
@@ -359,9 +381,11 @@ HTTP endpoint.
 
 Add the controller to your router:
 
+<!-- rdmx :section name:spec_controller format: true -->
 ```elixir
 get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
 ```
+<!-- rdmx /:section -->
 
 This will serve your OpenAPI specification at `/openapi.json`. Pass `?pretty=1`
 to get pretty printed JSON.
@@ -369,9 +393,11 @@ to get pretty printed JSON.
 You can also use that controller to serve Redoc UI. Pass the full URL path to
 the json route you just defined:
 
+<!-- rdmx :section name:redoc_controller format: true -->
 ```elixir
 get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
 ```
+<!-- rdmx /:section -->
 
 Redoc allows you to browse your API endpoints, view request/response schemas,
 and see examples, but note that it is read-only and doesn't allow testing the
