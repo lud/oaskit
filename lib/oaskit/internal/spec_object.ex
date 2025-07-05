@@ -8,6 +8,8 @@ defmodule Oaskit.Internal.SpecObject do
     quote do
       import Oaskit.Internal.Normalizer
       import unquote(__MODULE__)
+      use JSV.Schema
+
       @behaviour Oaskit.Internal.Normalizer
       @behaviour Access
       snake_object_name =

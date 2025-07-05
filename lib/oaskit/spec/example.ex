@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Example do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Groups an example value with metadata.

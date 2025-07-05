@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.PathItem do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   def verbs do

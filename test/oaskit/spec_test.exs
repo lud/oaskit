@@ -313,7 +313,7 @@ defmodule Oaskit.SpecTest do
     end
 
     defmodule PetSchema do
-      import JSV
+      use JSV.Schema
 
       defschema %{
         title: "Pet",
@@ -327,7 +327,7 @@ defmodule Oaskit.SpecTest do
     end
 
     defmodule OccupationSchema do
-      import JSV
+      use JSV.Schema
 
       defschema %{
         title: "Occupation",
@@ -379,7 +379,7 @@ defmodule Oaskit.SpecTest do
     end
 
     defmodule IceCubeSchema do
-      import JSV
+      use JSV.Schema
 
       defschema %{
         # Here the title is set to the predefined refname of the DrinkSchema. It
@@ -394,7 +394,7 @@ defmodule Oaskit.SpecTest do
     end
 
     defmodule DrinkSchema do
-      import JSV
+      use JSV.Schema
 
       defschema %{
         title: "Drink",
@@ -452,6 +452,42 @@ defmodule Oaskit.SpecTest do
                  }
                }
              } = spec
+    end
+
+    test "nested schemas with the same title" do
+      # This is a special case that actually happened when copy-pasting stuff.
+
+      defmodule Child do
+        require(JSV).defschema(%{
+          type: :object,
+          who: "child",
+          title: "SameTitle",
+          properties: %{foo: true}
+        })
+      end
+
+      defmodule Parent do
+        require(JSV).defschema(%{
+          type: :object,
+          who: "parent",
+          title: "SameTitle",
+          properties: %{child: Child}
+        })
+      end
+
+      spec =
+        %{
+          "paths" => schemas_to_paths([Parent])
+        }
+        |> base()
+        |> Oaskit.normalize_spec!()
+        |> cast_to_structs()
+
+      # The parent will be seen first so it should take the title
+      assert %{
+               "SameTitle" => %{"who" => "parent"},
+               "SameTitle_1" => %{"who" => "child"}
+             } = spec.components.schemas
     end
   end
 
@@ -532,7 +568,7 @@ defmodule Oaskit.SpecTest do
         |> cast_to_structs()
 
       # operation before shared items has no tags and no parameters
-      assert %{operationId: "meta_before", parameters: [], tags: []} =
+      assert %{operationId: "meta_before", parameters: nil, tags: nil} =
                spec.paths["/generated/meta/before-metas"].get
 
       # operation after has its own tags and parameters, and the shared ones

@@ -1,4 +1,5 @@
 defmodule Oaskit.TestWeb.DeclarativeApiSpec do
+  alias Oaskit.ErrorHandler.Default.ErrorResponseSchema
   alias Oaskit.TestWeb.Schemas.AlchemistsPage
   alias Oaskit.TestWeb.Schemas.CreatePotionBody
   alias Oaskit.TestWeb.Schemas.Ingredient
@@ -14,7 +15,8 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
       "version" => "1.0.0"
     },
     "paths" => %{
-      "/potions" => %{"$ref" => "#/components/pathItems/CreatePotionPath"},
+      # Atom paths work
+      :"/potions" => %{"$ref" => "#/components/pathItems/CreatePotionPath"},
       "/{lab}/alchemists" => %{"$ref" => "#/components/pathItems/AlchemistsPath"}
     },
     "components" => %{
@@ -28,6 +30,7 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
             ],
             "requestBody" => %{"$ref" => "#/components/requestBodies/CreatePotionRequest"},
             "responses" => %{
+              "default" => %{"$ref" => "#/components/responses/ErrErrErr"},
               "200" => %{"$ref" => "#/components/responses/PotionCreated"}
             }
           }
@@ -44,6 +47,7 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
               %{"$ref" => "#/components/parameters/Page"}
             ],
             "responses" => %{
+              "default" => %{"$ref" => "#/components/responses/ErrErrErr"},
               "200" => %{"$ref" => "#/components/responses/AlchemistsPage"},
               "400" => %{"$ref" => "#/components/responses/BadRequest"}
             }
@@ -66,6 +70,7 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
               }
             ],
             "responses" => %{
+              "default" => %{"$ref" => "#/components/responses/ErrErrErr"},
               "200" => %{"$ref" => "#/components/responses/AlchemistsPage"}
             }
           }
@@ -114,6 +119,14 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
         }
       },
       "responses" => %{
+        "ErrErrErr" => %{
+          "description" => "response with error schema from OASKit",
+          "content" => %{
+            "application/json" => %{
+              "schema" => ErrorResponseSchema
+            }
+          }
+        },
         "BadRequest" => %{
           "description" => "Bad request",
           "content" => %{

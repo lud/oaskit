@@ -237,6 +237,10 @@ defmodule Oaskit.Internal.ValidationBuilder do
     {[], jsv_ctx}
   end
 
+  defp build_parameters_validation(nil, [], _rev_path, _spec, jsv_ctx) do
+    {[], jsv_ctx}
+  end
+
   # _wrev means "with rev path"
   defp build_parameters_validation(parameters, pathitem_parameters_wrev, rev_path, spec, jsv_ctx) do
     parameters_wrev =

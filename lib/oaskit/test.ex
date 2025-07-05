@@ -9,10 +9,10 @@ defmodule Oaskit.Test do
 
   @doc ~S"""
   Validates that the given conn bears a response that is valid with regard to
-  the OpenAPI operation that served it, and returns the response.
+  the OpenAPI operation that served it, and returns the response body.
 
-  Responses returned with an `"application/json"` content-type (or compatible
-  json content type) in adequation with the spec will be decoded.
+  Responses returned with a JSON based content-type like `"application/json"` or
+  `"application/vnd.api+json"` will be decoded.
 
   It is encouraged to wrap this function with a custom helper, typically in your
   `MyAppWeb.ConnCase` test helper:
@@ -34,7 +34,11 @@ defmodule Oaskit.Test do
       test "should return the user info", %{conn: conn} do
         %{id: id} = user_fixture(username: "joe", roles: ["admin"])
         conn = get(conn, ~p"/api/users/#{id}")
-        assert %{"username" => "joe", "roles" => ["admin"]} = valid_response(conn, 200)
+
+        assert %{
+          "username" => "joe",
+          "roles" => ["admin"]
+        } = valid_response(conn, 200)
       end
   """
   def valid_response(spec_module, %Plug.Conn{} = conn, status) when is_integer(status) do
@@ -116,11 +120,10 @@ defmodule Oaskit.Test do
                 """
 
 
-                Schema validation errors:
-
-                #{inspect(JSV.normalize_error(jsv_error), pretty: true)}
+                #{Exception.message(jsv_error)}
 
                 Response data:
+
                 #{inspect(body, pretty: true)}
                 """
     end

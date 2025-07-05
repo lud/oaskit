@@ -1,14 +1,14 @@
 defmodule Oaskit.TestWeb.ParamController do
-  alias JSV.Schema
   alias Oaskit.TestWeb.Responder
+  use JSV.Schema
   use Oaskit.TestWeb, :controller
 
   @moduledoc false
 
-  @shape Schema.string_to_atom_enum([:square, :circle])
-  @theme Schema.string_to_atom_enum([:dark, :light])
-  @color Schema.string_to_atom_enum([:red, :blue])
-  @query_int Schema.integer(minimum: 10, maximum: 100)
+  @shape string_enum_to_atom([:square, :circle])
+  @theme string_enum_to_atom([:dark, :light])
+  @color string_enum_to_atom([:red, :blue])
+  @query_int integer(minimum: 10, maximum: 100)
 
   # TODO(doc) import formatter in readme
 
@@ -24,12 +24,12 @@ defmodule Oaskit.TestWeb.ParamController do
 
   operation :generic_param_types,
     parameters: [
-      string_param: [in: :query, schema: Schema.string()],
-      boolean_param: [in: :query, schema: Schema.boolean()],
-      integer_param: [in: :query, schema: Schema.integer()],
-      number_param: [in: :query, schema: Schema.number()]
+      string_param: [in: :query, schema: string()],
+      boolean_param: [in: :query, schema: boolean()],
+      integer_param: [in: :query, schema: integer()],
+      number_param: [in: :query, schema: number()]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def generic_param_types(conn, params) do
     Responder.reply(conn, params)
@@ -39,7 +39,7 @@ defmodule Oaskit.TestWeb.ParamController do
     parameters: [
       theme: [in: :path, schema: @theme]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def single_path_param(conn, params) do
     Responder.reply(conn, params)
@@ -50,7 +50,7 @@ defmodule Oaskit.TestWeb.ParamController do
       theme: [in: :path, schema: @theme],
       color: [in: :path, schema: @color]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def two_path_params(conn, params) do
     Responder.reply(conn, params)
@@ -60,7 +60,7 @@ defmodule Oaskit.TestWeb.ParamController do
     parameters: [
       shape: [in: :path, schema: @shape]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def scope_only(conn, params) do
     Responder.reply(conn, params)
@@ -71,7 +71,7 @@ defmodule Oaskit.TestWeb.ParamController do
       shape: [in: :path, schema: @shape],
       theme: [in: :path, schema: @theme]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def scope_and_single(conn, params) do
     Responder.reply(conn, params)
@@ -96,7 +96,7 @@ defmodule Oaskit.TestWeb.ParamController do
         }
       ]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def scope_and_two_path_params(conn, params) do
     Responder.reply(conn, params)
@@ -107,7 +107,7 @@ defmodule Oaskit.TestWeb.ParamController do
       reject_me: [in: :query, schema: false],
       also_reject: [in: :query, schema: false]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def boolean_schema_false(conn, params) do
     Responder.reply(conn, params)
@@ -115,10 +115,10 @@ defmodule Oaskit.TestWeb.ParamController do
 
   operation :array_types,
     parameters: [
-      numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
-      names: [in: :query, schema: Schema.array_of(Schema.string())]
+      numbers: [in: :query, schema: array_of(integer())],
+      names: [in: :query, schema: array_of(string())]
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def array_types(conn, params) do
     Responder.reply(conn, params)

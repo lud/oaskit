@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.MediaType do
   alias Oaskit.Spec.Reference
   import Oaskit.Internal.ControllerBuilder
-  import JSV
   use Oaskit.Internal.SpecObject
 
   defschema %{

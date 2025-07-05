@@ -1,5 +1,5 @@
 defmodule Oaskit.Spec.Header do
-  import JSV
+  use JSV.Schema
   use Oaskit.Internal.SpecObject
 
   # Describes a single header.
@@ -12,14 +12,9 @@ defmodule Oaskit.Spec.Header do
       required: %{type: :boolean, description: "Determines whether this header is mandatory."},
       deprecated: %{type: :boolean, description: "Specifies that the header is deprecated."},
       style:
-        JSV.Schema.string_to_atom_enum(
-          %{
-            description:
-              "Describes how the header value will be serialized. Default and only legal value is 'simple'."
-          },
-          [
-            :simple
-          ]
+        string_enum_to_atom([:simple],
+          description:
+            "Describes how the header value will be serialized. Default and only legal value is 'simple'."
         ),
       explode: %{
         type: :boolean,

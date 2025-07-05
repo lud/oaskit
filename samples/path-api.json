@@ -11,6 +11,84 @@
   ],
   "components": {
     "schemas": {
+      "JSV:KeywordError": {
+        "title": "JSV:KeywordError",
+        "additionalProperties": false,
+        "description": "Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes",
+        "properties": {
+          "details": {
+            "items": {
+              "$ref": "#/components/schemas/JSV:ValidationUnit"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "description": "The keyword or internal operation that invalidated the data, like \"type\", or a combination like \"if/else\". Custom vocabularies can create their own kinds over the built-in ones.",
+            "type": "string"
+          },
+          "message": {
+            "description": "An error message related to the invalidating keyword",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "message"
+        ],
+        "type": "object"
+      },
+      "JSV:ValidationError": {
+        "title": "JSV:ValidationError",
+        "additionalProperties": false,
+        "description": "This represents a normalized `JSV.ValidationError` in a JSON-encodable way. It contains a list of error units.",
+        "properties": {
+          "details": {
+            "items": {
+              "$ref": "#/components/schemas/JSV:ValidationUnit"
+            },
+            "type": "array"
+          },
+          "valid": {
+            "const": false
+          }
+        },
+        "required": [
+          "valid"
+        ],
+        "type": "object"
+      },
+      "JSV:ValidationUnit": {
+        "title": "JSV:ValidationUnit",
+        "additionalProperties": false,
+        "description": "Describes all errors found at given instanceLocation raised by the same sub-schema (same schemaLocation and evaluationPath). It may also represent a positive validation result, (when `valid` is `true`) needed when for instance multiple schemas under `oneOf` validates the input sucessfully.",
+        "properties": {
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/JSV:KeywordError"
+            },
+            "type": "array"
+          },
+          "evaluationPath": {
+            "description": "A JSON path pointing to the part of the schema that invalidated the data, but going through all indirections like $ref within the schema, starting from the root schema.",
+            "type": "string"
+          },
+          "instanceLocation": {
+            "description": "A JSON path pointing to the invalid part in the input data.",
+            "type": "string"
+          },
+          "schemaLocation": {
+            "description": "A JSON path pointing to the part of the schema that invalidated the data.",
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid"
+        ],
+        "type": "object"
+      },
       "Oaskit.TestWeb.Schemas.FortuneCookie": {
         "properties": {
           "category": {
@@ -72,6 +150,156 @@
         ],
         "type": "object"
       },
+      "Oaskit:BadRequestError": {
+        "title": "Oaskit:BadRequestError",
+        "properties": {
+          "kind": {
+            "const": "bad_request"
+          },
+          "parameters_errors": {
+            "items": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "invalid_parameter"
+                    },
+                    "validation_error": {
+                      "$ref": "#/components/schemas/JSV:ValidationError"
+                    }
+                  },
+                  "required": [
+                    "validation_error"
+                  ]
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "missing_parameter"
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "in": {
+                  "enum": [
+                    "query",
+                    "path"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "invalid_parameter",
+                    "missing_parameter"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "parameter": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "in",
+                "message",
+                "parameter"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "parameters_errors"
+        ],
+        "type": "object"
+      },
+      "Oaskit:Error": {
+        "title": "Oaskit:Error",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Oaskit:UnprocessableEntityError"
+          },
+          {
+            "$ref": "#/components/schemas/Oaskit:UnsupportedMediaTypeError"
+          },
+          {
+            "$ref": "#/components/schemas/Oaskit:BadRequestError"
+          }
+        ],
+        "properties": {
+          "in": {
+            "enum": [
+              "body",
+              "parameters"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "unprocessable_entity",
+              "unsupported_media_type",
+              "bad_request"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "operation_id": {
+            "description": "The ID of the operation that could not be executed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "in",
+          "kind",
+          "message",
+          "operation_id"
+        ],
+        "type": "object"
+      },
+      "Oaskit:ErrorResponse": {
+        "title": "Oaskit:ErrorResponse",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Oaskit:Error"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "Oaskit:UnprocessableEntityError": {
+        "title": "Oaskit:UnprocessableEntityError",
+        "properties": {
+          "kind": {
+            "const": "unprocessable_entity"
+          },
+          "validation_error": {
+            "$ref": "#/components/schemas/JSV:ValidationError"
+          }
+        },
+        "required": [
+          "validation_error"
+        ],
+        "type": "object"
+      },
+      "Oaskit:UnsupportedMediaTypeError": {
+        "title": "Oaskit:UnsupportedMediaTypeError",
+        "properties": {
+          "kind": {
+            "const": "unsupported_media_type"
+          },
+          "media_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "media_type"
+        ],
+        "type": "object"
+      },
       "PlantSchema": {
         "title": "PlantSchema",
         "properties": {
@@ -103,7 +331,6 @@
   "paths": {
     "/generated/body/boolean-schema-false": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -114,10 +341,19 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
         "operationId": "body_boolean_schema_false_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -130,7 +366,6 @@
     },
     "/generated/body/form": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -141,10 +376,19 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
         "operationId": "body_handle_form_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
@@ -159,7 +403,6 @@
     },
     "/generated/body/inline-single": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -170,10 +413,19 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
         "operationId": "body_inline_single_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -208,7 +460,6 @@
     },
     "/generated/body/manual-form-handle": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -219,10 +470,19 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
         "operationId": "body_manual_form_handle_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
@@ -237,7 +497,6 @@
     },
     "/generated/body/manual-form-show": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -248,21 +507,39 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
-        "operationId": "body_manual_form_show_2EFMV2A",
-        "parameters": []
+        "operationId": "body_manual_form_show_2EFMV2A"
       }
     },
     "/generated/body/module-single": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -270,7 +547,6 @@
           }
         },
         "operationId": "custom_operation_id_module_single",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -285,13 +561,20 @@
     },
     "/generated/body/module-single-no-required": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
+                "schema": true
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
                 "schema": {
-                  "_dummy_schema": true
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -299,7 +582,6 @@
           }
         },
         "operationId": "body_module_single_not_required_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "application/json": {
@@ -314,7 +596,6 @@
     },
     "/generated/body/wildcard": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -325,10 +606,19 @@
               }
             },
             "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
           }
         },
         "operationId": "body_wildcard_media_type_2EFMV2A",
-        "parameters": [],
         "requestBody": {
           "content": {
             "*/*": {
@@ -397,7 +687,6 @@
     },
     "/generated/meta/before-metas": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -410,8 +699,7 @@
             "description": "no description"
           }
         },
-        "operationId": "meta_before",
-        "parameters": []
+        "operationId": "meta_before"
       }
     },
     "/generated/meta/overrides-param": {
@@ -460,7 +748,6 @@
     },
     "/generated/method/p": {
       "delete": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -473,11 +760,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mDELETE",
-        "parameters": []
+        "operationId": "mDELETE"
       },
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -490,11 +775,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mGET",
-        "parameters": []
+        "operationId": "mGET"
       },
       "head": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -507,11 +790,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mHEAD",
-        "parameters": []
+        "operationId": "mHEAD"
       },
       "options": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -524,11 +805,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mOPTIONS",
-        "parameters": []
+        "operationId": "mOPTIONS"
       },
       "patch": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -541,11 +820,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mPATCH",
-        "parameters": []
+        "operationId": "mPATCH"
       },
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -558,11 +835,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mPOST",
-        "parameters": []
+        "operationId": "mPOST"
       },
       "put": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -575,11 +850,9 @@
             "description": "no description"
           }
         },
-        "operationId": "mPUT",
-        "parameters": []
+        "operationId": "mPUT"
       },
       "trace": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -592,18 +865,26 @@
             "description": "no description"
           }
         },
-        "operationId": "mTRACE",
-        "parameters": []
+        "operationId": "mTRACE"
       }
     },
     "/generated/no-html-errors": {
       "post": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": true
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
               }
             },
             "description": "no description"
@@ -639,7 +920,6 @@
     },
     "/generated/no-params": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -650,19 +930,27 @@
             "description": "no description"
           }
         },
-        "operationId": "param_no_params_LQEIGEQ",
-        "parameters": []
+        "operationId": "param_no_params_LQEIGEQ"
       }
     },
     "/generated/params/{slug}/arrays": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -707,13 +995,22 @@
     },
     "/generated/params/{slug}/boolean-schema-false": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -748,13 +1045,22 @@
     },
     "/generated/params/{slug}/generic": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -809,13 +1115,22 @@
     },
     "/generated/params/{slug}/s/{shape}": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -850,13 +1165,22 @@
     },
     "/generated/params/{slug}/s/{shape}/t/{theme}": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -903,13 +1227,22 @@
     },
     "/generated/params/{slug}/s/{shape}/t/{theme}/c/{color}": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -1004,13 +1337,22 @@
     },
     "/generated/params/{slug}/t/{theme}": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -1045,13 +1387,22 @@
     },
     "/generated/params/{slug}/t/{theme}/c/{color}": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
                 }
               }
             },
@@ -1098,7 +1449,6 @@
     },
     "/generated/resp/fortune-200-bad-content-type": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1111,13 +1461,11 @@
             "description": "hello!"
           }
         },
-        "operationId": "fortune_bad_content_type",
-        "parameters": []
+        "operationId": "fortune_bad_content_type"
       }
     },
     "/generated/resp/fortune-200-invalid": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1130,25 +1478,21 @@
             "description": "no description"
           }
         },
-        "operationId": "fortune_invalid",
-        "parameters": []
+        "operationId": "fortune_invalid"
       }
     },
     "/generated/resp/fortune-200-no-content-def": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "description": "Hello"
           }
         },
-        "operationId": "fortune_no_content_def",
-        "parameters": []
+        "operationId": "fortune_no_content_def"
       }
     },
     "/generated/resp/fortune-200-valid": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1161,13 +1505,11 @@
             "description": "no description"
           }
         },
-        "operationId": "fortune_valid",
-        "parameters": []
+        "operationId": "fortune_valid"
       }
     },
     "/generated/resp/fortune-500-bad-default-resp": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1190,13 +1532,11 @@
             "description": "no description"
           }
         },
-        "operationId": "fortune_invalid_default_resp",
-        "parameters": []
+        "operationId": "fortune_invalid_default_resp"
       }
     },
     "/generated/resp/fortune-500-default-resp": {
       "get": {
-        "tags": [],
         "responses": {
           "200": {
             "content": {
@@ -1219,8 +1559,7 @@
             "description": "some description"
           }
         },
-        "operationId": "fortune_default_resp",
-        "parameters": []
+        "operationId": "fortune_default_resp"
       }
     }
   }

@@ -57,6 +57,29 @@ defmodule Oaskit.ErrorHandler.Default do
     |> Conn.halt()
   end
 
+  @doc """
+  Returns a module-based JSON schema for json responses returned by this module
+  when used as the handler of validation errors.
+
+
+  ### Example
+
+      operation :my_action,
+        request_body: UserCreationParams,
+        responses: [
+          ok: User,
+          default: Oaskit.ErrorHandler.Default.error_response_schema()
+        ]
+
+      def my_action(conn, params) do
+        # ...
+      end
+
+  """
+  def error_response_schema do
+    Oaskit.ErrorHandler.Default.ErrorResponseSchema
+  end
+
   defp response_formatter(conn, opts) do
     with true <- Keyword.get(opts, :html_errors),
          [accept | _] <- Plug.Conn.get_req_header(conn, "accept"),
@@ -257,4 +280,114 @@ defmodule Oaskit.ErrorHandler.Default do
   defp css do
     @css
   end
+end
+
+defmodule Oaskit.ErrorHandler.Default.UnprocessableEntityErrorSchema do
+  use JSV.Schema
+
+  @moduledoc false
+
+  defschema %{
+    type: :object,
+    title: "Oaskit:UnprocessableEntityError",
+    properties: %{
+      kind: %{const: "unprocessable_entity"},
+      validation_error: JSV.error_schema()
+    },
+    required: [:validation_error]
+  }
+end
+
+defmodule Oaskit.ErrorHandler.Default.UnsupportedMediaTypeErrorSchema do
+  use JSV.Schema
+
+  @moduledoc false
+
+  defschema %{
+    type: :object,
+    title: "Oaskit:UnsupportedMediaTypeError",
+    properties: %{
+      kind: const("unsupported_media_type"),
+      media_type: string()
+    },
+    required: [:media_type]
+  }
+end
+
+defmodule Oaskit.ErrorHandler.Default.BadRequestErrorSchema do
+  use JSV.Schema
+
+  @moduledoc false
+
+  defschema %{
+    type: :object,
+    title: "Oaskit:BadRequestError",
+    properties: %{
+      kind: %{const: "bad_request"},
+      parameters_errors:
+        array_of(%{
+          type: :object,
+          properties: %{
+            in: enum(["query", "path"]),
+            kind: enum(["invalid_parameter", "missing_parameter"]),
+            message: string(),
+            parameter: string()
+          },
+          required: [:in, :message, :parameter],
+          oneOf: [
+            %{
+              properties: %{
+                kind: const("invalid_parameter"),
+                validation_error: JSV.error_schema()
+              },
+              required: [:validation_error]
+            },
+            %{
+              properties: %{
+                kind: const("missing_parameter")
+              }
+            }
+          ]
+        })
+    },
+    required: [:parameters_errors]
+  }
+end
+
+defmodule Oaskit.ErrorHandler.Default.ErrorSchema do
+  use JSV.Schema
+
+  @moduledoc false
+
+  defschema %{
+    type: :object,
+    title: "Oaskit:Error",
+    properties: %{
+      in: enum(["body", "parameters"]),
+      message: string(),
+      operation_id: string(description: "The ID of the operation that could not be executed"),
+      kind: enum(["unprocessable_entity", "unsupported_media_type", "bad_request"])
+    },
+    required: [:in, :kind, :message, :operation_id],
+    oneOf: [
+      Oaskit.ErrorHandler.Default.UnprocessableEntityErrorSchema,
+      Oaskit.ErrorHandler.Default.UnsupportedMediaTypeErrorSchema,
+      Oaskit.ErrorHandler.Default.BadRequestErrorSchema
+    ]
+  }
+end
+
+defmodule Oaskit.ErrorHandler.Default.ErrorResponseSchema do
+  use JSV.Schema
+
+  @moduledoc false
+
+  defschema %{
+    type: :object,
+    title: "Oaskit:ErrorResponse",
+    properties: %{
+      error: Oaskit.ErrorHandler.Default.ErrorSchema
+    },
+    required: [:error]
+  }
 end

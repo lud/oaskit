@@ -1,6 +1,4 @@
 defmodule Oaskit.Spec.SecurityScheme do
-  alias JSV.Schema
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Defines a security scheme for operations.
@@ -10,18 +8,16 @@ defmodule Oaskit.Spec.SecurityScheme do
     description: "Defines a security scheme for operations.",
     properties: %{
       type:
-        Schema.string_to_atom_enum(
-          %{
-            description:
-              "The type of the security scheme. Allowed values: apiKey, http, mutualTLS, oauth2, openIdConnect. Required."
-          },
+        string_enum_to_atom(
           [
             :apiKey,
             :http,
             :mutualTLS,
             :oauth2,
             :openIdConnect
-          ]
+          ],
+          description:
+            "The type of the security scheme. Allowed values: apiKey, http, mutualTLS, oauth2, openIdConnect. Required."
         ),
       description: %{type: :string, description: "A description for the security scheme."},
       name: %{
@@ -30,16 +26,14 @@ defmodule Oaskit.Spec.SecurityScheme do
           "The name of the header, query, or cookie parameter (for apiKey). Required for apiKey."
       },
       in:
-        Schema.string_to_atom_enum(
-          %{
-            description:
-              "The location of the API key. Allowed values: query, header, cookie. Required for apiKey."
-          },
+        string_enum_to_atom(
           [
             :query,
             :header,
             :cookie
-          ]
+          ],
+          description:
+            "The location of the API key. Allowed values: query, header, cookie. Required for apiKey."
         ),
       scheme: %{
         type: :string,

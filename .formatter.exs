@@ -4,6 +4,7 @@ locals_without_parens = [
   parameter: 2,
   tags: 1,
   use_operation: 2,
+  use_operation: 3,
   with_decimal: 1
 ]
 

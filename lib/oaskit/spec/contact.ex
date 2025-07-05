@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Contact do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Contact information for the exposed API.

@@ -1,7 +1,10 @@
 defmodule Oaskit.TestWeb.Schemas.Potion do
+  use JSV.Schema
   @moduledoc false
 
-  require(JSV).defschema(%{
+  @derive Jason.Encoder
+
+  defschema %{
     "type" => "object",
     "properties" => %{
       id: %{"type" => "string"},
@@ -13,5 +16,5 @@ defmodule Oaskit.TestWeb.Schemas.Potion do
       brewingTime: %{"type" => "integer"}
     },
     "required" => [:id, :name, :ingredients]
-  })
+  }
 end

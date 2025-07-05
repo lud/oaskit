@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Info do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Provides metadata about the API, such as title, version, and contact information.

@@ -2,7 +2,6 @@ defmodule Oaskit.Spec.RequestBody do
   alias Oaskit.Spec.MediaType
   alias Oaskit.Spec.Reference
   import Oaskit.Internal.ControllerBuilder
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Describes a single request body.

@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.OAuthFlows do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Configures supported OAuth Flows for a security scheme.

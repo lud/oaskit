@@ -1,17 +1,7 @@
 defmodule Oaskit.Web.ParamTest do
+  alias Oaskit.TestWeb.PathsApiSpec
+  import Oaskit.Test
   use Oaskit.ConnCase, async: true
-
-  # Testing using the following routes.
-  #
-  # /params/some-slug/t/:theme
-  # /params/some-slug/t/:theme/c/:color
-  # /params/some-slug/s/:shape
-  # /params/some-slug/s/:shape/t/:theme
-  # /params/some-slug/s/:shape/t/:theme/c/:color
-  #
-  # - /s/:shape accepts only "square" or "circle"
-  # - /t/:theme accepts only "dark" or "light"
-  # - /c/:color accepts only "red" or "blue"
 
   describe "no params" do
     test "path_params and query_params is always defined", %{conn: conn} do
@@ -32,7 +22,7 @@ defmodule Oaskit.Web.ParamTest do
           end
         )
 
-      assert %{"data" => "okay"} = json_response(conn, 200)
+      assert %{"data" => "okay"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -44,7 +34,7 @@ defmodule Oaskit.Web.ParamTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid param", %{conn: conn} do
@@ -65,7 +55,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
   end
 
@@ -102,7 +92,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "one valid, one invalid path param", %{conn: conn} do
@@ -123,7 +113,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "both valid path params", %{conn: conn} do
@@ -133,7 +123,7 @@ defmodule Oaskit.Web.ParamTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -156,7 +146,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "invalid scope param, valid path param", %{conn: conn} do
@@ -177,7 +167,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "both scope and path params invalid", %{conn: conn} do
@@ -205,7 +195,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "both scope and path params valid", %{conn: conn} do
@@ -215,7 +205,7 @@ defmodule Oaskit.Web.ParamTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -248,7 +238,7 @@ defmodule Oaskit.Web.ParamTest do
           end
         )
 
-      assert %{"data" => "okay"} = json_response(conn, 200)
+      assert %{"data" => "okay"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid query params with too large integers", %{conn: conn} do
@@ -290,7 +280,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "invalid query params with same values as path", %{conn: conn} do
@@ -332,7 +322,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "required query param is missing", %{conn: conn} do
@@ -353,7 +343,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "optional query params can be omitted", %{conn: conn} do
@@ -379,7 +369,7 @@ defmodule Oaskit.Web.ParamTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -406,7 +396,7 @@ defmodule Oaskit.Web.ParamTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -445,7 +435,7 @@ defmodule Oaskit.Web.ParamTest do
           end
         )
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid parameters that cannot be cast", %{conn: conn} do
@@ -485,7 +475,7 @@ defmodule Oaskit.Web.ParamTest do
                  ]
                }
              } =
-               json_response(conn, 400)
+               valid_response(PathsApiSpec, conn, 400)
     end
   end
 
@@ -518,7 +508,7 @@ defmodule Oaskit.Web.ParamTest do
           end
         )
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid array parameters", %{conn: conn} do
@@ -543,7 +533,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "non-array parameter when array expected", %{conn: conn} do
@@ -571,7 +561,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "array parameters sent to non-array route", %{conn: conn} do
@@ -601,7 +591,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
   end
 
@@ -624,7 +614,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "empty string query param should be rejected with boolean schema false", %{conn: conn} do
@@ -645,7 +635,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "multiple query params should all be rejected with boolean schema false", %{conn: conn} do
@@ -677,7 +667,7 @@ defmodule Oaskit.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(PathsApiSpec, conn, 400)
     end
 
     test "no query params should be accepted with boolean schema false", %{conn: conn} do
@@ -689,7 +679,7 @@ defmodule Oaskit.Web.ParamTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 

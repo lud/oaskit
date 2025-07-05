@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.XML do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Metadata for fine-tuned XML model definitions.

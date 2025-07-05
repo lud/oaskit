@@ -5,8 +5,8 @@ defmodule Oaskit.ControllerTest do
   use ExUnit.Case, async: true
 
   defmodule SomeSchema do
-    alias JSV.Schema
-    require(JSV).defschema(Schema.props(a: %{type: :integer}))
+    use JSV.Schema
+    defschema(props(a: integer()))
   end
 
   test "define with inline request body schema" do
@@ -98,8 +98,7 @@ defmodule Oaskit.ControllerTest do
                    },
                    description: "no description"
                  }
-               },
-               tags: []
+               }
              } = op
     end
 
@@ -117,8 +116,7 @@ defmodule Oaskit.ControllerTest do
       assert %Oaskit.Spec.Operation{
                responses: %{
                  200 => %Oaskit.Spec.Reference{}
-               },
-               tags: []
+               }
              } = op
     end
 
@@ -141,8 +139,7 @@ defmodule Oaskit.ControllerTest do
                    },
                    description: "some descr"
                  }
-               },
-               tags: []
+               }
              } = op
     end
 
@@ -176,8 +173,7 @@ defmodule Oaskit.ControllerTest do
                    },
                    description: "from schema"
                  }
-               },
-               tags: []
+               }
              } = op
     end
 
@@ -202,8 +198,7 @@ defmodule Oaskit.ControllerTest do
                    },
                    description: "hello"
                  }
-               },
-               tags: []
+               }
              } = op
     end
 
@@ -234,8 +229,7 @@ defmodule Oaskit.ControllerTest do
                    },
                    description: "no description"
                  }
-               },
-               tags: []
+               }
              } = op
     end
 

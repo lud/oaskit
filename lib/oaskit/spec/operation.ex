@@ -4,7 +4,6 @@ defmodule Oaskit.Spec.Operation do
   alias Oaskit.Spec.RequestBody
   alias Oaskit.Spec.Response
   import Oaskit.Internal.ControllerBuilder
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Describes a single API operation on a path.
@@ -87,8 +86,8 @@ defmodule Oaskit.Spec.Operation do
     |> rename_input(:operation_id, :operationId)
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)
-    |> take_default(:tags, [], &merge_tags(&1, shared_tags))
-    |> take_default(:parameters, [], &cast_params(&1, shared_parameters))
+    |> take_default(:tags, nil, &merge_tags(&1, shared_tags))
+    |> take_default(:parameters, nil, &cast_params(&1, shared_parameters))
     |> take_default(:description, nil)
     |> take_required(:responses, &cast_responses/1)
     |> take_default(:summary, nil)

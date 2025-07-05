@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Parameter do
   alias Oaskit.Spec.Reference
   import Oaskit.Internal.ControllerBuilder
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Describes a single operation parameter.
@@ -15,17 +14,10 @@ defmodule Oaskit.Spec.Parameter do
         description: "The name of the parameter. Required."
       },
       in:
-        JSV.Schema.string_to_atom_enum(
-          %{
-            description:
-              "The location of the parameter. Allowed values: query, header, path, cookie. Required."
-          },
-          [
-            :query,
-            :header,
-            :path,
-            :cookie
-          ]
+        string_enum_to_atom(
+          [:query, :header, :path, :cookie],
+          description:
+            "The location of the parameter. Allowed values: query, header, path, cookie. Required."
         ),
       description: %{type: :string, description: "A brief description of the parameter."},
       required: %{type: :boolean, description: "Determines whether this parameter is mandatory."},
