@@ -33,7 +33,7 @@ dive right in.
 ```elixir
 def deps do
   [
-    {:oaskit, "~> 0.1"},
+    {:oaskit, "~> 0.2"},
   ]
 end
 ```

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2025-07-05
+
+### 🚀 Features
+
+- Provide a JSON schema for the default error responses
+
 ## [0.1.2] - 2025-06-30
 
 ### 🚀 Features
