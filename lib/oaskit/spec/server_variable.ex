@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.ServerVariable do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Object representing a server variable for server URL template substitution.

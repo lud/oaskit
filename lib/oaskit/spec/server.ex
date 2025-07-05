@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Server do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # An object representing a server for the API.

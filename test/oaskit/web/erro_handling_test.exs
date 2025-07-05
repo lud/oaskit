@@ -1,4 +1,6 @@
 defmodule Oaskit.Web.ErroHandlingTest do
+  alias Oaskit.TestWeb.PathsApiSpec
+  import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
   describe "html errors can be disabled" do
@@ -17,7 +19,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
       conn = post(conn, ~p"/generated/no-html-errors?an_int=123", @invalid_payload)
 
       assert %{"error" => %{"in" => "body", "kind" => "unprocessable_entity"}} =
-               json_response(conn, 422)
+               valid_response(PathsApiSpec, conn, 422)
     end
 
     @tag req_content_type: "application/x-www-form-urlencoded"
@@ -26,7 +28,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
       conn = post(conn, ~p"/generated/no-html-errors?an_int=123", @invalid_form)
 
       assert %{"error" => %{"in" => "body", "kind" => "unprocessable_entity"}} =
-               json_response(conn, 422)
+               valid_response(PathsApiSpec, conn, 422)
     end
 
     # unknown content type
@@ -35,7 +37,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
       conn = post(conn, ~p"/generated/no-html-errors?an_int=123", @invalid_form)
 
       assert %{"error" => %{"in" => "body", "kind" => "unsupported_media_type"}} =
-               json_response(conn, 415)
+               valid_response(PathsApiSpec, conn, 415)
     end
 
     test "invalid parameter returns JSON error", %{conn: conn} do
@@ -56,7 +58,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
                  ]
                }
              } =
-               json_response(conn, 400)
+               valid_response(PathsApiSpec, conn, 400)
     end
 
     test "missing parameter returns JSON error", %{conn: conn} do
@@ -75,7 +77,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
                  ]
                }
              } =
-               json_response(conn, 400)
+               valid_response(PathsApiSpec, conn, 400)
     end
   end
 end

@@ -1,4 +1,5 @@
 defmodule Oaskit.TestWeb.JsonErrorsController do
+  alias Oaskit.ErrorHandler.Default.ErrorResponseSchema
   alias Oaskit.TestWeb.Schemas.PlantSchema
   # -- equivalent of using the web :controller --------------------------------
   import Plug.Conn
@@ -24,7 +25,7 @@ defmodule Oaskit.TestWeb.JsonErrorsController do
         "application/x-www-form-urlencoded" => [schema: PlantSchema]
       }
     ],
-    responses: [ok: true]
+    responses: [ok: true, default: ErrorResponseSchema]
 
   @spec create_plant(term, term) :: no_return()
   def create_plant(_conn, _params) do

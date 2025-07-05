@@ -1,5 +1,7 @@
 defmodule Oaskit.Web.BodyTest do
+  alias Oaskit.TestWeb.PathsApiSpec
   alias Oaskit.TestWeb.Schemas.PlantSchema
+  import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
   @valid_payload %{
@@ -32,7 +34,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
 
     test "non required body should be ok when body is empty", %{conn: conn} do
@@ -43,7 +45,7 @@ defmodule Oaskit.Web.BodyTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -59,7 +61,7 @@ defmodule Oaskit.Web.BodyTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid body", %{conn: conn} do
@@ -72,7 +74,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
 
     @tag req_content_type: "application/x-www-form-urlencoded"
@@ -85,7 +87,7 @@ defmodule Oaskit.Web.BodyTest do
                  "media_type" => "application/x-www-form-urlencoded"
                }
              } =
-               json_response(conn, 415)
+               valid_response(PathsApiSpec, conn, 415)
     end
   end
 
@@ -105,7 +107,7 @@ defmodule Oaskit.Web.BodyTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid body", %{conn: conn} do
@@ -118,7 +120,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
 
     test "invalid body in sub schema", %{conn: conn} do
@@ -132,7 +134,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
   end
 
@@ -207,7 +209,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
 
     test "wildcard does not take priority over more specific content types", %{conn: conn} do
@@ -217,7 +219,7 @@ defmodule Oaskit.Web.BodyTest do
           json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
   end
 
@@ -237,7 +239,7 @@ defmodule Oaskit.Web.BodyTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "valid body is parsed as usual", %{conn: conn} do
@@ -253,7 +255,7 @@ defmodule Oaskit.Web.BodyTest do
             json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "invalid body still returns an error", %{conn: conn} do
@@ -267,7 +269,7 @@ defmodule Oaskit.Web.BodyTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(PathsApiSpec, conn, 422)
     end
   end
 

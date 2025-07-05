@@ -1,14 +1,14 @@
 defmodule Oaskit.TestWeb.Schemas.SoilSchema do
+  use JSV.Schema
+
   @moduledoc false
 
-  alias JSV.Schema
-
-  require(JSV).defschema(%{
+  defschema %{
     type: :object,
     properties: %{
-      acid: Schema.boolean(),
-      density: Schema.number()
+      acid: boolean(),
+      density: number()
     },
     required: [:acid, :density]
-  })
+  }
 end

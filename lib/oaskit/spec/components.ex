@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Components do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Holds reusable objects for different aspects of the OpenAPI Specification.

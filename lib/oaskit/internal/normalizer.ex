@@ -83,7 +83,7 @@ defmodule Oaskit.Internal.Normalizer do
         }
       end)
 
-    # # The raw schemas are easier to normalize
+    # The raw schemas are easier to normalize
     ctx =
       Enum.reduce(others, ctx, fn {refname, raw_schema}, ctx ->
         {normal_schema, ctx} = do_normalize_schema(raw_schema, ctx)
@@ -441,10 +441,21 @@ defmodule Oaskit.Internal.Normalizer do
     # Recursion with the module already seen to avoid denormalizing the same
     # module twice. This also avoids infinite loops with two or more mutual
     # recursive schemas.
-    ctx = %{ctx | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, refname)}
+    ctx = %{
+      ctx
+      | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, refname),
+        components_schemas: Map.put(ctx.components_schemas, refname, :__placeholder__)
+    }
+
     {normal_schema, ctx} = do_normalize_schema(schema, ctx)
 
-    ctx = %{ctx | components_schemas: Map.put(ctx.components_schemas, refname, normal_schema)}
+    ctx = %{
+      ctx
+      | components_schemas:
+          Map.update!(ctx.components_schemas, refname, fn :__placeholder__ ->
+            normal_schema
+          end)
+    }
 
     replacement = refname_to_schema(refname)
     {replacement, ctx}

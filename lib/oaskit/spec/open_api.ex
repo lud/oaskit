@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.OpenAPI do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Root object describing the entire OpenAPI document and its structure.

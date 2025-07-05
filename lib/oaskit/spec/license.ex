@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.License do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # License information for the exposed API.

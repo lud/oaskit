@@ -1,5 +1,5 @@
 defmodule Oaskit.Spec.Reference do
-  import JSV
+  use JSV.Schema
 
   # Allows referencing other components in the OpenAPI Description.
   defschema %{

@@ -255,7 +255,7 @@ features.
 <!-- rdmx :section name:module_schemas format: true -->
 ```elixir
 defmodule MyAppWeb.Schemas.UserSchema do
-  import JSV
+  use JSV.Schema
 
   defschema %{
     type: :object,
@@ -347,10 +347,12 @@ defmodule MyAppWeb.UserControllerTest do
     conn = post(conn, ~p"/api/users", invalid_params)
 
     # You can use `valid_response` if you define a response schema for the
-    # errors. This library will soon ship with a predefined one so you don't
-    # have to.
+    # errors. See `Oaskit.ErrorHandler.Default.error_response_schema/0`.
     #
-    # In the meantime, using the good old `json_response` works fine!
+    # valid_response(conn, 422)
+
+    # If you do not declare all possible responses, using the good old
+    # `Phoenix.ConnTest.json_response/2` works fine!
     assert json_response(conn, 422)
   end
 end

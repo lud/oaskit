@@ -1,7 +1,7 @@
 defmodule Oaskit.SpecControllerTest do
   use Oaskit.ConnCase, async: true
 
-  defp assert_json_response(conn) do
+  defp assert_json_content_type(conn) do
     assert conn.status == 200
     assert get_resp_header(conn, "content-type") == ["application/json; charset=utf-8"]
   end
@@ -30,7 +30,7 @@ defmodule Oaskit.SpecControllerTest do
     test "serves JSON spec without pretty formatting by default", %{conn: conn} do
       conn = get(conn, ~p"/generated/openapi.json")
 
-      assert_json_response(conn)
+      assert_json_content_type(conn)
       assert_not_pretty(conn.resp_body)
       assert_is_spec(decode_spec(conn))
     end
@@ -38,7 +38,7 @@ defmodule Oaskit.SpecControllerTest do
     test "serves pretty-formatted JSON when pretty=true", %{conn: conn} do
       conn = get(conn, ~p"/generated/openapi.json?pretty=true")
 
-      assert_json_response(conn)
+      assert_json_content_type(conn)
       assert_pretty(conn.resp_body)
 
       assert %{"openapi" => "3.1.1"} = decode_spec(conn)
@@ -97,14 +97,14 @@ defmodule Oaskit.SpecControllerTest do
     test "serves DeclarativeApiSpec JSON", %{conn: conn} do
       conn = get(conn, ~p"/provided-openapi.json")
 
-      assert_json_response(conn)
+      assert_json_content_type(conn)
       assert_is_spec(decode_spec(conn))
     end
 
     test "serves pretty-formatted DeclarativeApiSpec when requested", %{conn: conn} do
       conn = get(conn, ~p"/provided-openapi.json?pretty=true")
 
-      assert_json_response(conn)
+      assert_json_content_type(conn)
       assert_pretty(conn.resp_body)
 
       assert_is_spec(decode_spec(conn))

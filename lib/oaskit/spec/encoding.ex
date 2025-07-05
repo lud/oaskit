@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Encoding do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   defschema %{

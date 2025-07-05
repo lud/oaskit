@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.ExternalDocumentation do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Allows referencing an external resource for extended documentation.

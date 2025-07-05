@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Tag do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   # Adds metadata to a single tag.

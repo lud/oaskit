@@ -1,7 +1,7 @@
 defmodule Oaskit.TestWeb.BodyController do
-  alias JSV.Schema
   alias Oaskit.TestWeb.Responder
   alias Oaskit.TestWeb.Schemas.PlantSchema
+  use JSV.Schema
   use Oaskit.TestWeb, :controller
 
   @moduledoc false
@@ -10,9 +10,8 @@ defmodule Oaskit.TestWeb.BodyController do
     type: :object,
     title: "InlinePlantSchema",
     properties: %{
-      name: Schema.non_empty_string(),
-      sunlight:
-        Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness])
+      name: non_empty_string(),
+      sunlight: string_enum_to_atom([:full_sun, :partial_sun, :bright_indirect, :darnkness])
     },
     required: [:name, :sunlight]
   }
@@ -20,7 +19,7 @@ defmodule Oaskit.TestWeb.BodyController do
   # pass the schema directly as the value of request_body
   operation :inline_single,
     request_body: {@plant_schema, []},
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def inline_single(conn, params) do
     Responder.reply(conn, params)
@@ -29,7 +28,7 @@ defmodule Oaskit.TestWeb.BodyController do
   operation :module_single,
     operation_id: :custom_operation_id_module_single,
     request_body: PlantSchema,
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def module_single(conn, params) do
     Responder.reply(conn, params)
@@ -37,7 +36,10 @@ defmodule Oaskit.TestWeb.BodyController do
 
   operation :module_single_not_required,
     request_body: {PlantSchema, [required: false]},
-    responses: dummy_responses()
+    responses: [
+      ok: true,
+      default: Oaskit.ErrorHandler.Default.error_response_schema()
+    ]
 
   def module_single_not_required(conn, params) do
     Responder.reply(conn, params)
@@ -45,7 +47,7 @@ defmodule Oaskit.TestWeb.BodyController do
 
   operation :handle_form,
     request_body: [content: %{"application/x-www-form-urlencoded" => %{schema: PlantSchema}}],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def handle_form(conn, params) do
     Responder.reply(conn, params)
@@ -53,7 +55,7 @@ defmodule Oaskit.TestWeb.BodyController do
 
   operation :manual_form_handle,
     request_body: [content: %{"application/x-www-form-urlencoded" => %{schema: PlantSchema}}],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   @spec manual_form_handle(term, term) :: no_return
   def manual_form_handle(_conn, _params) do
@@ -61,7 +63,7 @@ defmodule Oaskit.TestWeb.BodyController do
   end
 
   operation :manual_form_show,
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def manual_form_show(conn, _params) do
     html(conn, """
@@ -90,7 +92,7 @@ defmodule Oaskit.TestWeb.BodyController do
         "application/json" => %{schema: PlantSchema}
       }
     ],
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def wildcard_media_type(conn, params) do
     Responder.reply(conn, params)
@@ -98,7 +100,7 @@ defmodule Oaskit.TestWeb.BodyController do
 
   operation :boolean_schema_false,
     request_body: {false, required: false},
-    responses: dummy_responses()
+    responses: dummy_responses_with_error()
 
   def boolean_schema_false(conn, params) do
     Responder.reply(conn, params)

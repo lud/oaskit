@@ -40,7 +40,7 @@ defmodule Oaskit.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.8"},
+      {:jsv, "~> 0.9"},
       {:phoenix, ">= 1.7.0"},
       {:decimal, "~> 2.0", optional: true},
       {:abnf_parsec, "~> 2.0", optional: true},
@@ -48,6 +48,7 @@ defmodule Oaskit.MixProject do
 
       # Test
       {:bandit, "~> 1.0", only: [:dev, :test]},
+      {:jason, "~> 1.0", only: [:dev, :test]},
 
       # Dev
       {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
@@ -97,7 +98,8 @@ defmodule Oaskit.MixProject do
     defined_guides = [
       "CHANGELOG.md",
       "README.md",
-      "guides/quickstart.md"
+      "guides/quickstart.md",
+      "guides/external-specs.md"
     ]
 
     case existing_guides -- defined_guides do

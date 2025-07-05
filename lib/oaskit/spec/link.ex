@@ -1,5 +1,4 @@
 defmodule Oaskit.Spec.Link do
-  import JSV
   use Oaskit.Internal.SpecObject
 
   defschema %{

@@ -2,6 +2,7 @@ defmodule Oaskit.Web.LabTest do
   alias Oaskit.TestWeb.DeclarativeApiSpec
   alias Oaskit.TestWeb.Schemas.CreatePotionBody
   alias Oaskit.TestWeb.Schemas.Ingredient
+  alias Oaskit.TestWeb.Schemas.Potion
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
@@ -47,6 +48,9 @@ defmodule Oaskit.Web.LabTest do
     "name" => "Elixir of Vitality"
   }
 
+  @valid_resp %Potion{id: "foo", name: "foo", ingredients: [], brewingTime: 123}
+  @valid_resp_raw @valid_resp |> Jason.encode!() |> Jason.decode!()
+
   describe "create potion with valid data" do
     test "valid body and parameters are properly cast to structs", %{conn: conn} do
       conn =
@@ -78,11 +82,11 @@ defmodule Oaskit.Web.LabTest do
             # Check that query parameters are properly cast
             assert %{dry_run: true, source: "lab"} = conn.private.oaskit.query_params
 
-            json(conn, %{data: "potion created"})
+            json(conn, @valid_resp)
           end
         )
 
-      assert %{"data" => "potion created"} = json_response(conn, 200)
+      assert @valid_resp_raw = valid_response(DeclarativeApiSpec, conn, 200)
     end
 
     test "boolean parameter casting when false", %{conn: conn} do
@@ -95,11 +99,11 @@ defmodule Oaskit.Web.LabTest do
             # Check that boolean parameter is properly cast
             assert %{dry_run: false} = conn.private.oaskit.query_params
 
-            json(conn, %{data: "ok"})
+            json(conn, @valid_resp)
           end
         )
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert @valid_resp_raw = valid_response(DeclarativeApiSpec, conn, 200)
     end
 
     test "with only required parameters", %{conn: conn} do
@@ -112,11 +116,11 @@ defmodule Oaskit.Web.LabTest do
             # Optional parameters should not be present
             assert %{} = conn.private.oaskit.query_params
 
-            json(conn, %{data: "ok"})
+            json(conn, @valid_resp)
           end
         )
 
-      assert %{"data" => "ok"} = json_response(conn, 200)
+      assert @valid_resp_raw = valid_response(DeclarativeApiSpec, conn, 200)
     end
   end
 
@@ -131,7 +135,7 @@ defmodule Oaskit.Web.LabTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(DeclarativeApiSpec, conn, 422)
     end
 
     test "missing required field name", %{conn: conn} do
@@ -144,7 +148,7 @@ defmodule Oaskit.Web.LabTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(DeclarativeApiSpec, conn, 422)
     end
 
     test "missing required field ingredients", %{conn: conn} do
@@ -157,7 +161,7 @@ defmodule Oaskit.Web.LabTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(DeclarativeApiSpec, conn, 422)
     end
 
     test "invalid query parameter type", %{conn: conn} do
@@ -178,7 +182,7 @@ defmodule Oaskit.Web.LabTest do
                    }
                  ]
                }
-             } = json_response(conn, 400)
+             } = valid_response(DeclarativeApiSpec, conn, 400)
     end
 
     test "body is parsed for application/json", %{conn: conn} do
@@ -192,7 +196,7 @@ defmodule Oaskit.Web.LabTest do
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
                }
-             } = json_response(conn, 422)
+             } = valid_response(DeclarativeApiSpec, conn, 422)
     end
 
     @tag req_content_type: "foo/bar"
@@ -206,7 +210,7 @@ defmodule Oaskit.Web.LabTest do
                  "message" => "Unsupported Media Type",
                  "operation_id" => "createPotion"
                }
-             } = json_response(conn, 415)
+             } = valid_response(DeclarativeApiSpec, conn, 415)
     end
 
     test "malformed JSON body", %{conn: conn} do
