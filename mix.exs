@@ -2,7 +2,7 @@ defmodule Oaskit.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/lud/oaskit"
-  @version "0.2.0"
+  @version "0.3.0"
 
   def project do
     [

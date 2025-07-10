@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-07-10
+
+### ⚙️ Miscellaneous Tasks
+
+- Upgrade OpenAPI spec schemas for JSV 0.10
+
 ## [0.2.0] - 2025-07-05
 
 ### 🚀 Features
