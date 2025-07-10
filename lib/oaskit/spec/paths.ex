@@ -1,8 +1,13 @@
 defmodule Oaskit.Spec.Paths do
   use Oaskit.Internal.SpecObject
 
-  # Holds the relative paths to individual endpoints and their operations.
+  @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
+  @doc false
   def schema do
+    json_schema()
+  end
+
+  def json_schema do
     %{
       title: "Paths",
       type: :object,

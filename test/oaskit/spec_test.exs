@@ -7,6 +7,7 @@ defmodule Oaskit.SpecTest do
   alias Oaskit.TestWeb
   alias Oaskit.TestWeb.DeclarativeApiSpec
   use ExUnit.Case, async: true
+  use JSV.Schema
 
   test "minimal test" do
     assert %OpenAPI{} =
@@ -220,37 +221,11 @@ defmodule Oaskit.SpecTest do
       )
     end
 
-    defmodule Standalone do
-      alias Oaskit.SpecTest.MutualRecursiveB
+    defschema MutualRecursiveA,
+      b: Oaskit.SpecTest.MutualRecursiveB
 
-      def schema do
-        %{
-          title: "Standalone",
-          type: :integer
-        }
-      end
-    end
-
-    defmodule MutualRecursiveA do
-      alias Oaskit.SpecTest.MutualRecursiveB
-
-      require(JSV).defschema(%{
-        type: :object,
-        title: "RecA",
-        properties: %{
-          b: MutualRecursiveB
-        }
-      })
-    end
-
-    defmodule MutualRecursiveB do
-      require(JSV).defschema(%{
-        type: :object,
-        properties: %{
-          a: MutualRecursiveA
-        }
-      })
-    end
+    defschema MutualRecursiveB,
+      a: MutualRecursiveA
 
     test "recursive schemas in components" do
       assert %Oaskit.Spec.OpenAPI{
@@ -263,15 +238,17 @@ defmodule Oaskit.SpecTest do
                  schemas: %{
                    # schema A defines a custom title, schema B does not and is
                    # registered with its module name
-                   "RecA" => %{
+                   "MutualRecursiveA" => %{
                      "properties" => %{
                        "b" => %{
-                         "$ref" => "#/components/schemas/Oaskit.SpecTest.MutualRecursiveB"
+                         "$ref" => "#/components/schemas/MutualRecursiveB"
                        }
                      }
                    },
-                   "Oaskit.SpecTest.MutualRecursiveB" => %{
-                     "properties" => %{"a" => %{"$ref" => "#/components/schemas/RecA"}}
+                   "MutualRecursiveB" => %{
+                     "properties" => %{
+                       "a" => %{"$ref" => "#/components/schemas/MutualRecursiveA"}
+                     }
                    }
                  }
                },
@@ -282,7 +259,7 @@ defmodule Oaskit.SpecTest do
                      requestBody: %Oaskit.Spec.RequestBody{
                        content: %{
                          "application/json" => %Oaskit.Spec.MediaType{
-                           schema: %{"$ref" => "#/components/schemas/RecA"}
+                           schema: %{"$ref" => "#/components/schemas/MutualRecursiveA"}
                          }
                        }
                      },
@@ -296,7 +273,7 @@ defmodule Oaskit.SpecTest do
                        content: %{
                          "application/json" => %Oaskit.Spec.MediaType{
                            schema: %{
-                             "$ref" => "#/components/schemas/Oaskit.SpecTest.MutualRecursiveB"
+                             "$ref" => "#/components/schemas/MutualRecursiveB"
                            }
                          }
                        }
@@ -312,32 +289,12 @@ defmodule Oaskit.SpecTest do
                |> cast_to_structs()
     end
 
-    defmodule PetSchema do
-      use JSV.Schema
+    defschema Pet,
+      name: string(),
+      species: string()
 
-      defschema %{
-        title: "Pet",
-        type: "object",
-        properties: %{
-          name: %{type: "string"},
-          species: %{type: "string"}
-        },
-        required: [:name, :species]
-      }
-    end
-
-    defmodule OccupationSchema do
-      use JSV.Schema
-
-      defschema %{
-        title: "Occupation",
-        type: "object",
-        properties: %{
-          title: %{type: :string}
-        },
-        required: [:title]
-      }
-    end
+    defschema Occupation,
+      title: string()
 
     test "preexisting schemas in components" do
       # Base spec has a schema in the components, and an operation using another
@@ -354,13 +311,13 @@ defmodule Oaskit.SpecTest do
                   "name" => %{"type" => "string"},
                   "age" => %{"type" => "integer"},
                   # Raw maps can contain module schemas
-                  "occupation" => OccupationSchema
+                  "occupation" => Occupation
                 },
                 "required" => ["name"]
               }
             }
           },
-          "paths" => schemas_to_paths([PetSchema])
+          "paths" => schemas_to_paths([Pet])
         }
         |> base()
         |> Oaskit.normalize_spec!()
@@ -378,35 +335,25 @@ defmodule Oaskit.SpecTest do
              } = spec
     end
 
-    defmodule IceCubeSchema do
-      use JSV.Schema
+    defschema IceCube, %{
+      # Here the title is set to the predefined refname of the DrinkSchema. It
+      # should not override the DrinkSchema, and will be incremented
+      title: "SomeNameThatShouldNotChange",
+      type: "object",
+      properties: %{shape: %{enum: ["cube", "not actually a cube"]}},
+      required: [:shape]
+    }
 
-      defschema %{
-        # Here the title is set to the predefined refname of the DrinkSchema. It
-        # should not override the DrinkSchema, and will be incremented
-        title: "SomeNameThatShouldNotChange",
-        type: "object",
-        properties: %{
-          shape: %{enum: ["cube", "not actually a cube"]}
-        },
-        required: [:shape]
-      }
-    end
-
-    defmodule DrinkSchema do
-      use JSV.Schema
-
-      defschema %{
-        title: "Drink",
-        type: "object",
-        properties: %{
-          name: %{type: "string"},
-          alcohol_degree: %{type: "integer"},
-          ice: IceCubeSchema
-        },
-        required: [:name, :alcohol_degree]
-      }
-    end
+    defschema DrinkSchema, %{
+      title: "Drink",
+      type: "object",
+      properties: %{
+        name: %{type: "string"},
+        alcohol_degree: %{type: "integer"},
+        ice: IceCube
+      },
+      required: [:name, :alcohol_degree]
+    }
 
     test "preexisting schemas in components with a module" do
       # In this case the components contain a module name. This should not
@@ -430,8 +377,8 @@ defmodule Oaskit.SpecTest do
           # ref.
           "paths" =>
             schemas_to_paths([
-              PetSchema,
-              %{type: :object, properties: %{pet: PetSchema}, additionalProperties: false}
+              Pet,
+              %{type: :object, properties: %{pet: Pet}, additionalProperties: false}
             ])
         }
         |> base()

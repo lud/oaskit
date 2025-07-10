@@ -235,7 +235,7 @@ defmodule Oaskit.Controller do
         operation_id: "ListUsers",
         responses: %{
           200 => [
-            description: UsersListPage.schema().description,
+            description: UsersListPage.json_schema().description,
             content: %{
               "application/json" => %{schema: UsersListPage}
             }

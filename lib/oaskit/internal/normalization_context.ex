@@ -1,4 +1,4 @@
-defmodule Oaskit.Spec.NormalizationContext do
+defmodule Oaskit.Internal.NormalizationContext do
   @moduledoc false
   @enforce_keys [
     # A list of keys to track the current nesting path of the normalized tree

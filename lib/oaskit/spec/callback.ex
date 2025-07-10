@@ -1,8 +1,13 @@
 defmodule Oaskit.Spec.Callback do
   use Oaskit.Internal.SpecObject
 
-  # Map of possible out-of-band callbacks related to the parent operation.
+  @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
+  @doc false
   def schema do
+    json_schema()
+  end
+
+  def json_schema do
     %{
       title: "Callback",
       type: :object,

@@ -5,7 +5,6 @@ defmodule Oaskit.Spec.PathItem do
     [:get, :put, :post, :delete, :options, :head, :patch, :trace]
   end
 
-  # Describes operations available on a single path.
   defschema %{
     title: "PathItem",
     type: :object,

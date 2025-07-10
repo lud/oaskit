@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.ExternalDocumentation do
   use Oaskit.Internal.SpecObject
 
-  # Allows referencing an external resource for extended documentation.
   defschema %{
     title: "ExternalDocumentation",
     type: :object,

@@ -2,7 +2,6 @@ defmodule Oaskit.Spec.Header do
   use JSV.Schema
   use Oaskit.Internal.SpecObject
 
-  # Describes a single header.
   defschema %{
     title: "Header",
     type: :object,

@@ -1,8 +1,13 @@
 defmodule Oaskit.Spec.Responses do
   use Oaskit.Internal.SpecObject
 
-  # Container for expected responses of an operation.
+  @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
+  @doc false
   def schema do
+    json_schema()
+  end
+
+  def json_schema do
     %JSV.Schema{
       title: "Responses",
       type: :object,

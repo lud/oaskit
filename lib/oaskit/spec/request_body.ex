@@ -4,7 +4,6 @@ defmodule Oaskit.Spec.RequestBody do
   import Oaskit.Internal.ControllerBuilder
   use Oaskit.Internal.SpecObject
 
-  # Describes a single request body.
   defschema %{
     title: "RequestBody",
     type: :object,

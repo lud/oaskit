@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.ServerVariable do
   use Oaskit.Internal.SpecObject
 
-  # Object representing a server variable for server URL template substitution.
   defschema %{
     title: "ServerVariable",
     type: :object,

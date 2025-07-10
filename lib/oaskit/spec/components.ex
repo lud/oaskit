@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Components do
   use Oaskit.Internal.SpecObject
 
-  # Holds reusable objects for different aspects of the OpenAPI Specification.
   defschema %{
     title: "Components",
     type: :object,

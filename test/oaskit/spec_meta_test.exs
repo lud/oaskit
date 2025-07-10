@@ -1,4 +1,5 @@
 defmodule Oaskit.SpecMetaTest do
+  alias JSV.Schema
   alias Oaskit.Spec.OpenAPI
   alias Oaskit.Spec.SchemaWrapper
   use ExUnit.Case, async: true
@@ -7,7 +8,7 @@ defmodule Oaskit.SpecMetaTest do
     # * all spec schemas using a Reference should put the reference first because
     # references share common keys and only require $ref
     # * all schema wrappers should be last as they accept any data
-    JSV.Helpers.Traverse.prewalk(OpenAPI.schema(), %{}, fn
+    JSV.Helpers.Traverse.prewalk(OpenAPI.json_schema(), %{}, fn
       {:val, %{oneOf: one_of} = map}, acc ->
         if Oaskit.Spec.Reference in one_of do
           flunk("reference should be given in anyOf, got oneOf: #{inspect(one_of)}")
@@ -34,10 +35,10 @@ defmodule Oaskit.SpecMetaTest do
         {:already_seen, acc}
 
       {:val, module}, acc when is_atom(module) ->
-        if JSV.Schema.schema_module?(module) do
+        if Schema.schema_module?(module) do
           # wrap in a list to re enter the traversal in case the schema has
           # oneOf at the root
-          {[module.schema()], Map.put(acc, module, true)}
+          {[Schema.from_module(module)], Map.put(acc, module, true)}
         else
           {module, acc}
         end

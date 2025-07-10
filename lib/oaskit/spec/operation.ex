@@ -6,7 +6,6 @@ defmodule Oaskit.Spec.Operation do
   import Oaskit.Internal.ControllerBuilder
   use Oaskit.Internal.SpecObject
 
-  # Describes a single API operation on a path.
   defschema %{
     title: "Operation",
     type: :object,

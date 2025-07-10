@@ -11,6 +11,7 @@ defmodule Oaskit.MixProject do
       source_url: @source_url,
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       description: description(),
       package: package(),
@@ -40,7 +41,7 @@ defmodule Oaskit.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.9"},
+      {:jsv, "~> 0.10"},
       {:phoenix, ">= 1.7.0"},
       {:decimal, "~> 2.0", optional: true},
       {:abnf_parsec, "~> 2.0", optional: true},
@@ -177,7 +178,7 @@ defmodule Oaskit.MixProject do
     [
       annotate: true,
       before_commit: [
-        &update_readme/1,
+        &readmix/1,
         {:add, "README.md"},
         &gen_changelog/1,
         {:add, "CHANGELOG.md"}
@@ -185,8 +186,14 @@ defmodule Oaskit.MixProject do
     ]
   end
 
-  def update_readme(vsn) do
-    :ok = Readmix.update_file(Readmix.new(vars: %{app_vsn: vsn}), "README.md")
+  def readmix(vsn) do
+    rdmx = Readmix.new(vars: %{app_vsn: vsn})
+    :ok = Readmix.update_file(rdmx, "README.md")
+
+    :ok =
+      Enum.each(Path.wildcard("guides/**/*.md"), fn path ->
+        :ok = Readmix.update_file(rdmx, path)
+      end)
   end
 
   defp gen_changelog(vsn) do

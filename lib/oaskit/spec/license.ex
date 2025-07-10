@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.License do
   use Oaskit.Internal.SpecObject
 
-  # License information for the exposed API.
   defschema %{
     title: "License",
     type: :object,

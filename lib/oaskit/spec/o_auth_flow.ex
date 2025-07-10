@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.OAuthFlow do
   use Oaskit.Internal.SpecObject
 
-  # Configuration details for a supported OAuth Flow.
   defschema %{
     title: "OAuthFlow",
     type: :object,

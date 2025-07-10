@@ -1,8 +1,13 @@
 defmodule Oaskit.Spec.SecurityRequirement do
   use Oaskit.Internal.SpecObject
 
-  # Lists required security schemes to execute an operation.
+  @deprecated "use #{inspect(__MODULE__)}.json_schema/0 instead"
+  @doc false
   def schema do
+    json_schema()
+  end
+
+  def json_schema do
     %{
       title: "SecurityRequirement",
       type: :object,

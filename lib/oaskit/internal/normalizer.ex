@@ -1,7 +1,7 @@
 defmodule Oaskit.Internal.Normalizer do
   alias JSV.Schema
   alias Oaskit.Errors.NormalizeError
-  alias Oaskit.Spec.NormalizationContext
+  alias Oaskit.Internal.NormalizationContext
   alias Oaskit.Spec.OpenAPI
   alias Oaskit.Spec.Reference
 
@@ -68,11 +68,11 @@ defmodule Oaskit.Internal.Normalizer do
     }
 
     # To normalize the module schemas we just have to normalize their exported
-    # .schema() and replace the placeholder with the result
+    # .json_schema() and replace the placeholder with the result
 
     ctx =
       Enum.reduce(predefs, ctx, fn {refname, module}, ctx ->
-        {normal_schema, ctx} = do_normalize_schema(module.schema(), ctx)
+        {normal_schema, ctx} = do_normalize_schema(Schema.from_module(module), ctx)
 
         %{
           ctx
@@ -388,7 +388,7 @@ defmodule Oaskit.Internal.Normalizer do
 
   # Atom schemas
   #
-  # When the atom is a module we will call the .schema() function from it,
+  # When the atom is a module we will call the .json_schema() function from it,
   # otherwise it's a sub schema value, we turn it into a string.
   defp do_normalize_schema(atom, ctx) when is_atom(atom) do
     if Schema.schema_module?(atom) do
@@ -424,7 +424,7 @@ defmodule Oaskit.Internal.Normalizer do
     # * Then recurse on the schema to also turn nested atoms in
     #   references before storing the normal schema in context.
     # * Then return a reference.
-    schema = module.schema()
+    schema = Schema.from_module(module)
 
     # Title and name are not the same.
     #

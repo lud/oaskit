@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Example do
   use Oaskit.Internal.SpecObject
 
-  # Groups an example value with metadata.
   defschema %{
     title: "Example",
     type: :object,

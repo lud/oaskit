@@ -3,7 +3,6 @@ defmodule Oaskit.Spec.Parameter do
   import Oaskit.Internal.ControllerBuilder
   use Oaskit.Internal.SpecObject
 
-  # Describes a single operation parameter.
   defschema %{
     title: "Parameter",
     type: :object,

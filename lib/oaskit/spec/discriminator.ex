@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Discriminator do
   use Oaskit.Internal.SpecObject
 
-  # Provides a hint about the expected schema when request bodies or responses may be one of several schemas.
   defschema %{
     title: "Discriminator",
     type: :object,

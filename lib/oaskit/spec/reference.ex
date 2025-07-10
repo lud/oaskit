@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Reference do
   use JSV.Schema
 
-  # Allows referencing other components in the OpenAPI Description.
   defschema %{
     title: "Reference",
     type: :object,

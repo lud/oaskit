@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.OpenAPI do
   use Oaskit.Internal.SpecObject
 
-  # Root object describing the entire OpenAPI document and its structure.
   defschema %{
     title: "OpenAPI",
     type: :object,

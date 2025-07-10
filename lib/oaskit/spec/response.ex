@@ -4,7 +4,6 @@ defmodule Oaskit.Spec.Response do
   import Oaskit.Internal.ControllerBuilder
   use Oaskit.Internal.SpecObject
 
-  # Describes a single response from an API operation.
   defschema %{
     title: "Response",
     type: :object,

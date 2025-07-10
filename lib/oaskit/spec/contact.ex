@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.Contact do
   use Oaskit.Internal.SpecObject
 
-  # Contact information for the exposed API.
   defschema %{
     title: "Contact",
     type: :object,

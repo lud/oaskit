@@ -1,7 +1,6 @@
 defmodule Oaskit.Spec.SecurityScheme do
   use Oaskit.Internal.SpecObject
 
-  # Defines a security scheme for operations.
   defschema %{
     title: "SecurityScheme",
     type: :object,
