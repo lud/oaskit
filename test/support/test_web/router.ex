@@ -15,7 +15,9 @@ defmodule Oaskit.TestWeb.Router do
     pipe_through :api_from_paths
 
     # Spec controller route for PathsApiSpec
-    get "/openapi.json", Oaskit.SpecController, :show
+    get "/openapi.json", Oaskit.SpecController,
+      spec: true,
+      resp_headers: %{"access-control-allow-origin" => "*"}
 
     get "/redoc", Oaskit.SpecController,
       redoc: "/generated/openapi.json",

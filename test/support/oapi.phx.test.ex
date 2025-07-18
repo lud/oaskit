@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Oapi.Phx.Test do
 
   @moduledoc false
 
-  @requirements ["app.config"]
+  @requirements ["app.config", "compile"]
 
   @impl true
   def run(_) do
@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Oapi.Phx.Test do
     test with:
     * http://localhost:5001/generated/params/some-slug/s/bad-shape/t/bad-theme/c/bad-color?color=not+an+int
     * http://localhost:5001/generated/body/manual-form-show
+    * http://localhost:5001/generated/openapi.json
     """)
 
     Mix.Tasks.Run.run(["--no-halt"])

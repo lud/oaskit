@@ -52,10 +52,9 @@ defmodule Oaskit.Spec.Server do
       scheme = Keyword.get(url, :scheme, "https")
       path = Keyword.get(url, :path, "/")
 
-      url =
-        %URI{scheme: scheme, host: host, port: port, path: path}
+      uri = %URI{scheme: scheme, host: host, port: port, path: path}
 
-      %__MODULE__{url: to_string(url)}
+      %__MODULE__{url: to_string(uri)}
     else
       e -> raise ArgumentError, "could not build url from configuration: #{inspect(e)}"
     end

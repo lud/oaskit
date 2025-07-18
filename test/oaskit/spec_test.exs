@@ -481,6 +481,23 @@ defmodule Oaskit.SpecTest do
                |> Map.keys()
                |> Enum.sort()
     end
+
+    test "removing prefix from paths" do
+      paths =
+        %{
+          openapi: "3.1.1",
+          info: %{"title" => "Oaskit Test API", :version => "0.0.0"},
+          paths: Paths.from_router(TestWeb.Router, unprefix: "/generated")
+        }
+        |> Oaskit.normalize_spec!()
+        |> cast_to_structs()
+        |> Map.fetch!(:paths)
+        |> Map.keys()
+
+      assert "/body/boolean-schema-false" in paths
+      assert "/body/form" in paths
+      assert "/body/inline-single" in paths
+    end
   end
 
   describe "server from phoenix" do

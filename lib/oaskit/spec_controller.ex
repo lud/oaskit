@@ -16,8 +16,9 @@ defmodule Oaskit.SpecController do
       get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
 
   Alternatively, you can automatically serve the spec that provided with the
-  spec provider plug by replacing the options with `:show`. The route needs to
-  be scoped with the appropriate pipeline:
+  spec provider plug by giving the `spec: true` option or by replacing the
+  options with `:show`. The route needs to be scoped with the appropriate
+  pipeline:
 
       defmodule MyAppWeb.Router do
         use Phoenix.Router
@@ -30,14 +31,13 @@ defmodule Oaskit.SpecController do
           pipe_through :api
 
           get "/openapi.json", Oaskit.SpecController, :show
+          # OR
+          get "/openapi.json", Oaskit.SpecController, spec: true
         end
       end
 
   This will serve your OpenAPI specification at `/openapi.json`. Add `?pretty=1`
   in the URL for easier debugging.
-
-  You can also replace `:show` by `spec: MyAppWeb.ApiSpec` when calling the
-  controller
 
   The controller works with any spec module that implements the `Oaskit`
   behavior. Note that if your spec is obtained from a static file, you don't
@@ -59,12 +59,24 @@ defmodule Oaskit.SpecController do
           "hideDownloadButtons" => true
         }
 
+  ## Other options
+
+  A `:resp_headers` option can be provided to set the response headers for the
+  JSON or Redoc routes.
+
+      pipeline :api do
+        get "/openapi.json", Oaskit.SpecController,
+          spec: MyApp.ApiSpec,
+          resp_headers: %{"access-control-allow-origin" => "*"}
+      end
+
   """
 
   def init(opts) do
     case opts do
       :show -> %{action: :serve_spec, spec: :__provided__}
       list when is_list(list) -> init(Map.new(list))
+      %{spec: true} -> Map.merge(opts, %{action: :serve_spec, spec: :__provided__})
       %{spec: module} -> Map.merge(opts, %{action: :serve_spec, spec: module})
       %{redoc: path} -> Map.merge(opts, %{action: :redoc, path: path})
     end
@@ -79,12 +91,32 @@ defmodule Oaskit.SpecController do
 
   def serve_spec(conn, opts) do
     conn = fetch_query_params(conn)
-    spec = fetch_spec!(conn, opts)
-    json = Oaskit.to_json!(spec, pretty: pretty?(conn.query_params))
+    module = fetch_spec!(conn, opts)
+    _ = Code.ensure_loaded(module)
+
+    case function_exported?(module, :spec, 0) do
+      true -> do_serve_spec(conn, module, opts)
+      false -> send_resp(conn, 500, "Undefined OpenAPI Specification #{inspect(module)}.spec()")
+    end
+  end
+
+  defp do_serve_spec(conn, module, opts) do
+    json = Oaskit.to_json!(module, pretty: pretty?(conn.query_params))
 
     conn
     |> put_resp_content_type("application/json")
+    |> maybe_put_resp_headers(opts)
     |> send_resp(200, json)
+  end
+
+  defp maybe_put_resp_headers(conn, %{resp_headers: headers})
+       when is_map(headers)
+       when is_list(headers) do
+    Enum.reduce(headers, conn, fn {k, v}, conn -> put_resp_header(conn, k, v) end)
+  end
+
+  defp maybe_put_resp_headers(conn, _) do
+    conn
   end
 
   defp fetch_spec!(conn, %{spec: :__provided__}) do

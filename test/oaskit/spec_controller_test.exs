@@ -91,6 +91,14 @@ defmodule Oaskit.SpecControllerTest do
 
       assert not String.contains?(conn.resp_body, "jsv-cast")
     end
+
+    test "sets CORS header for cross-origin access", %{conn: conn} do
+      # The header is present because it is declared in the router
+      conn = get(conn, ~p"/generated/openapi.json")
+
+      assert conn.status == 200
+      assert get_resp_header(conn, "access-control-allow-origin") == ["*"]
+    end
   end
 
   describe "DeclarativeApiSpec integration" do

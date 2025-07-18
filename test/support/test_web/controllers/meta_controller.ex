@@ -9,7 +9,7 @@ defmodule Oaskit.TestWeb.MetaController do
 
   @spec before_metas(term, term) :: no_return()
   def before_metas(_conn, _) do
-    raise "not called"
+    raise "should not be called"
   end
 
   tags ["shared1", "zzz"]
@@ -29,7 +29,7 @@ defmodule Oaskit.TestWeb.MetaController do
 
   @spec after_metas(term, term) :: no_return()
   def after_metas(_conn, _) do
-    raise "not called"
+    raise "should not be called"
   end
 
   operation :overrides_param,
@@ -44,6 +44,6 @@ defmodule Oaskit.TestWeb.MetaController do
 
   @spec overrides_param(term, term) :: no_return()
   def overrides_param(_conn, _) do
-    raise "not called"
+    raise "should not be called"
   end
 end
