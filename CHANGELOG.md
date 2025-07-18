@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2025-07-18
+
+### 🚀 Features
+
+- Added the :unprefix option to remove an URL prefix in Paths.from_router/2
+
 ## [0.3.0] - 2025-07-10
 
 ### ⚙️ Miscellaneous Tasks
