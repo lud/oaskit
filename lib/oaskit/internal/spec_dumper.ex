@@ -48,7 +48,7 @@ defmodule Oaskit.Internal.SpecDumper do
     end
   end
 
-  defp encode(spec, _) do
+  defp encode(spec, %{}) do
     Codec.encode!(spec)
   end
 
@@ -76,6 +76,6 @@ defmodule Oaskit.Internal.SpecDumper do
   end
 
   defp typefix(v) do
-    Process.get(make_ref(), v)
+    Process.get(__ENV__.function, v)
   end
 end

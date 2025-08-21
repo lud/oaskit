@@ -23,12 +23,11 @@ defmodule Oaskit.MixProject do
     ]
   end
 
-  defp elixirc_paths(:prod) do
-    ["lib"]
-  end
-
-  defp elixirc_paths(_) do
-    ["lib", "test/support"]
+  defp elixirc_paths(env) do
+    case env do
+      :prod -> ["lib"]
+      _ -> ["lib", "test/support"]
+    end
   end
 
   # Run "mix help compile.app" to learn about applications.
@@ -42,7 +41,7 @@ defmodule Oaskit.MixProject do
   defp deps do
     [
       {:jsv, "~> 0.10"},
-      {:phoenix, ">= 1.7.0"},
+      {:plug, ">= 1.16.0"},
       {:decimal, "~> 2.0", optional: true},
       {:abnf_parsec, "~> 2.0", optional: true},
       {:cli_mate, "~> 0.8.1"},
@@ -52,6 +51,7 @@ defmodule Oaskit.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test]},
 
       # Dev
+      {:phoenix, ">= 1.7.0", only: [:dev, :test]},
       {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -137,6 +137,7 @@ defmodule Oaskit.MixProject do
       "Error Handling": ~r{Oaskit\.ErrorHandler},
       Testing: [Oaskit.Test],
       "OpenAPI Spec 3.1": ~r{Oaskit\.Spec\.},
+      Validation: ~r{Oaskit\.Validation\.},
       Parsers: ~r{Oaskit\.Parsers\.},
       "JSON Schema Extensions": ~r{Oaskit\.JsonSchema\.}
     ]

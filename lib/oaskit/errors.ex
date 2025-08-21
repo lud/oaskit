@@ -5,7 +5,7 @@ defmodule Oaskit.Errors do
   defmodule InvalidBodyError do
     @enforce_keys [:value, :validation_error]
     defexception value: nil, validation_error: nil
-    @opaque t :: %__MODULE__{}
+    @type t :: %__MODULE__{}
 
     def message(%{validation_error: verr}) do
       """
@@ -19,7 +19,7 @@ defmodule Oaskit.Errors do
   defmodule InvalidParameterError do
     @enforce_keys [:name, :in, :value, :validation_error]
     defexception name: nil, in: nil, value: nil, validation_error: nil
-    @opaque t :: %__MODULE__{}
+    @type t :: %__MODULE__{}
 
     def message(%{in: loc, name: name, validation_error: verr}) do
       """
@@ -33,7 +33,7 @@ defmodule Oaskit.Errors do
   defmodule UnsupportedMediaTypeError do
     @enforce_keys [:media_type]
     defexception media_type: nil, value: nil
-    @opaque t :: %__MODULE__{}
+    @type t :: %__MODULE__{}
 
     def message(%{media_type: media_type}) do
       "cannot validate media type #{media_type}"
@@ -43,7 +43,7 @@ defmodule Oaskit.Errors do
   defmodule MissingParameterError do
     @enforce_keys [:name, :in]
     defexception name: nil, in: nil
-    @opaque t :: %__MODULE__{}
+    @type t :: %__MODULE__{}
 
     def message(%{in: loc, name: name}) do
       "missing parameter #{name} in #{loc}"
@@ -52,7 +52,7 @@ defmodule Oaskit.Errors do
 
   defmodule NormalizeError do
     defexception ctx: nil, reason: nil
-    @opaque t :: %__MODULE__{}
+    @type t :: %__MODULE__{}
 
     def message(%{ctx: ctx, reason: reason}) when is_binary(reason) do
       "normalization error in #{format_error_path(ctx)}: #{reason}"

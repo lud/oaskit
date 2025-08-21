@@ -1,6 +1,7 @@
 defmodule Oaskit.Test do
-  alias Oaskit.Parsers.HttpStructuredField
-  alias Oaskit.Plugs.ValidateRequest
+  alias Oaskit.Validation.ResponseData
+  alias Oaskit.Validation.ResponseValidator
+  alias Plug.Conn
 
   @moduledoc """
   Provides the `valid_response/3` test helper to validate API responses in your
@@ -42,83 +43,22 @@ defmodule Oaskit.Test do
       end
   """
   def valid_response(spec_module, %Plug.Conn{} = conn, status) when is_integer(status) do
-    body = Phoenix.ConnTest.response(conn, status)
+    body = phoenix_response(conn, status)
+    operation_id = fetch_operation_id(conn)
+    content_type = ResponseValidator.content_type(conn)
+    body = maybe_parse_body(body, ResponseValidator.parse_content_type(content_type))
+    resp_data = %ResponseData{resp_body: body, resp_headers: conn.resp_headers, status: status}
 
-    operation_id =
-      case get_in(conn.private, [:oaskit, :operation_id]) do
-        nil ->
-          raise """
-          the connection was not validated by Oaskit.Plugs.ValidateRequest
-
-          This may happen if no pipeline with the Oaskit plugs is defined for
-          the route, if the operation is not declared above the controller function
-          or is explictitly disabled with `operation :my_function, false`.
-          """
-
-        opid ->
-          opid
-      end
-
-    {validations, jsv_root} = Oaskit.build_spec!(spec_module, responses: true)
-
-    content_validation =
-      with {:ok, path_validations} <- Map.fetch(validations, operation_id),
-           {:ok, responses} <- Keyword.fetch(path_validations, :responses),
-           {:ok, status_validations} <- fetch_response(responses, status) do
-        status_validations
-      else
-        _ ->
-          raise "could not find response definition for operation #{inspect(operation_id)} " <>
-                  "with status #{inspect(status)}"
-      end
-
-    case content_validation do
-      :no_validation ->
-        body
-
-      list when is_list(list) ->
-        content_type = content_type(conn)
-
-        parse_validate_response(%{
-          body: body,
-          conn: conn,
-          content_type: content_type,
-          type_subtype: parse_content_type(content_type),
-          content_validation: list,
-          jsv_root: jsv_root,
-          operation_id: operation_id,
-          status: status
-        })
-    end
-  end
-
-  defp fetch_response(responses, status) do
-    case responses do
-      %{^status => resp} -> {:ok, resp}
-      %{:default => resp} -> {:ok, resp}
-      _ -> :error
-    end
-  end
-
-  defp parse_validate_response(ctx) do
-    body = maybe_parse_body(ctx)
-
-    case match_media_type(ctx) do
-      :no_validation -> body
-      jsv_key -> validate_response(body, jsv_key, ctx)
-    end
-  end
-
-  defp validate_response(body, jsv_key, ctx) do
-    case JSV.validate(body, ctx.jsv_root, key: jsv_key) do
+    case ResponseValidator.validate_response(resp_data, spec_module, operation_id) do
       {:ok, _} ->
+        # We do not return the cast body because in test we validate the
+        # behaviour of the app from an external point of view.
         body
 
       {:error, jsv_error} ->
-        raise "invalid response returned by operation #{inspect(ctx.operation_id)} " <>
-                "with status #{inspect(ctx.status)} and content-type #{inspect(ctx.content_type)}" <>
+        raise "invalid response returned by operation #{inspect(operation_id)} " <>
+                "with status #{inspect(status)} and content-type #{inspect(content_type)}" <>
                 """
-
 
                 #{Exception.message(jsv_error)}
 
@@ -129,21 +69,44 @@ defmodule Oaskit.Test do
     end
   end
 
-  defp match_media_type(ctx) do
-    type_subtype = parse_content_type(ctx.content_type)
+  # Copy from phoenix to not depend on phoenix
+  def phoenix_response(%Conn{state: :unset}, _status) do
+    raise """
+    expected connection to have a response but no response was set/sent.
+    Please verify that you assign to "conn" after a request:
 
-    case ValidateRequest.match_media_type(ctx.content_validation, type_subtype) do
-      {:ok, {_ct, jsv_key}} ->
-        jsv_key
+        conn = get(conn, "/")
+        assert %{"data" => "foo"} = valid_response(Spec, conn, 200)
+    """
+  end
 
-      {:error, :media_type_match} ->
-        raise "operation #{inspect(ctx.operation_id)} " <>
-                "with status #{inspect(ctx.status)} has no definition for content-type #{inspect(ctx.content_type)}"
+  def phoenix_response(%Conn{status: status, resp_body: body}, given) do
+    given = Conn.Status.code(given)
+
+    if given == status do
+      body
+    else
+      raise "expected response with status #{given}, got: #{status}, with body:\n#{inspect(body)}"
     end
   end
 
-  defp maybe_parse_body(ctx) do
-    %{body: body, type_subtype: {_, subtype}} = ctx
+  defp fetch_operation_id(conn) do
+    case get_in(conn.private, [:oaskit, :operation_id]) do
+      nil ->
+        raise """
+        the connection was not validated by Oaskit.Plugs.ValidateRequest
+
+        This may happen if no pipeline with the Oaskit plugs is defined for
+        the route, if the operation is not declared above the controller function
+        or is explictitly disabled with `operation :my_function, false`.
+        """
+
+      opid ->
+        opid
+    end
+  end
+
+  defp maybe_parse_body(body, {_, subtype}) do
     # For now we only know how to parse JSON
     cond do
       subtype == "json" -> json_decode!(body)
@@ -153,29 +116,9 @@ defmodule Oaskit.Test do
   end
 
   defp json_decode!(data) do
-    JSV.Codec.decode!(data)
-  end
-
-  defp content_type(conn) do
-    case Plug.Conn.get_resp_header(conn, "content-type") do
-      [] ->
-        raise "missing response content-type header"
-
-      [raw] ->
-        case HttpStructuredField.parse_sf_item(raw, unwrap: true, maps: true) do
-          {:ok, {token, _}} -> token
-          _ -> raise "invalid content-type header: #{inspect(raw)}"
-        end
-
-      [_ | _] ->
-        raise "multiple content-type header values"
-    end
-  end
-
-  defp parse_content_type(content_type) do
-    case Plug.Conn.Utils.content_type(content_type) do
-      :error -> {content_type, ""}
-      {:ok, primary, secondary, _params} -> {primary, secondary}
+    case data do
+      "" -> ""
+      payload -> JSV.Codec.decode!(payload)
     end
   end
 end

@@ -437,10 +437,18 @@ defmodule Oaskit.Controller do
     end
   end
 
-  defp maybe_expand_aliases(ast, caller) do
-    runtime? = Phoenix.plug_init_mode() == :runtime
+  if Code.ensure_loaded?(Phoenix) do
+    def runtime? do
+      Phoenix.plug_init_mode() == :runtime
+    end
+  else
+    def runtime? do
+      Process.get(__ENV__.function, false)
+    end
+  end
 
-    if runtime? && Macro.quoted_literal?(ast) do
+  defp maybe_expand_aliases(ast, caller) do
+    if runtime?() && Macro.quoted_literal?(ast) do
       Macro.prewalk(ast, &expand_alias(&1, caller))
     else
       ast
@@ -472,7 +480,7 @@ defmodule Oaskit.Controller do
         "Elixir." <> rest -> rest
         str -> str
       end
-      |> Phoenix.Naming.unsuffix("Controller")
+      |> unsuffix("Controller")
 
     # id prefix is the last part of the controller name
     id_prefix =
@@ -490,6 +498,17 @@ defmodule Oaskit.Controller do
       |> Base.encode32(padding: false)
 
     "#{id_prefix}_#{to_string(action)}_#{mod_hash}"
+  end
+
+  defp unsuffix(value, suffix) do
+    string = to_string(value)
+    suffix_size = byte_size(suffix)
+    prefix_size = byte_size(string) - suffix_size
+
+    case string do
+      <<prefix::binary-size(prefix_size), ^suffix::binary>> -> prefix
+      _ -> string
+    end
   end
 
   defmacro __before_compile__(env) do
