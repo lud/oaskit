@@ -1,9 +1,9 @@
 defmodule Oaskit.SpecTest do
   alias JSV.Codec
-  alias Oaskit.Internal.SpecValidator
   alias Oaskit.Spec.Components
   alias Oaskit.Spec.OpenAPI
   alias Oaskit.Spec.Paths
+  alias Oaskit.SpecValidator
   alias Oaskit.TestWeb
   alias Oaskit.TestWeb.DeclarativeApiSpec
   use ExUnit.Case, async: true

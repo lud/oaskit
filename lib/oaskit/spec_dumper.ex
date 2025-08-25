@@ -1,10 +1,27 @@
-defmodule Oaskit.Internal.SpecDumper do
+defmodule Oaskit.SpecDumper do
   alias JSV.Codec
 
-  @moduledoc false
+  @moduledoc """
+  A helper to render an OpenAPI specification to JSON format.
+  """
 
-  # dumps a normal spec to json
-  def to_json(normal_spec, opts) do
+  @doc """
+  Returns a JSON representation of the given OpenAPI specification. The
+  specification must be in normal form (binary keys, no atoms besides booleans
+  and `nil`).
+
+  ### Options
+
+  * `:pretty` - A boolean to control JSON pretty printing. JSON object keys will
+    be ordered if the available JSON library (`Jason`, `JSON`) supports it. Key
+    ordering is custom (for instance, the `openapi` key is always first).
+  * `:validation_error_handler` - A function accepting a `JSV.ValidationError`
+    struct. The JSON generation does not fail on validation error unless you
+    raise from that function.
+  """
+  def to_json!(normal_spec, opts \\ []) do
+    opts = Map.new(opts)
+
     normal_spec
     |> validate(opts)
     |> prune()
@@ -13,7 +30,7 @@ defmodule Oaskit.Internal.SpecDumper do
 
   defp validate(spec, opts) do
     _ =
-      case Oaskit.Internal.SpecValidator.validate(spec) do
+      case Oaskit.SpecValidator.validate(spec) do
         {:ok, _} -> :ok
         {:error, verr} -> handle_error(verr, opts)
       end

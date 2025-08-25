@@ -29,7 +29,17 @@ defmodule Oaskit do
   ```
   """
 
+  @typedoc """
+  The cache keys used by this module when calling `c:cache/1`.
+  """
   @type cache_key :: {:oaskit_cache, module, responses? :: boolean, variant :: term}
+
+  @typedoc """
+  A cache action given to `c:cache/1`. `#{inspect(__MODULE__)}` will use keys of
+  type `t:cache_key/0` when calling the cache.
+  """
+  @type cache_action ::
+          {:get, key :: cache_key | term} | {:put, key :: cache_key | term, value :: term}
 
   @doc """
   This function should return the OpenAPI specification for your application.
@@ -46,20 +56,17 @@ defmodule Oaskit do
   This callback is used to cache the built version of the OpenAPI specification,
   with JSV schemas turned into validators.
 
-  The callback will be called with `:get` to retrieve a cached build, in which
-  case the callback should return `{:ok, cached}` or `:error`. It will be called
-  with `{:put, value}` to set the cache, in which case it must return `:ok`.
+  * The callback will be called with `:get` to retrieve a cached build, in which
+    case the callback should return `{:ok, cached}` or `:error`.
+  * It will be called with `{:put, value}` to set the cache, in which case it
+    must return `:ok`.
 
   Caching is very important, otherwise the spec will be built for each request
   calling a controller that uses `#{inspect(ValidateRequest)}`. An efficient
   default implementation using `:persistent_term` is automatically generated.
   Override this callback if you need more control over the cache.
-
-  On custom implementations there is generally no need to wrap the key in a
-  tagged tuple, as it is already a unique tagged tuple.
   """
-  @callback cache({:get, key} | {:put, key, value}) :: :ok | {:ok, value} | :error
-            when key: {:oaskit_cache, module, term}, value: term
+  @callback cache(cache_action) :: :ok | {:ok, term} | :error
 
   @doc """
   Returns the options that will be passed to `JSV.build/2` when building the
@@ -119,14 +126,24 @@ defmodule Oaskit do
     end
   end
 
+  @default_jsv_opts (quote do
+                       [
+                         default_meta: JSV.default_meta(),
+                         formats: [
+                           Oaskit.JsonSchema.Formats | JSV.default_format_validator_modules()
+                         ]
+                       ]
+                     end)
+
   @doc """
-  Default options used for the `JSV.build/2` function when building schemas.
+  Default options used for the `JSV.build/2` function when building schemas:
+
+  ```
+  #{Macro.to_string(@default_jsv_opts)}
+  ```
   """
   def default_jsv_opts do
-    [
-      default_meta: JSV.default_meta(),
-      formats: [Oaskit.JsonSchema.Formats | JSV.default_format_validator_modules()]
-    ]
+    unquote(@default_jsv_opts)
   end
 
   @doc false
@@ -137,16 +154,7 @@ defmodule Oaskit do
 
     if cache? do
       cache_key = cache_key(spec_module, opts)
-
-      case spec_module.cache({:get, cache_key}) do
-        {:ok, built_validations} ->
-          built_validations
-
-        :error ->
-          built_validations = do_build_spec!(spec_module, opts)
-          :ok = spec_module.cache({:put, cache_key, built_validations})
-          built_validations
-      end
+      cached(spec_module, cache_key, fn -> do_build_spec!(spec_module, opts) end)
     else
       do_build_spec!(spec_module, opts)
     end
@@ -155,6 +163,24 @@ defmodule Oaskit do
   @spec cache_key(module, keyword) :: cache_key
   defp cache_key(spec_module, opts) do
     {:oaskit_cache, spec_module, !!opts[:responses], spec_module.cache_variant()}
+  end
+
+  @doc """
+  Retrieves a cached from the implementation module.
+
+  If the value is not in catche, the `generator` is called and the generated
+  value is put in cache before being returned.
+  """
+  def cached(spec_module, cache_key, generator) do
+    case spec_module.cache({:get, cache_key}) do
+      {:ok, value} ->
+        value
+
+      :error ->
+        value = generator.()
+        :ok = spec_module.cache({:put, cache_key, value})
+        value
+    end
   end
 
   defp do_build_spec!(spec_module, opts) do
@@ -184,19 +210,25 @@ defmodule Oaskit do
   end
 
   @doc """
-  Returns a JSON representation of the given OpenAPI specification module.
-
-  ### Options
-
-  * `:pretty` - A boolean to control JSON pretty printing.
-  * `:validation_error_handler` - A function accepting a `JSV.ValidationError`
-    struct. The JSON generation does not fail on validation error unless you
-    raise from that function.
+  Validates the given OpenAPI specification module returns a representation of
+  the specification using structs such as `#{inspect(Oaskit.Spec.OpenAPI)}`,
+  `#{inspect(Oaskit.Spec.Response)}`, _etc_.
   """
-  @spec to_json!(module, keyword | map) :: String.t()
-  def to_json!(module, opts) do
+  def cast!(module) do
     module.spec()
     |> normalize_spec!()
-    |> Oaskit.Internal.SpecDumper.to_json(Map.new(opts))
+    |> Oaskit.SpecValidator.validate!()
+  end
+
+  @doc """
+  Returns a JSON representation of the given OpenAPI specification module.
+
+  See `Oaskit.SpecDumper.to_json!/2` for options.
+  """
+  @spec to_json!(module, keyword | map) :: String.t()
+  def to_json!(module, opts \\ []) do
+    module.spec()
+    |> normalize_spec!()
+    |> Oaskit.SpecDumper.to_json!(opts)
   end
 end

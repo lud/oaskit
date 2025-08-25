@@ -14,7 +14,7 @@ defmodule Oaskit.Internal.ValidationBuilder do
   @moduledoc false
 
   def build_operations(normal_spec, opts) when is_map(opts) do
-    spec = Oaskit.Internal.SpecValidator.validate!(normal_spec)
+    spec = Oaskit.SpecValidator.validate!(normal_spec)
 
     to_build = stream_operations(spec)
 

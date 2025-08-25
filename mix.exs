@@ -136,6 +136,7 @@ defmodule Oaskit.MixProject do
       Plugs: [~r{Oaskit\.Plugs\.}, Oaskit.SpecController],
       "Error Handling": ~r{Oaskit\.ErrorHandler},
       Testing: [Oaskit.Test],
+      Utilities: [Oaskit.SpecDumper, Oaskit.SpecValidator],
       "OpenAPI Spec 3.1": ~r{Oaskit\.Spec\.},
       Validation: ~r{Oaskit\.Validation\.},
       Parsers: ~r{Oaskit\.Parsers\.},
