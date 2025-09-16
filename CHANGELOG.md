@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2025-09-16
+
+### 🚀 Features
+
+- [**breaking**] ABNF parser dependency isn't optional anymore
+
 ## [0.4.1] - 2025-08-25
 
 ### 🚀 Features
