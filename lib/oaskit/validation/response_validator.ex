@@ -1,5 +1,4 @@
 defmodule Oaskit.Validation.ResponseValidator do
-  alias Oaskit.Parsers.HttpStructuredField
   alias Oaskit.Validation.RequestValidator
   alias Oaskit.Validation.ResponseData
 
@@ -62,7 +61,7 @@ defmodule Oaskit.Validation.ResponseValidator do
         raise "missing response content-type header"
 
       [raw] ->
-        case HttpStructuredField.parse_sf_item(raw, unwrap: true, maps: true) do
+        case Texture.HttpStructuredField.parse_item(raw, unwrap: true, maps: true) do
           {:ok, {token, _}} -> token
           _ -> raise "invalid content-type header: #{inspect(raw)}"
         end

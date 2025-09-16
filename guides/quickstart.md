@@ -17,13 +17,8 @@ end
 ```
 <!-- rdmx /:app_dep -->
 
-You can also add the [AbnfParsec](https://hex.pm/packages/abnf_parsec)
-dependency to support [more
-formats](https://hexdocs.pm/jsv/validation-basics.html#formats) in the JSON
-schema `format` keyword.
-
-Finally, you will most probably use macros from this library, import formatter
-rules in your `.formatter.exs` file:
+You will most probably use macros from this library, import formatter rules in
+your `.formatter.exs` file:
 
 <!-- rdmx :section name:formatter_config format: true -->
 ```elixir

@@ -29,7 +29,7 @@ defmodule Oaskit.JsonSchema.Formats do
   # numbers as-is or as string
   @numeric_formats ["decimal", "decimal128", "int64", "uint64"]
 
-  known_sf_formats = [
+  @sf_formats [
     "sf-binary",
     "sf-boolean",
     "sf-decimal",
@@ -37,15 +37,6 @@ defmodule Oaskit.JsonSchema.Formats do
     "sf-string",
     "sf-token"
   ]
-
-  if Code.ensure_loaded?(AbnfParsec) do
-    alias Oaskit.Parsers.HttpStructuredField
-    require HttpStructuredField
-
-    @sf_formats known_sf_formats
-  else
-    @sf_formats []
-  end
 
   @all_formats @string_formats ++ @number_formats ++ @numeric_formats ++ @sf_formats
 
@@ -95,11 +86,10 @@ defmodule Oaskit.JsonSchema.Formats do
   not provide header validation yet, they are supported for OpenAPI
   specification compliance.
 
-  The [`{:abnf_parsec, "~> 2.0"}`](https://hex.pm/packages/abnf_parsec)
-  dependency is required for them to be available.
-
-  #{md_list.(known_sf_formats)}
+  #{md_list.(@sf_formats)}
   """
+
+  # TODO provide header validation
 
   def supported_formats do
     @all_formats
@@ -336,7 +326,7 @@ defmodule Oaskit.JsonSchema.Formats do
   end
 
   defp expect_sf_item(data, expected_type) do
-    case Oaskit.Parsers.HttpStructuredField.parse_sf_item(data) do
+    case Texture.HttpStructuredField.parse_item(data) do
       {:ok, {^expected_type, value, _}} -> {:ok, value}
       {:ok, _} -> {:error, "invalid structured field type"}
       {:error, {errmsg, _}} -> {:error, errmsg}
