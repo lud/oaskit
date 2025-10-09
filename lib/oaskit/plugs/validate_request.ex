@@ -223,11 +223,14 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
     case RequestValidator.validate_request(request_data, spec_module, operation_id) do
       {:ok, private} ->
-        Conn.put_private(conn, :oaskit, private)
+        Conn.put_private(conn, :oaskit, Map.merge(conn.private.oaskit, private))
 
       {:error, reason} ->
         conn
-        |> Conn.put_private(:oaskit, %{operation_id: operation_id})
+        |> Conn.put_private(
+          :oaskit,
+          Map.merge(conn.private.oaskit, %{operation_id: operation_id})
+        )
         |> on_error(reason, opts)
     end
   end
