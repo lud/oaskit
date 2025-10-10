@@ -327,6 +327,35 @@
         "type": "object"
       }
     },
+    "responses": {
+      "SpecialFortune": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "category": {
+                  "enum": [
+                    "wisdom",
+                    "humor",
+                    "warning",
+                    "advice"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "category",
+                "message"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "description": "A response to be used from a $ref"
+      }
+    },
     "securitySchemes": {
       "someApiKey": {
         "description": "an API key",
@@ -1589,6 +1618,16 @@
         "operationId": "fortune_valid"
       }
     },
+    "/generated/resp/fortune-200-valid-from-ref": {
+      "get": {
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SpecialFortune"
+          }
+        },
+        "operationId": "fortune_from_ref"
+      }
+    },
     "/generated/resp/fortune-500-bad-default-resp": {
       "get": {
         "responses": {
@@ -1657,6 +1696,39 @@
           }
         },
         "operationId": "emptySecurity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/generated/security/false-security": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "falseSecurity",
         "requestBody": {
           "content": {
             "application/json": {

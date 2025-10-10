@@ -21,6 +21,23 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
         ),
       servers: [Server.from_config(:oaskit, Oaskit.TestWeb.Endpoint)],
       components: %{
+        responses: %{
+          SpecialFortune: %{
+            description: "A response to be used from a $ref",
+            content: %{
+              "application/json": %{
+                schema: %{
+                  type: :object,
+                  properties: %{
+                    category: %{enum: ~w(wisdom humor warning advice)},
+                    message: %{type: :string}
+                  },
+                  required: [:category, :message]
+                }
+              }
+            }
+          }
+        },
         securitySchemes: %{
           someApiKey: %{
             description: "an API key",

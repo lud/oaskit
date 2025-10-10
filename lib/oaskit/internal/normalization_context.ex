@@ -19,3 +19,9 @@ defmodule Oaskit.Internal.NormalizationContext do
   defstruct @enforce_keys
   @type t :: %__MODULE__{}
 end
+
+defimpl Inspect, for: Oaskit.Internal.NormalizationContext do
+  def inspect(_, _) do
+    "#Oaskit.Internal.NormalizationContext<>"
+  end
+end

@@ -101,4 +101,11 @@ defmodule Oaskit.Web.ResponseTest do
                conn.private.oaskit
     end
   end
+
+  describe "using references in responses" do
+    test "reference from components", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-valid-from-ref")
+      assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
+    end
+  end
 end

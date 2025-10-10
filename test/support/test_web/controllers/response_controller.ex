@@ -1,4 +1,5 @@
 defmodule Oaskit.TestWeb.ResponseController do
+  alias Oaskit.Spec.Reference
   alias Oaskit.TestWeb.Schemas.FortuneCookie
   alias Oaskit.TestWeb.Schemas.GenericError
   use Oaskit.TestWeb, :controller
@@ -27,6 +28,14 @@ defmodule Oaskit.TestWeb.ResponseController do
   operation :valid_no_operation, false
 
   def valid_no_operation(conn, _) do
+    json(conn, Enum.random(@fortunes))
+  end
+
+  operation :valid_from_ref,
+    operation_id: "fortune_from_ref",
+    responses: [ok: %Reference{"$ref": "#/components/responses/SpecialFortune"}]
+
+  def valid_from_ref(conn, _) do
     json(conn, Enum.random(@fortunes))
   end
 

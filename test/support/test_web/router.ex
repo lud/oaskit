@@ -69,6 +69,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/fortune-200-no-operation", ResponseController, :no_operation
       post "/fortune-200-req-body", ResponseController, :require_body
       get "/fortune-200-valid", ResponseController, :valid
+      get "/fortune-200-valid-from-ref", ResponseController, :valid_from_ref
       get "/fortune-200-valid-no-operation", ResponseController, :valid_no_operation
       get "/fortune-200-invalid", ResponseController, :invalid
       get "/fortune-200-no-content-def", ResponseController, :no_content_def
@@ -91,6 +92,7 @@ defmodule Oaskit.TestWeb.Router do
     scope "/security", Oaskit.TestWeb do
       post "/no-security", SecurityController, :no_security
       post "/empty-security", SecurityController, :empty_security
+      post "/false-security", SecurityController, :false_security
       post "/no-scopes", SecurityController, :no_scopes
       post "/with-scopes", SecurityController, :with_scopes
       post "/multi-scheme-security", SecurityController, :multi_scheme_security

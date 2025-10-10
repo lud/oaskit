@@ -40,6 +40,18 @@ defmodule Oaskit.SecurityTest do
     end
   end
 
+  describe "POST /false-security" do
+    test "valid request returns 200", %{conn: conn} do
+      conn = post(conn, "/generated/security/false-security", @invalid_body)
+      assert json_response(conn, 422)
+    end
+
+    test "invalid request returns 422", %{conn: conn} do
+      conn = post(conn, "/generated/security/false-security", @invalid_body)
+      assert json_response(conn, 422)
+    end
+  end
+
   describe "POST /no-scopes" do
     test "returns 200 when security plug allows", %{conn: conn} do
       conn =

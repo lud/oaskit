@@ -171,6 +171,10 @@ defmodule Oaskit.Spec.Operation do
               __STACKTRACE__
   end
 
+  defp cast_security(false) do
+    {:ok, nil}
+  end
+
   defp cast_security(security) when is_list(security) do
     sec =
       Enum.map(security, fn map when is_map(map) ->

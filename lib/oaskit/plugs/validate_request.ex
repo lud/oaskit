@@ -244,12 +244,17 @@ defmodule Oaskit.Plugs.ValidateRequest do
     spec_module = SpecProvider.fetch_spec_module!(conn)
     {op_map, _} = built_spec = Oaskit.build_spec!(spec_module)
 
-    with {:ok, security} <- fetch_security(op_map, operation_id),
-         %Plug.Conn{halted: false} <- apply_security(conn, security, operation_id, opts) do
-      do_validate(conn, built_spec, operation_id, opts)
-    else
-      {:error, {:not_built, _}} = err -> err
-      %Plug.Conn{halted: true} = conn -> conn
+    conn =
+      Conn.put_private(conn, :oaskit, Map.put(conn.private.oaskit, :operation_id, operation_id))
+
+    security = fetch_security!(op_map, operation_id)
+
+    case apply_security(conn, security, operation_id, opts) do
+      %Plug.Conn{halted: false} = next_conn ->
+        do_validate(next_conn, built_spec, operation_id, opts)
+
+      %Plug.Conn{halted: true} = next_conn ->
+        next_conn
     end
   end
 
@@ -257,23 +262,17 @@ defmodule Oaskit.Plugs.ValidateRequest do
     request_data = RequestData.from_conn(conn)
 
     case RequestValidator.validate_request(request_data, built_spec, operation_id) do
-      {:ok, private} ->
-        Conn.put_private(conn, :oaskit, Map.merge(conn.private.oaskit, private))
-
-      {:error, reason} ->
-        conn
-        |> Conn.put_private(
-          :oaskit,
-          Map.merge(conn.private.oaskit, %{operation_id: operation_id})
-        )
-        |> on_error(reason, opts)
+      {:ok, private} -> Conn.put_private(conn, :oaskit, Map.merge(conn.private.oaskit, private))
+      {:error, {:not_built, ^operation_id}} -> raise_not_built(operation_id)
+      {:error, reason} -> on_error(conn, reason, opts)
     end
   end
 
-  defp fetch_security(op_map, operation_id) do
+  @spec fetch_security!(term, term) :: list | nil
+  defp fetch_security!(op_map, operation_id) do
     case op_map do
-      %{^operation_id => %{security: security}} -> {:ok, security}
-      _ -> {:error, {:not_built, operation_id}}
+      %{^operation_id => %{security: security}} -> security
+      _ -> raise_not_built(operation_id)
     end
   end
 
@@ -303,6 +302,11 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
+  @spec raise_not_built(binary) :: no_return()
+  defp raise_not_built(operation_id) do
+    raise "operation with id #{inspect(operation_id)} was not built"
+  end
+
   defp on_error(conn, reason, opts) do
     case reason do
       {:parameters_errors, errors} when is_list(errors) ->
@@ -313,9 +317,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
       %UnsupportedMediaTypeError{} ->
         call_error_handler(conn, reason, opts.error_handler)
-
-      {:not_built, operation_id} ->
-        raise "operation with id #{inspect(operation_id)} was not built"
     end
   end
 

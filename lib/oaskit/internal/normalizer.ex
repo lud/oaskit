@@ -1,4 +1,5 @@
 defmodule Oaskit.Internal.Normalizer do
+  alias JSV.Helpers.MapExt
   alias JSV.Schema
   alias Oaskit.Errors.NormalizeError
   alias Oaskit.Internal.NormalizationContext
@@ -105,7 +106,7 @@ defmodule Oaskit.Internal.Normalizer do
   end
 
   def from(%sourcemod{} = data, sourcemod, ctx) do
-    from(JSV.Helpers.MapExt.from_struct_no_nils(data), sourcemod, ctx)
+    from(MapExt.from_struct_no_nils(data), sourcemod, ctx)
   end
 
   def from(data, sourcemod, ctx) when is_map(data) and not is_struct(data) do
@@ -328,11 +329,10 @@ defmodule Oaskit.Internal.Normalizer do
     #
     # So to determine if we are facing a reference we will check that the map only
     # contains $ref, summary and description keys and nothing else.
-
     with_normal_keys = Map.new(term, fn {k, v} -> {ensure_binary_key(k), v} end)
 
     if Map.has_key?(with_normal_keys, "$ref") and map_size(with_normal_keys) <= 3 and
-         Enum.all?(Map.keys(with_normal_keys), &(&1 in ["$ref", "$summary", "description"])) do
+         Enum.all?(Map.keys(with_normal_keys), &(&1 in ["$ref", "summary", "description"])) do
       {:ok, to_json_decoded(with_normal_keys)}
     else
       :error
@@ -340,7 +340,7 @@ defmodule Oaskit.Internal.Normalizer do
   end
 
   defp normalize_openapi_reference(%{__struct__: Reference} = ref) do
-    {:ok, ref}
+    normalize_openapi_reference(MapExt.from_struct_no_nils(ref))
   end
 
   defp normalize_openapi_reference(_) do
