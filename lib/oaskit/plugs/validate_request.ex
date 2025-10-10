@@ -7,6 +7,8 @@ defmodule Oaskit.Plugs.ValidateRequest do
   alias Plug.Conn
   require Logger
 
+  @default_query_reader_opts [length: 1_000_000, validate_utf8: true]
+
   @moduledoc """
   This plug will match incoming requests to operations defined with the
   `#{inspect(Oaskit.Controller)}.operation/2` or
@@ -101,7 +103,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
   * `:query_reader_opts` - If a Plug.Conn struct enters this plug without its
     query parameters being fetched, this plug will fetch them automatically
     using `Conn.fetch_query_params(conn, query_reader_opts)`. The default value
-    is `[length: 1_000_000, validate_utf8: true]`.
+    is `#{inspect(@default_query_reader_opts)}`.
   * `:error_handler` - A module or `{module, argument}` tuple. The error handler
     must implement the `#{inspect(Oaskit.ErrorHandler)}` behaviour. It will be
     called on validation errors. Defaults to `Oaskit.ErrorHandler.Default`.
@@ -171,10 +173,10 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
   @impl true
   def init(opts) do
-    query_reader_opts = Keyword.get(opts, :query_reader, length: 1_000_000, validate_utf8: true)
-
-    opts =
+    {raw_error_handler, opts_no_handler} =
       opts
+      |> Keyword.put_new(:query_reader_opts, @default_query_reader_opts)
+      |> Keyword.put_new(:security, nil)
       |> Keyword.put_new_lazy(:pretty_errors, fn ->
         # Default to true only when mix is available:
         # * in dev/test environment.
@@ -183,19 +185,40 @@ defmodule Oaskit.Plugs.ValidateRequest do
         function_exported?(Mix, :env, 0) && Mix.env() != :prod
       end)
       |> Keyword.put_new(:html_errors, true)
-
-    {handler, opts_no_handler} = Keyword.pop(opts, :error_handler, Oaskit.ErrorHandler.Default)
+      |> Keyword.update(:security, nil, &cast_security/1)
+      |> Keyword.pop(:error_handler, Oaskit.ErrorHandler.Default)
 
     error_handler =
-      case handler do
+      case raw_error_handler do
         mod when is_atom(mod) -> {mod, opts_no_handler}
         {mod, arg} when is_atom(mod) -> {mod, arg}
       end
 
-    %{
-      error_handler: error_handler,
-      query_reader_opts: query_reader_opts
-    }
+    opts_no_handler
+    |> Keyword.put(:error_handler, error_handler)
+    |> Map.new()
+  end
+
+  defp cast_security(security) do
+    case security do
+      nil ->
+        nil
+
+      false ->
+        false
+
+      module when is_atom(module) ->
+        {module, []}
+
+      {module, opts} when is_atom(module) and is_list(opts) ->
+        {module, opts}
+
+      other ->
+        raise inspect(__MODULE__) <>
+                " only accepts `nil`, `module` or `{module, opts}` when `opts` is a keyword" <>
+                " list as the `:security` option, got: " <>
+                inspect(other)
+    end
   end
 
   @impl true
@@ -206,7 +229,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
     case fetch_operation_id(conn, controller, action) do
       {:ok, operation_id} ->
-        do_call(conn, operation_id, opts)
+        check_security_and_validate(conn, operation_id, opts)
 
       :ignore ->
         conn
@@ -217,11 +240,23 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
-  defp do_call(conn, operation_id, opts) do
+  defp check_security_and_validate(conn, operation_id, opts) do
     spec_module = SpecProvider.fetch_spec_module!(conn)
+    {op_map, _} = built_spec = Oaskit.build_spec!(spec_module)
+
+    with {:ok, security} <- fetch_security(op_map, operation_id),
+         %Plug.Conn{halted: false} <- apply_security(conn, security, operation_id, opts) do
+      do_validate(conn, built_spec, operation_id, opts)
+    else
+      {:error, {:not_built, _}} = err -> err
+      %Plug.Conn{halted: true} = conn -> conn
+    end
+  end
+
+  defp do_validate(conn, built_spec, operation_id, opts) do
     request_data = RequestData.from_conn(conn)
 
-    case RequestValidator.validate_request(request_data, spec_module, operation_id) do
+    case RequestValidator.validate_request(request_data, built_spec, operation_id) do
       {:ok, private} ->
         Conn.put_private(conn, :oaskit, Map.merge(conn.private.oaskit, private))
 
@@ -232,6 +267,39 @@ defmodule Oaskit.Plugs.ValidateRequest do
           Map.merge(conn.private.oaskit, %{operation_id: operation_id})
         )
         |> on_error(reason, opts)
+    end
+  end
+
+  defp fetch_security(op_map, operation_id) do
+    case op_map do
+      %{^operation_id => %{security: security}} -> {:ok, security}
+      _ -> {:error, {:not_built, operation_id}}
+    end
+  end
+
+  defp apply_security(conn, [], _operation_id, _opts) do
+    conn
+  end
+
+  defp apply_security(conn, nil, _operation_id, _opts) do
+    conn
+  end
+
+  defp apply_security(conn, security, operation_id, opts) do
+    case opts.security do
+      nil ->
+        warn_undef_security(conn, operation_id)
+
+        conn
+        |> Conn.send_resp(401, "unauthorized")
+        |> Conn.halt()
+
+      false ->
+        conn
+
+      {module, opts} when is_atom(module) ->
+        opts = Keyword.merge(opts, security: security, operation_id: operation_id)
+        module.call(conn, module.init(opts))
     end
   end
 
@@ -289,6 +357,23 @@ defmodule Oaskit.Plugs.ValidateRequest do
         def #{action}(conn, params) do
           # ...
         end
+    """)
+  end
+
+  defp warn_undef_security(conn, operation_id) do
+    {controller, action} = fetch_phoenix!(conn)
+
+    IO.warn("""
+    Controller #{inspect(controller)} has security defined for operation #{operation_id} on action #{inspect(action)}
+    but no security option is defined on the #{inspect(__MODULE__)} plug.
+
+    Provide a custom security plug to the Oaskit.Plugs.ValidateRequest plug:
+
+        plug Oaskit.Plugs.ValidateRequest, security: MyApp.Plugs.ApiSecurity
+
+    Alternatively, pass `false` on this option to disable security checks:
+
+        plug Oaskit.Plugs.ValidateRequest, security: false
     """)
   end
 

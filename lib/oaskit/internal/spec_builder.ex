@@ -1,4 +1,4 @@
-defmodule Oaskit.Internal.ValidationBuilder do
+defmodule Oaskit.Internal.SpecBuilder do
   alias JSV.Builder
   alias JSV.Cast
   alias JSV.Key
@@ -22,8 +22,12 @@ defmodule Oaskit.Internal.ValidationBuilder do
     {_root_ns, _, jsv_ctx} = JSV.build_add!(jsv_ctx, normal_spec)
 
     {validations_by_op_id, jsv_ctx} =
-      Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op, pi_ps}, jsv_ctx ->
-        build_op_validation(rev_path, op_id, op, pi_ps, spec, jsv_ctx, opts)
+      Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op, pathitem_parameters}, jsv_ctx ->
+        {validation, jsv_ctx} =
+          build_op_validation(rev_path, op, pathitem_parameters, spec, jsv_ctx, opts)
+
+        security = build_op_security(rev_path, op, spec, opts)
+        {{op_id, %{security: security, validation: validation}}, jsv_ctx}
       end)
 
     jsv_root = JSV.to_root!(jsv_ctx, :root)
@@ -113,7 +117,9 @@ defmodule Oaskit.Internal.ValidationBuilder do
     end)
   end
 
-  defp build_op_validation(rev_path, op_id, op, pathitem_parameters, spec, jsv_ctx, opts) do
+  # -- Validation -------------------------------------------------------------
+
+  defp build_op_validation(rev_path, op, pathitem_parameters, spec, jsv_ctx, opts) do
     validations = []
 
     # Body
@@ -156,7 +162,7 @@ defmodule Oaskit.Internal.ValidationBuilder do
         {validations, jsv_ctx}
       end
 
-    {{op_id, validations}, jsv_ctx}
+    {validations, jsv_ctx}
   end
 
   # -- Body Validation --------------------------------------------------------
@@ -453,6 +459,13 @@ defmodule Oaskit.Internal.ValidationBuilder do
       end)
 
     {matchers, jsv_ctx}
+  end
+
+  # -- Security ---------------------------------------------------------------
+
+  # TODO global inherited security
+  defp build_op_security(_rev_path, op, _spec, _opts) do
+    op.security
   end
 
   # -- Helpers ----------------------------------------------------------------

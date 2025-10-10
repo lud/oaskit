@@ -469,7 +469,13 @@ defmodule Oaskit.SpecTest do
                "/generated/resp/fortune-200-req-body",
                "/generated/resp/fortune-200-valid",
                "/generated/resp/fortune-500-bad-default-resp",
-               "/generated/resp/fortune-500-default-resp"
+               "/generated/resp/fortune-500-default-resp",
+               "/generated/security/empty-security",
+               "/generated/security/multi-choice-security",
+               "/generated/security/multi-scheme-security",
+               "/generated/security/no-scopes",
+               "/generated/security/no-security",
+               "/generated/security/with-scopes"
              ] =
                %{
                  openapi: "3.1.1",

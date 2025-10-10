@@ -23,7 +23,7 @@ defmodule Oaskit.Controller do
 
             import Plug.Conn
 
-            # This is alwo where you will plug the validation
+            # This is also where you will plug the validation
             plug Oaskit.Plugs.ValidateRequest
 
             unquote(verified_routes())

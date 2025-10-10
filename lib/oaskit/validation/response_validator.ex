@@ -10,12 +10,12 @@ defmodule Oaskit.Validation.ResponseValidator do
   @spec validate_response(ResponseData.t(), module, binary) ::
           {:ok, term} | {:error, JSV.ValidationError.t()}
   def validate_response(resp_data, spec_module, operation_id) do
-    {validations, jsv_root} = Oaskit.build_spec!(spec_module, responses: true)
+    {built, jsv_root} = Oaskit.build_spec!(spec_module, responses: true)
 
     %{status: status, resp_body: resp_body} = resp_data
 
     content_validation =
-      with {:ok, path_validations} <- Map.fetch(validations, operation_id),
+      with {:ok, %{validation: path_validations}} <- Map.fetch(built, operation_id),
            {:ok, responses} <- Keyword.fetch(path_validations, :responses),
            {:ok, status_validations} <- fetch_response_spec(responses, status) do
         status_validations

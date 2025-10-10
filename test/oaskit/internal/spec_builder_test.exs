@@ -1,6 +1,6 @@
-defmodule Oaskit.Internal.ValidationBuilderTest do
+defmodule Oaskit.Internal.SpecBuilderTest do
   alias Oaskit.Internal.Normalizer
-  alias Oaskit.Internal.ValidationBuilder
+  alias Oaskit.Internal.SpecBuilder
   alias Oaskit.Spec.MediaType
   alias Oaskit.Spec.OpenAPI
   alias Oaskit.Spec.Operation
@@ -52,7 +52,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
 
   test "build validations for request bodies" do
     assert {built, _} =
-             ValidationBuilder.build_operations(@normal_sample_spec, %{
+             SpecBuilder.build_operations(@normal_sample_spec, %{
                responses: false,
                jsv_opts: Oaskit.default_jsv_opts()
              })
@@ -60,48 +60,51 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
     assert is_map_key(built, "json_1")
 
     assert %{
-             "json_1" => [
-               {:parameters,
-                %{
-                  path: [
-                    %{
-                      in: :path,
-                      key: :param_p1,
-                      required: true,
-                      schema_key:
-                        {:precast, precast_fun,
-                         {:pointer, :root,
-                          ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
-                      bin_key: "param_p1"
-                    }
-                  ],
-                  query: [
-                    %{
-                      in: :query,
-                      key: :param_q1_orderby,
-                      required: false,
-                      schema_key:
-                        {:pointer, :root,
-                         ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
-                      bin_key: "param_q1_orderby"
-                    }
-                  ]
-                }},
-               {:body, false,
-                [
-                  {{"application", "json"},
-                   {:pointer, :root,
-                    [
-                      "paths",
-                      "/json-endpoint",
-                      "get",
-                      "requestBody",
-                      "content",
-                      "application/json",
-                      "schema"
-                    ]}}
-                ]}
-             ]
+             "json_1" => %{
+               security: _,
+               validation: [
+                 {:parameters,
+                  %{
+                    path: [
+                      %{
+                        in: :path,
+                        key: :param_p1,
+                        required: true,
+                        schema_key:
+                          {:precast, precast_fun,
+                           {:pointer, :root,
+                            ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
+                        bin_key: "param_p1"
+                      }
+                    ],
+                    query: [
+                      %{
+                        in: :query,
+                        key: :param_q1_orderby,
+                        required: false,
+                        schema_key:
+                          {:pointer, :root,
+                           ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
+                        bin_key: "param_q1_orderby"
+                      }
+                    ]
+                  }},
+                 {:body, false,
+                  [
+                    {{"application", "json"},
+                     {:pointer, :root,
+                      [
+                        "paths",
+                        "/json-endpoint",
+                        "get",
+                        "requestBody",
+                        "content",
+                        "application/json",
+                        "schema"
+                      ]}}
+                  ]}
+               ]
+             }
            } = built
 
     %{module: JSV.Cast, name: :string_to_integer, arity: 1} = Map.new(Function.info(precast_fun))
@@ -142,7 +145,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
       })
 
     assert_raise ArgumentError, ~r{duplicate operation id "same-same"}, fn ->
-      ValidationBuilder.build_operations(normal, %{
+      SpecBuilder.build_operations(normal, %{
         responses: false,
         jsv_opts: Oaskit.default_jsv_opts()
       })
@@ -157,7 +160,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
 
       # We just want to make sure that by default there is no useless building
       # of the responses schemas
-      Enum.each(built, fn {_opid, validations} ->
+      Enum.each(built, fn {_opid, %{validation: validations}} ->
         refute Keyword.has_key?(validations, :responses)
       end)
     end
@@ -167,7 +170,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
 
       # We just want to make sure that by default there is no useless building
       # of the responses schemas
-      Enum.each(built, fn {_opid, validations} ->
+      Enum.each(built, fn {_opid, %{validation: validations}} ->
         assert Keyword.has_key?(validations, :responses)
         validations[:responses]
       end)
@@ -183,44 +186,47 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
       assert {built, _} = Oaskit.build_spec!(DeclarativeApiSpec, cache: false)
 
       assert %{
-               "createPotion" => [
-                 {:parameters,
-                  %{
-                    path: [],
-                    query: [
-                      %{
-                        in: :query,
-                        key: :dry_run,
-                        required: false,
-                        schema_key:
-                          {:precast, caster,
-                           {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
-                        bin_key: "dry_run"
-                      },
-                      %{
-                        in: :query,
-                        key: :source,
-                        required: false,
-                        schema_key:
-                          {:pointer, :root, ["components", "parameters", "Source", "schema"]},
-                        bin_key: "source"
-                      }
-                    ]
-                  }},
-                 {:body, true,
-                  [
-                    {{"application", "json"},
-                     {:pointer, :root,
-                      [
-                        "components",
-                        "requestBodies",
-                        "CreatePotionRequest",
-                        "content",
-                        "application/json",
-                        "schema"
-                      ]}}
-                  ]}
-               ]
+               "createPotion" => %{
+                 security: _,
+                 validation: [
+                   {:parameters,
+                    %{
+                      path: [],
+                      query: [
+                        %{
+                          in: :query,
+                          key: :dry_run,
+                          required: false,
+                          schema_key:
+                            {:precast, caster,
+                             {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
+                          bin_key: "dry_run"
+                        },
+                        %{
+                          in: :query,
+                          key: :source,
+                          required: false,
+                          schema_key:
+                            {:pointer, :root, ["components", "parameters", "Source", "schema"]},
+                          bin_key: "source"
+                        }
+                      ]
+                    }},
+                   {:body, true,
+                    [
+                      {{"application", "json"},
+                       {:pointer, :root,
+                        [
+                          "components",
+                          "requestBodies",
+                          "CreatePotionRequest",
+                          "content",
+                          "application/json",
+                          "schema"
+                        ]}}
+                    ]}
+                 ]
+               }
              } =
                built
 
@@ -231,7 +237,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
     test "with responses" do
       assert {built, _} = Oaskit.build_spec!(DeclarativeApiSpec, cache: false, responses: true)
 
-      Enum.each(built, fn {_opid, validations} ->
+      Enum.each(built, fn {_opid, %{security: _, validation: validations}} ->
         assert Keyword.has_key?(validations, :responses)
       end)
 
@@ -245,7 +251,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
       |> File.read!()
       |> JSV.Codec.decode!()
       |> Normalizer.normalize!()
-      |> ValidationBuilder.build_operations(%{
+      |> SpecBuilder.build_operations(%{
         responses: false,
         jsv_opts: Oaskit.default_jsv_opts()
       })

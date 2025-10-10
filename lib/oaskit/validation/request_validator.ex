@@ -28,14 +28,21 @@ defmodule Oaskit.Validation.RequestValidator do
           | {:parameters_errors, [InvalidParameterError.t() | MissingParameterError.t()]}
           | {:not_built, operation_id :: binary}
 
+  @type built_spec :: {%{binary => %{security: term, validation: term}}, jsv_ctx :: term}
+
   @doc """
   Validates a request and returns cast data (body params, query params and path
   params) or an error.
   """
-  @spec validate_request(RequestData.t(), module, binary) ::
+  @spec validate_request(RequestData.t(), module | built_spec, binary) ::
           {:ok, private_data} | {:error, validation_error}
-  def validate_request(%RequestData{} = req_data, spec_module, operation_id) do
-    case fetch_validations(spec_module, operation_id) do
+  def validate_request(%RequestData{} = req_data, spec_module, operation_id)
+      when is_atom(spec_module) do
+    validate_request(req_data, Oaskit.build_spec!(spec_module), operation_id)
+  end
+
+  def validate_request(%RequestData{} = req_data, {_, _} = built_spec, operation_id) do
+    case fetch_validations(built_spec, operation_id) do
       {:ok, validations_with_root} ->
         run_validations(req_data, validations_with_root, operation_id)
 
@@ -44,11 +51,9 @@ defmodule Oaskit.Validation.RequestValidator do
     end
   end
 
-  defp fetch_validations(spec_module, operation_id) do
-    {validations, jsv_root} = Oaskit.build_spec!(spec_module)
-
-    case validations do
-      %{^operation_id => op_validations} -> {:ok, {op_validations, jsv_root}}
+  defp fetch_validations({op_map, jsv_root}, operation_id) do
+    case op_map do
+      %{^operation_id => %{validation: op_validations}} -> {:ok, {op_validations, jsv_root}}
       _ -> {:error, {:not_built, operation_id}}
     end
   end

@@ -8,6 +8,9 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
 
   @moduledoc false
 
+  IO.warn("@todo check security works from declarative spec")
+  IO.warn("@todo need a new api spec for global security")
+
   @api_spec %{
     "openapi" => "3.1.1",
     "info" => %{

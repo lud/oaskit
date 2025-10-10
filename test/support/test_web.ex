@@ -12,7 +12,7 @@ defmodule Oaskit.TestWeb do
 
       import Oaskit.TestWeb.Helpers
 
-      plug Oaskit.Plugs.ValidateRequest
+      plug Oaskit.Plugs.ValidateRequest, security: Oaskit.TestWeb.SecurityPlug
 
       unquote(verified_routes())
     end

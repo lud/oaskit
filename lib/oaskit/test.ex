@@ -86,14 +86,17 @@ defmodule Oaskit.Test do
     if given == status do
       body
     else
-      body_debug =
-        if is_binary(body) do
-          body
-        else
-          inspect(body)
-        end
+      body_debug = format_error_body(body)
 
       raise "expected response with status #{given}, got: #{status}, with body:\n#{body_debug}"
+    end
+  end
+
+  defp format_error_body(body) do
+    if is_binary(body) do
+      body
+    else
+      inspect(body)
     end
   end
 

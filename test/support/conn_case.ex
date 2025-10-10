@@ -77,4 +77,8 @@ defmodule Oaskit.ConnCase do
     |> ConnTest.get(path, query_params)
     |> check_responder()
   end
+
+  def with_security(conn, fun) when is_function(fun) do
+    Plug.Conn.put_private(conn, :security_fun, fun)
+  end
 end

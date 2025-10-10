@@ -89,6 +89,7 @@ defmodule Oaskit.Spec.Operation do
     |> take_default(:parameters, nil, &cast_params(&1, shared_parameters))
     |> take_default(:description, nil)
     |> take_required(:responses, &cast_responses/1)
+    |> take_default(:security, nil, &cast_security/1)
     |> take_default(:summary, nil)
     |> take_default(
       :requestBody,
@@ -168,6 +169,42 @@ defmodule Oaskit.Spec.Operation do
       reraise ArgumentError,
               "invalid status given to :responses, got: #{inspect(status)}",
               __STACKTRACE__
+  end
+
+  defp cast_security(security) when is_list(security) do
+    sec =
+      Enum.map(security, fn map when is_map(map) ->
+        Map.new(map, fn
+          {scheme, scopes} when is_binary(scheme) and is_list(scopes) ->
+            {scheme, cast_scopes(scopes)}
+
+          {scheme, scopes} when is_atom(scheme) and is_list(scopes) ->
+            {Atom.to_string(scheme), cast_scopes(scopes)}
+
+          _other ->
+            raise_invalid_security(security)
+        end)
+      end)
+
+    {:ok, sec}
+  end
+
+  defp cast_security(other) do
+    raise_invalid_security(other)
+  end
+
+  defp cast_scopes(scopes) do
+    Enum.map(scopes, fn
+      s when is_binary(s) -> s
+      s when is_atom(s) -> Atom.to_string(s)
+      _ -> raise_invalid_security(scopes)
+    end)
+  end
+
+  @spec raise_invalid_security(term) :: no_return()
+  defp raise_invalid_security(security) do
+    raise ArgumentError,
+          "operation macro expects :security to be `false` or a list of maps with scopes lists as values, got: #{inspect(security)}"
   end
 
   defp merge_tags(self_tags, shared_tags) do

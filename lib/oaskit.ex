@@ -1,6 +1,6 @@
 defmodule Oaskit do
   alias Oaskit.Internal.Normalizer
-  alias Oaskit.Internal.ValidationBuilder
+  alias Oaskit.Internal.SpecBuilder
 
   @moduledoc """
   The main API to work with OpenAPI specifications.
@@ -188,7 +188,7 @@ defmodule Oaskit do
 
     spec_module.spec()
     |> Normalizer.normalize!()
-    |> ValidationBuilder.build_operations(opts)
+    |> SpecBuilder.build_operations(opts)
   end
 
   defp build_opts(spec_module, opts) do
