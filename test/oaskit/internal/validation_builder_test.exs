@@ -44,7 +44,11 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
                                   }
                                 }
                               },
-                              responses: %{ok: %{description: "some response"}}
+                              responses: %{ok: %{description: "some response"}},
+                              security: [
+                                %{api_key: []},
+                                %{oauth2: ["read:users", "write:users"]}
+                              ]
                             }
                           }
                         }
@@ -61,6 +65,7 @@ defmodule Oaskit.Internal.ValidationBuilderTest do
 
     assert %{
              "json_1" => [
+               {:security, [%{"api_key" => []}, %{"oauth2" => ["read:users", "write:users"]}]},
                {:parameters,
                 %{
                   path: [

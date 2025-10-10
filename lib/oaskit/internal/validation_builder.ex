@@ -156,6 +156,20 @@ defmodule Oaskit.Internal.ValidationBuilder do
         {validations, jsv_ctx}
       end
 
+    # Security
+
+    {validations, jsv_ctx} =
+      case op.security do
+        nil ->
+          {validations, jsv_ctx}
+
+        [] ->
+          {validations, jsv_ctx}
+
+        security_requirements ->
+          {[{:security, security_requirements} | validations], jsv_ctx}
+      end
+
     {{op_id, validations}, jsv_ctx}
   end
 
