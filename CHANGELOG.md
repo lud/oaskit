@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2025-10-10
+
+### 🐛 Bug Fixes
+
+- Don't erase existing private conn data in ValidateRequest (#20)
+
+### 🧪 Testing
+
+- Ensure spec and operation id are preserved in private conn data
+
 ## [0.5.0] - 2025-09-16
 
 ### 🚀 Features
