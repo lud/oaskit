@@ -67,7 +67,9 @@ defmodule Oaskit.TestWeb.Router do
 
     scope "/resp", Oaskit.TestWeb do
       get "/fortune-200-no-operation", ResponseController, :no_operation
+      post "/fortune-200-req-body", ResponseController, :require_body
       get "/fortune-200-valid", ResponseController, :valid
+      get "/fortune-200-valid-no-operation", ResponseController, :valid_no_operation
       get "/fortune-200-invalid", ResponseController, :invalid
       get "/fortune-200-no-content-def", ResponseController, :no_content_def
       get "/fortune-200-bad-content-type", ResponseController, :bad_content_type

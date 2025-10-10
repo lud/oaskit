@@ -466,6 +466,7 @@ defmodule Oaskit.SpecTest do
                "/generated/resp/fortune-200-bad-content-type",
                "/generated/resp/fortune-200-invalid",
                "/generated/resp/fortune-200-no-content-def",
+               "/generated/resp/fortune-200-req-body",
                "/generated/resp/fortune-200-valid",
                "/generated/resp/fortune-500-bad-default-resp",
                "/generated/resp/fortune-500-default-resp"

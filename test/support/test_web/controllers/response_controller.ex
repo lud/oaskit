@@ -24,6 +24,12 @@ defmodule Oaskit.TestWeb.ResponseController do
     json(conn, Enum.random(@fortunes))
   end
 
+  operation :valid_no_operation, false
+
+  def valid_no_operation(conn, _) do
+    json(conn, Enum.random(@fortunes))
+  end
+
   # Returns a response that does not match the schema (missing required field)
   operation :invalid, operation_id: "fortune_invalid", responses: [ok: FortuneCookie]
 
@@ -73,5 +79,24 @@ defmodule Oaskit.TestWeb.ResponseController do
     conn
     |> put_status(500)
     |> json(%{message: "too bad!", errcode: "not an int"})
+  end
+
+  operation :require_body,
+    operation_id: "fortune_requiring_params",
+    request_body:
+      {%{
+         type: :object,
+         properties: %{category: %{enum: ["wisdom", "humor", "warning", "advice"]}},
+         required: [:category]
+       }, description: "fortune selection"},
+    responses: [
+      ok: FortuneCookie,
+      unprocessable_entity: Oaskit.ErrorHandler.Default.ErrorResponseSchema,
+      default: GenericError
+    ]
+
+  def require_body(conn, _) do
+    category = Map.fetch!(body_params(conn), "category")
+    json(conn, Enum.find(@fortunes, &(&1.category == category)))
   end
 end

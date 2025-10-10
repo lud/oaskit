@@ -1491,6 +1491,66 @@
         "operationId": "fortune_no_content_def"
       }
     },
+    "/generated/resp/fortune-200-req-body": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.FortuneCookie"
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.GenericError"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "fortune_requiring_params",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "wisdom",
+                      "humor",
+                      "warning",
+                      "advice"
+                    ]
+                  }
+                },
+                "required": [
+                  "category"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/generated/resp/fortune-200-valid": {
       "get": {
         "responses": {

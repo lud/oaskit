@@ -72,4 +72,33 @@ defmodule Oaskit.Web.ResponseTest do
       end
     end
   end
+
+  describe "conn private data" do
+    @tag req_content_type: "application/json"
+    test "response conn holds the spec and operation_id", %{conn: conn} do
+      conn = post(conn, ~p"/generated/resp/fortune-200-req-body", %{category: "wisdom"})
+      assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
+
+      assert %{spec: Oaskit.TestWeb.PathsApiSpec, operation_id: "fortune_requiring_params"} =
+               conn.private.oaskit
+    end
+
+    test "response conn holds the spec when no operation matched", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-valid-no-operation")
+      assert %{"message" => _, "category" => _} = json_response(conn, 200)
+
+      assert %{spec: Oaskit.TestWeb.PathsApiSpec} = conn.private.oaskit
+      refute is_map_key(conn.private.oaskit, :operation_id)
+    end
+
+    test "validation error response holds the spec and operation_id", %{conn: conn} do
+      conn =
+        post(conn, ~p"/generated/resp/fortune-200-req-body", %{category: "SOME UNKNOWN CATEGORY"})
+
+      assert %{"error" => _} = valid_response(PathsApiSpec, conn, 422)
+
+      assert %{spec: Oaskit.TestWeb.PathsApiSpec, operation_id: "fortune_requiring_params"} =
+               conn.private.oaskit
+    end
+  end
 end
