@@ -1,3 +1,6 @@
+install:
+  mix deps.get
+
 run: css-min
   iex -S mix oapi.phx.test
 
@@ -38,5 +41,5 @@ docs:
   rg rdmx guides -l0 | xargs -0 -n 1 mix rdmx.update
   mix docs
 
-check: _mix_format dump deps _mix_format dump _mix_check docs  _git_status
+check: install _mix_format dump deps _mix_format dump _mix_check docs  _git_status
 
