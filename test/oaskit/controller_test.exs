@@ -19,7 +19,12 @@ defmodule Oaskit.ControllerTest do
       tags: [:a, :b],
       description: "some description",
       summary: "some summary",
-      responses: [ok: true]
+      responses: [ok: true],
+      security: [
+        %{
+          some_auth: ["write:some_ressource", "read:some_ressource"]
+        }
+      ]
     ]
 
     op = Operation.from_controller!(spec)
@@ -35,7 +40,8 @@ defmodule Oaskit.ControllerTest do
                    schema: %{type: :string}
                  }
                }
-             }
+             },
+             security: [%{some_auth: ["write:some_ressource", "read:some_ressource"]}]
            } = op
   end
 

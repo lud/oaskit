@@ -81,6 +81,9 @@ defmodule Oaskit.Controller do
   * `:responses` - A map or keyword list where keys are status codes (integers
     or atoms) and values are responses definitions. See below for responses
     formats.
+  * `:security` - A list of security requirements for this operation. Each
+    requirement is a map where keys are security scheme names and values are
+    lists of required scopes or roles.
 
   Pass `false` instead of the options to ignore an action function.
 
@@ -269,6 +272,40 @@ defmodule Oaskit.Controller do
         ]
 
   Of course, mixing all styles together is discouraged for readability.
+
+  ## Defining security
+
+  Security requirements can be defined for individual operations using the `:security`
+  option. Each security requirement is a map where keys are security scheme names
+  (as defined in the OpenAPI spec's `securitySchemes`) and values are lists of
+  required scopes or roles for that scheme.
+
+  ### Security examples
+
+      # Operation requiring API key authentication
+      operation :get_private_data,
+        operation_id: "GetPrivateData",
+        security: [
+          %{"myApiKeyAuth" => []}
+        ],
+        # ...
+
+      # Operation requiring OAuth2 with specific scopes
+      operation :update_user,
+        operation_id: "UpdateUser",
+        security: [
+          %{"myAuthOAuth" => ["write:users", "read:users"]}
+        ],
+        # ...
+
+      # Operation allowing multiple authentication methods
+      operation :get_user,
+        operation_id: "GetUser",
+        security: [
+          %{"myApiKeyAuth" => []},
+          %{"myAuthOAuth" => ["read:users"]}
+        ],
+        # ...
 
   ## Ignore operations
 

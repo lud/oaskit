@@ -90,6 +90,7 @@ defmodule Oaskit.Spec.Operation do
     |> take_default(:description, nil)
     |> take_required(:responses, &cast_responses/1)
     |> take_default(:summary, nil)
+    |> take_default(:security, nil)
     |> take_default(
       :requestBody,
       nil,
