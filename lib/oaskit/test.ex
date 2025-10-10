@@ -123,6 +123,8 @@ defmodule Oaskit.Test do
   end
 
   defp json_decode!(data) do
+    data = IO.iodata_to_binary(data)
+
     case data do
       "" -> ""
       payload -> JSV.Codec.decode!(payload)
