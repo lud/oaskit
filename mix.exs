@@ -124,9 +124,7 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Schemas: ~r/guides\/schemas\/.?/,
-      Build: ~r/guides\/build\/.?/,
-      Validation: ~r/guides\/validation\/.?/
+      Setup: ~r{guides/(quickstart|external-specs)}
     ]
   end
 
