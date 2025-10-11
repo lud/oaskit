@@ -440,7 +440,13 @@ defmodule Oaskit.SpecTest do
 
   describe "phoenix routes" do
     test "extracting operations from phoenix routes" do
+      # * Paths from the controllers that use the `operation` macro are present in
+      #   the list.
+      # * Paths using `use_operation` are not extracted, so the paths for the
+      #   declarative test api spec are not there.
+
       assert [
+               # Paths API Spec
                "/generated/body/boolean-schema-false",
                "/generated/body/form",
                "/generated/body/inline-single",
@@ -471,13 +477,14 @@ defmodule Oaskit.SpecTest do
                "/generated/resp/fortune-200-valid-from-ref",
                "/generated/resp/fortune-500-bad-default-resp",
                "/generated/resp/fortune-500-default-resp",
-               "/generated/security/empty-security",
-               "/generated/security/false-security",
-               "/generated/security/multi-choice-security",
-               "/generated/security/multi-scheme-security",
-               "/generated/security/no-scopes",
-               "/generated/security/no-security",
-               "/generated/security/with-scopes"
+
+               # Security API Spec
+               "/security/empty-security",
+               "/security/multi-choice-security",
+               "/security/multi-scheme-security",
+               "/security/no-scopes",
+               "/security/no-security",
+               "/security/with-scopes"
              ] =
                %{
                  openapi: "3.1.1",

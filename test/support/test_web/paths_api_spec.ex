@@ -37,27 +37,6 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
               }
             }
           }
-        },
-        securitySchemes: %{
-          someApiKey: %{
-            description: "an API key",
-            type: "apiKey",
-            name: "api-key",
-            in: "header"
-          },
-          someOauth: %{
-            type: "oauth2",
-            flows: %{
-              authorizationCode: %{
-                authorizationUrl: "https://learn.openapis.org/oauth/2.0/auth",
-                tokenUrl: "https://learn.openapis.org/oauth/2.0/token",
-                scopes: %{
-                  "some:scope1": "Some Description",
-                  "some:scope2": "Some Description"
-                }
-              }
-            }
-          }
         }
       }
     }

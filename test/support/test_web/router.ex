@@ -11,6 +11,10 @@ defmodule Oaskit.TestWeb.Router do
     plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.DeclarativeApiSpec
   end
 
+  pipeline :api_security do
+    plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.SecurityApiSpec
+  end
+
   scope "/generated" do
     pipe_through :api_from_paths
 
@@ -88,16 +92,17 @@ defmodule Oaskit.TestWeb.Router do
       trace("/p", MethodController, :same_fun)
       head "/p", MethodController, :same_fun
     end
+  end
 
-    scope "/security", Oaskit.TestWeb do
-      post "/no-security", SecurityController, :no_security
-      post "/empty-security", SecurityController, :empty_security
-      post "/false-security", SecurityController, :false_security
-      post "/no-scopes", SecurityController, :no_scopes
-      post "/with-scopes", SecurityController, :with_scopes
-      post "/multi-scheme-security", SecurityController, :multi_scheme_security
-      post "/multi-choice-security", SecurityController, :multi_choice_security
-    end
+  scope "/security", Oaskit.TestWeb do
+    pipe_through :api_security
+
+    post "/no-security", SecurityController, :no_security
+    post "/empty-security", SecurityController, :empty_security
+    post "/no-scopes", SecurityController, :no_scopes
+    post "/with-scopes", SecurityController, :with_scopes
+    post "/multi-scheme-security", SecurityController, :multi_scheme_security
+    post "/multi-choice-security", SecurityController, :multi_choice_security
   end
 
   scope "/provided" do

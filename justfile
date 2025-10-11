@@ -32,9 +32,16 @@ changelog:
 css-min:
   npx css-minify -f priv/assets/error.css -o priv/assets
 
-dump:
+dump: dump-paths dump-declarative dump-security
+
+dump-paths:
   mix openapi.dump Oaskit.TestWeb.PathsApiSpec --pretty -o samples/path-api.json
+
+dump-declarative:
   mix openapi.dump Oaskit.TestWeb.DeclarativeApiSpec --pretty -o samples/decl-api.json
+
+dump-security:
+  mix openapi.dump Oaskit.TestWeb.SecurityApiSpec --pretty -o samples/security-api.json
 
 docs:
   mix rdmx.update README.md

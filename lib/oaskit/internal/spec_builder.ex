@@ -21,12 +21,14 @@ defmodule Oaskit.Internal.SpecBuilder do
     jsv_ctx = JSV.build_init!(opts.jsv_opts)
     {_root_ns, _, jsv_ctx} = JSV.build_add!(jsv_ctx, normal_spec)
 
+    global_security = spec.security
+
     {validations_by_op_id, jsv_ctx} =
       Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op, pathitem_parameters}, jsv_ctx ->
         {validation, jsv_ctx} =
           build_op_validation(rev_path, op, pathitem_parameters, spec, jsv_ctx, opts)
 
-        security = build_op_security(rev_path, op, spec, opts)
+        security = build_op_security(rev_path, op, global_security)
         {{op_id, %{security: security, validation: validation}}, jsv_ctx}
       end)
 
@@ -464,8 +466,11 @@ defmodule Oaskit.Internal.SpecBuilder do
   # -- Security ---------------------------------------------------------------
 
   # TODO global inherited security
-  defp build_op_security(_rev_path, op, _spec, _opts) do
-    op.security
+  defp build_op_security(_rev_path, op, global_security) do
+    case op.security do
+      nil -> global_security
+      defined -> defined
+    end
   end
 
   # -- Helpers ----------------------------------------------------------------

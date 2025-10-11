@@ -171,7 +171,7 @@ defmodule Oaskit.Spec.Operation do
               __STACKTRACE__
   end
 
-  defp cast_security(false) do
+  defp cast_security(nil) do
     {:ok, nil}
   end
 
@@ -208,7 +208,7 @@ defmodule Oaskit.Spec.Operation do
   @spec raise_invalid_security(term) :: no_return()
   defp raise_invalid_security(security) do
     raise ArgumentError,
-          "operation macro expects :security to be `false` or a list of maps with scopes lists as values, got: #{inspect(security)}"
+          "operation macro expects :security to be a list of maps with scope lists as values, got: #{inspect(security)}"
   end
 
   defp merge_tags(self_tags, shared_tags) do

@@ -1,5 +1,6 @@
 defmodule Oaskit.ConnCase do
   alias Oaskit.TestWeb.Responder
+  alias Oaskit.TestWeb.SecurityPlug
   alias Phoenix.ConnTest
   alias Plug.Conn
   import ExUnit.Assertions
@@ -40,28 +41,7 @@ defmodule Oaskit.ConnCase do
   end
 
   def check_responder(conn) do
-    case conn do
-      %{state: :unset} ->
-        flunk("response was not sent")
-
-      %{private: %{responder_called: true}} ->
-        conn
-
-      %{
-        private: %{
-          responder_called: false,
-          phoenix_controller: controller,
-          phoenix_action: action
-        },
-        resp_body: resp_body
-      } ->
-        flunk("""
-        #{inspect(controller)}.#{action} did not call the responder
-
-        RESPONSE BODY
-        #{resp_body}
-        """)
-    end
+    Responder.verify(conn)
   end
 
   def post_reply(conn, path, payload, fun) when is_function(fun, 2) do
@@ -79,6 +59,31 @@ defmodule Oaskit.ConnCase do
   end
 
   def with_security(conn, fun) when is_function(fun) do
-    Plug.Conn.put_private(conn, :security_fun, fun)
+    SecurityPlug.embed_mock(conn, fun)
+  end
+
+  def check_security(conn) do
+    case conn do
+      %{state: :unset} ->
+        flunk("response was not sent")
+
+      %{private: %{security_called: true}} ->
+        conn
+
+      %{
+        private: %{
+          security_called: false,
+          phoenix_controller: controller,
+          phoenix_action: action
+        },
+        resp_body: resp_body
+      } ->
+        flunk("""
+        #{inspect(controller)}.#{action} did not call the security plug
+
+        RESPONSE BODY
+        #{resp_body}
+        """)
+    end
   end
 end

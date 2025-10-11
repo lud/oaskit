@@ -1,6 +1,4 @@
 defmodule Oaskit.Plugs.ValidateRequest do
-  alias Oaskit.Errors.InvalidBodyError
-  alias Oaskit.Errors.UnsupportedMediaTypeError
   alias Oaskit.Plugs.SpecProvider
   alias Oaskit.Validation.RequestData
   alias Oaskit.Validation.RequestValidator
@@ -17,9 +15,8 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
   ## Pluggin' in
 
-  To use this plug in a controller, the
-  `#{inspect(Oaskit.Plugs.SpecProvider)}` plug must be used in the router for
-  the corresponding routes.
+  To use this plug in a controller, the `#{inspect(Oaskit.Plugs.SpecProvider)}`
+  plug must be used in the router for the corresponding routes.
 
       defmodule MyAppWeb.Router do
         use Phoenix.Router
@@ -104,9 +101,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
     query parameters being fetched, this plug will fetch them automatically
     using `Conn.fetch_query_params(conn, query_reader_opts)`. The default value
     is `#{inspect(@default_query_reader_opts)}`.
-  * `:error_handler` - A module or `{module, argument}` tuple. The error handler
-    must implement the `#{inspect(Oaskit.ErrorHandler)}` behaviour. It will be
-    called on validation errors. Defaults to `Oaskit.ErrorHandler.Default`.
   * `:pretty_errors` - A boolean to control pretty printing of JSON errors
     payload in error handlers. Defaults to `true` when `Mix.env() != :prod`,
     defaults to `false` otherwise.
@@ -114,7 +108,13 @@ defmodule Oaskit.Plugs.ValidateRequest do
     allowed to return HTML errors when the request accepts HTML. This is useful
     to quickly read errors when opening an url directly from the browser.
     Defaults to `true`.
-  * Unknown options are collected and passed to the error handler.
+  * `:security` - A plug module or `{module, options}`. This plug will be
+    invoked when an operation declares the `:security` option, or when the
+    OpenAPI specification declares security at the root level.
+  * `:error_handler` - A module or `{module, argument}` tuple. The error handler
+    must implement the `#{inspect(Oaskit.ErrorHandler)}` behaviour. It will be
+    called on validation errors. Defaults to `Oaskit.ErrorHandler.Default`.
+  * Other unknown options are preserved and passed to the error handler.
 
   ## Non-required bodies
 
@@ -130,6 +130,133 @@ defmodule Oaskit.Plugs.ValidateRequest do
   To avoid problems, always define request bodies as required if you can. This
   is made automatically when using the "definition shortcuts" described in
   `#{inspect(Oaskit.Controller)}.operation/2`.
+
+  ## Security
+
+  When security requirements are defined for an operation using the `:security`
+  option in the operation macro, you must provide a custom security plug to
+  handle authentication and authorization. This plug will be invoked before any
+  other request validation occurs.
+
+  ### Custom Security Plug
+
+  Configure the security plug when setting up `#{inspect(__MODULE__)}`:
+
+      plug Oaskit.Plugs.ValidateRequest,
+        security: MyApp.Plugs.ApiSecurity,
+        custom_opt: "foo"
+
+  You can also pass options to your security plug. The argument **must** be a
+  keyword list.
+
+      plug Oaskit.Plugs.ValidateRequest,
+        security: {MyApp.Plugs.ApiSecurity, log_level: :debug}
+
+  ### Security Plug Options
+
+  When a request is made to an operation that defines security requirements,
+  your security plug's `init/1` callback will be invoked with either the options
+  given to `#{inspect(__MODULE__)}` (if you provided a module) or your custom
+  options (if you provided a tuple) ; with two extra options:
+
+  * The `:operation_id` from the operation.
+  * The `:security` requirements from the operation (or the API spec's
+    root-level default if any).
+
+  With this example operation:
+
+      operation :create_post,
+        operation_id: "CreatePost",
+        request_body: PostSchema,
+        security: [%{"usersApiKey" => ["post:read", "post:create"]}]
+
+      def create_post(conn, _) do
+        # ...
+      end
+
+  Your plug would receive those options:
+
+      [
+        operation_id: "CreatePost",
+        security: [%{"usersApiKey" => ["post:read", "post:create"]}],
+        custom_opt: "foo"
+        # ... other validation options
+      ]
+
+  The result of the `init/1` callback is then passed to the `call/2` callback,
+  with the current `conn`, like for any standard plug.
+
+  ### Security Validation
+
+  While you can implement all authentication and authorization in your custom
+  plug, this will most likely be done by other libraries such as `mix
+  phx.gen.auth`, Pow, or Guardian.
+
+  **1. Endpoint/Router level - Authentication**
+
+  Authentication libraries provide plugs used at the endpoint or router level.
+  These plugs should:
+
+  * Validate authentication headers/tokens.
+  * Look up users in the database.
+  * Reject invalid/expired credentials.
+  * Store user information in `conn.private` or `conn.assigns`.
+
+  **2. Oaskit security plug - Authorization**
+
+  Your Oaskit security plug should focus on authorization:
+
+  * Read user data from `conn.private` or `conn.assigns`.
+  * Compare user roles/scopes with the operation's security requirements.
+  * Halt the connection if the user lacks required permissions.
+
+  Security validation happens **before** all other validations. This prevents
+  potential attack vectors through the validation process itself.
+
+  As a consequence, the `Oaskit.Controller.body_params/1` and other helpers
+  cannot be used from your plug as those casted values are not yet defined.
+
+  Your security plug **must** use `Plug.Conn.halt/1` to prevent unauthorized
+  access. The `#{inspect(__MODULE__)}` plug checks the `:halted` property:
+
+  * **If halted**: The request is stopped immediately. No further validation
+    occurs and the controller action is not called.
+  * **If not halted**: The request validation continues (body, params, etc.) and
+    your controller will be called if validation succeeds.
+
+  To halt the conn, use the `Plug.Conn.halt/1` function:
+
+        conn
+        |> put_status(401)
+        |> json(%{error: "Unauthorized"})
+        |> halt()
+
+  > ### The operations `:security` option must be handled {: .warning}
+  >
+  > If no custom plug is defined but one of your operation defines the
+  > `:security` option, or the root-level `:security` option is defined, Oaskit
+  > will default to returning a 401 response with a raw `"unauthorized"` body.
+  >
+  > This is made so nobody will expect that the security will be automatically
+  > enforced although Oaskit cannot know how to do it.
+  >
+  > Security requirements vary greatly between applications, and we want to make
+  > it explicit that you are responsible for protecting your API endpoints.
+
+  ### Disabling security checks
+
+  If you prefer to handle security entirely through other means, disable the
+  Oaskit security mechanism:
+
+      plug Oaskit.Plugs.ValidateRequest,
+        security: false
+
+  ### Operations without security
+
+  The security plug is **only called** for operations that explicitly define the
+  `:security` option. Operations without this option will skip security
+  validation entirely, unless security requirements are defined at the root
+  level of your OpenAPI specification.
 
   ## Error handling
 
@@ -149,16 +276,15 @@ defmodule Oaskit.Plugs.ValidateRequest do
   are described in the `t:Oaskit.ErrorHandler.reason/0` type.
 
   The 3rd argment passed to the `c:Oaskit.ErrorHandler.handle_error/3` depends
-  on the `:error_handler` function. When defined as a module, the argument is
-  all the other options given to this plug:
+  on the `:error_handler` function. When defined as a module, that argument
+  contains the options passed to the plug.
 
       plug Oaskit.Plugs.ValidateRequest,
         error_handler: MyErrorHandler,
         pretty_errors: true,
         custom_opt: "foo"
 
-  This will allow the handler to receive `:pretty_errors`, `:custom_opt` and
-  other options with default values.
+  This will allow the handler to receive `:pretty_errors` and `:custom_opt`.
 
   When passing a tuple, the second element will be passed as-is:
 
@@ -173,10 +299,9 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
   @impl true
   def init(opts) do
-    {raw_error_handler, opts_no_handler} =
+    opts =
       opts
       |> Keyword.put_new(:query_reader_opts, @default_query_reader_opts)
-      |> Keyword.put_new(:security, nil)
       |> Keyword.put_new_lazy(:pretty_errors, fn ->
         # Default to true only when mix is available:
         # * in dev/test environment.
@@ -185,40 +310,50 @@ defmodule Oaskit.Plugs.ValidateRequest do
         function_exported?(Mix, :env, 0) && Mix.env() != :prod
       end)
       |> Keyword.put_new(:html_errors, true)
-      |> Keyword.update(:security, nil, &cast_security/1)
-      |> Keyword.pop(:error_handler, Oaskit.ErrorHandler.Default)
+      |> Keyword.put_new(:error_handler, Oaskit.ErrorHandler.Default)
+      |> Keyword.put_new(:security, nil)
+      |> tap(&validate_security_opt/1)
 
-    error_handler =
-      case raw_error_handler do
-        mod when is_atom(mod) -> {mod, opts_no_handler}
-        {mod, arg} when is_atom(mod) -> {mod, arg}
-      end
+    # {error_handler, opts} = Keyword.pop(opts, :error_handler, Oaskit.ErrorHandler.Default)
+    # error_handler = cast_error_handler(error_handler, opts)
+    # opts = [{:error_handler, error_handler} | opts]
 
-    opts_no_handler
-    |> Keyword.put(:error_handler, error_handler)
-    |> Map.new()
+    # {security, opts} = Keyword.pop(opts, :security, nil)
+    # security = cast_security(security, opts)
+    # opts = [{:security, security} | opts]
+
+    Map.new(opts)
   end
 
-  defp cast_security(security) do
-    case security do
+  defp validate_security_opt(opts) do
+    case Keyword.fetch!(opts, :security) do
       nil ->
-        nil
+        :ok
 
       false ->
-        false
+        :ok
 
       module when is_atom(module) ->
-        {module, []}
+        :ok
 
       {module, opts} when is_atom(module) and is_list(opts) ->
-        {module, opts}
+        if Keyword.keyword?(opts) do
+          :ok
+        else
+          invalid_security!({module, opts})
+        end
 
       other ->
-        raise inspect(__MODULE__) <>
-                " only accepts `nil`, `module` or `{module, opts}` when `opts` is a keyword" <>
-                " list as the `:security` option, got: " <>
-                inspect(other)
+        invalid_security!(other)
     end
+  end
+
+  @spec invalid_security!(term) :: no_return()
+  defp invalid_security!(other) do
+    raise inspect(__MODULE__) <>
+            " supports only `module` or `{module, keyword}` types" <>
+            " for the `:security` option, got: " <>
+            inspect(other)
   end
 
   @impl true
@@ -229,7 +364,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
     case fetch_operation_id(conn, controller, action) do
       {:ok, operation_id} ->
-        check_security_and_validate(conn, operation_id, opts)
+        call_security_and_validate(conn, operation_id, opts)
 
       :ignore ->
         conn
@@ -240,7 +375,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
-  defp check_security_and_validate(conn, operation_id, opts) do
+  defp call_security_and_validate(conn, operation_id, opts) do
     spec_module = SpecProvider.fetch_spec_module!(conn)
     {op_map, _} = built_spec = Oaskit.build_spec!(spec_module)
 
@@ -249,7 +384,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
     security = fetch_security!(op_map, operation_id)
 
-    case apply_security(conn, security, operation_id, opts) do
+    case call_security(conn, security, operation_id, opts) do
       %Plug.Conn{halted: false} = next_conn ->
         do_validate(next_conn, built_spec, operation_id, opts)
 
@@ -276,15 +411,11 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
-  defp apply_security(conn, [], _operation_id, _opts) do
+  defp call_security(conn, nil, _operation_id, _opts) do
     conn
   end
 
-  defp apply_security(conn, nil, _operation_id, _opts) do
-    conn
-  end
-
-  defp apply_security(conn, security, operation_id, opts) do
+  defp call_security(conn, security, operation_id, opts) when is_list(security) do
     case opts.security do
       nil ->
         warn_undef_security(conn, operation_id)
@@ -296,9 +427,15 @@ defmodule Oaskit.Plugs.ValidateRequest do
       false ->
         conn
 
-      {module, opts} when is_atom(module) ->
-        opts = Keyword.merge(opts, security: security, operation_id: operation_id)
-        module.call(conn, module.init(opts))
+      plug ->
+        {plug_mod, plug_opts} =
+          case plug do
+            {mod, arg} -> {mod, arg}
+            mod -> {mod, Map.to_list(opts)}
+          end
+
+        plug_opts = Keyword.merge(plug_opts, security: security, operation_id: operation_id)
+        plug_mod.call(conn, plug_mod.init(plug_opts))
     end
   end
 
@@ -308,15 +445,9 @@ defmodule Oaskit.Plugs.ValidateRequest do
   end
 
   defp on_error(conn, reason, opts) do
-    case reason do
-      {:parameters_errors, errors} when is_list(errors) ->
-        call_error_handler(conn, reason, opts.error_handler)
-
-      %InvalidBodyError{} ->
-        call_error_handler(conn, reason, opts.error_handler)
-
-      %UnsupportedMediaTypeError{} ->
-        call_error_handler(conn, reason, opts.error_handler)
+    case opts.error_handler do
+      module when is_atom(module) -> module.handle_error(conn, reason, Map.to_list(opts))
+      {module, arg} when is_atom(module) -> module.handle_error(conn, reason, arg)
     end
   end
 
@@ -343,10 +474,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
     hook(controller, :operation_id, action, method_to_verb(conn.method))
   end
 
-  defp call_error_handler(conn, reason, {handler_mod, handler_arg}) do
-    handler_mod.handle_error(conn, reason, handler_arg)
-  end
-
   defp warn_undef_action(controller, action, method) do
     IO.warn("""
     Controller #{inspect(controller)} has no operation defined for action #{inspect(action)} with method #{inspect(method_to_verb(method))}
@@ -365,8 +492,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
     {controller, action} = fetch_phoenix!(conn)
 
     IO.warn("""
-    Controller #{inspect(controller)} has security defined for operation #{operation_id} on action #{inspect(action)}
-    but no security option is defined on the #{inspect(__MODULE__)} plug.
+    Controller #{inspect(controller)} has security defined for operation #{operation_id} on action #{inspect(action)} but no security option is defined on the #{inspect(__MODULE__)} plug.
 
     Provide a custom security plug to the Oaskit.Plugs.ValidateRequest plug:
 

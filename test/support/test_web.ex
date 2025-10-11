@@ -12,7 +12,9 @@ defmodule Oaskit.TestWeb do
 
       import Oaskit.TestWeb.Helpers
 
-      plug Oaskit.Plugs.ValidateRequest, security: Oaskit.TestWeb.SecurityPlug
+      plug Oaskit.Plugs.ValidateRequest,
+        security: Oaskit.TestWeb.SecurityPlug,
+        custom_opt: :given_custom_opt
 
       unquote(verified_routes())
     end

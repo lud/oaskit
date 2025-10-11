@@ -2,12 +2,7 @@ defmodule Oaskit.SecurityTest do
   use Oaskit.ConnCase, async: true
 
   @invalid_body %{"should_be" => "invalid"}
-
-  defp assert_security(opts, expected_operation_id, expected_security) do
-    assert expected_operation_id == opts[:operation_id]
-    assert expected_security == opts[:security]
-    opts
-  end
+  @global_security [%{"global" => ["some:global1", "some:global2"]}]
 
   defp unauthorized_response(conn) do
     conn
@@ -16,175 +11,75 @@ defmodule Oaskit.SecurityTest do
     |> halt()
   end
 
-  describe "POST /no-security" do
-    test "valid request returns 200", %{conn: conn} do
-      conn = post(conn, "/generated/security/no-security", @invalid_body)
-      assert json_response(conn, 422)
-    end
+  defp test_route(base_conn, route, expected_operation_id, expected_security) do
+    # should return 401 when security fails
 
-    test "invalid request returns 422", %{conn: conn} do
-      conn = post(conn, "/generated/security/no-security", @invalid_body)
-      assert json_response(conn, 422)
-    end
+    conn401 =
+      base_conn
+      |> with_security(fn
+        conn, opts ->
+          assert expected_operation_id == opts[:operation_id]
+          assert expected_security == opts[:security]
+          assert :given_custom_opt == opts[:custom_opt]
+          assert Keyword.has_key?(opts, :error_handler)
+          unauthorized_response(conn)
+      end)
+      |> post(route, @invalid_body)
+      |> check_security()
+
+    assert %{"error" => "unauthorized_from_test"} == json_response(conn401, 401)
+
+    # should return 422 when security is ok and validation fails
+
+    conn422 =
+      base_conn
+      |> with_security(fn
+        conn, opts ->
+          assert expected_operation_id == opts[:operation_id]
+          assert expected_security == opts[:security]
+          assert :given_custom_opt == opts[:custom_opt]
+          assert Keyword.has_key?(opts, :error_handler)
+          conn
+      end)
+      |> post(route, @invalid_body)
+      |> check_security()
+
+    assert json_response(conn422, 422)
   end
 
-  describe "POST /empty-security" do
-    test "valid request returns 200", %{conn: conn} do
-      conn = post(conn, "/generated/security/empty-security", @invalid_body)
-      assert json_response(conn, 422)
+  describe "security plug delegation" do
+    # Should use the globally defined security when security is not defined on
+    # the operation
+    test "/no-security", %{conn: conn} do
+      test_route(conn, ~p"/security/no-security", "noSecurity", @global_security)
     end
 
-    test "invalid request returns 422", %{conn: conn} do
-      conn = post(conn, "/generated/security/empty-security", @invalid_body)
-      assert json_response(conn, 422)
-    end
-  end
-
-  describe "POST /false-security" do
-    test "valid request returns 200", %{conn: conn} do
-      conn = post(conn, "/generated/security/false-security", @invalid_body)
-      assert json_response(conn, 422)
+    # empty list security is still given to the plug
+    test "/empty-security", %{conn: conn} do
+      test_route(conn, ~p"/security/empty-security", "emptySecurity", [])
     end
 
-    test "invalid request returns 422", %{conn: conn} do
-      conn = post(conn, "/generated/security/false-security", @invalid_body)
-      assert json_response(conn, 422)
-    end
-  end
-
-  describe "POST /no-scopes" do
-    test "returns 200 when security plug allows", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts -> assert_security(opts, "noScopes", [%{"someApiKey" => []}])
-          :call, {conn, _opts} -> conn
-        end)
-        |> post("/generated/security/no-scopes", @invalid_body)
-
-      assert json_response(conn, 422)
+    test "/no-scopes", %{conn: conn} do
+      test_route(conn, ~p"/security/no-scopes", "noScopes", [%{"someApiKey" => []}])
     end
 
-    test "returns 401 when security plug halts", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts -> assert_security(opts, "noScopes", [%{"someApiKey" => []}])
-          :call, {conn, _opts} -> unauthorized_response(conn)
-        end)
-        |> post("/generated/security/no-scopes", @invalid_body)
-
-      assert %{"error" => "unauthorized_from_test"} == json_response(conn, 401)
-    end
-  end
-
-  describe "POST /with-scopes" do
-    test "returns 200 when security plug allows", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "withScopes", [
-              %{"someApiKey" => ["some:scope1", "some:scope2"]}
-            ])
-
-          :call, {conn, _opts} ->
-            conn
-        end)
-        |> post("/generated/security/with-scopes", @invalid_body)
-
-      assert json_response(conn, 422)
+    test "/with-scopes", %{conn: conn} do
+      test_route(conn, ~p"/security/with-scopes", "withScopes", [
+        %{"someApiKey" => ["some:scope1", "some:scope2"]}
+      ])
     end
 
-    test "returns 401 when security plug halts", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "withScopes", [
-              %{"someApiKey" => ["some:scope1", "some:scope2"]}
-            ])
-
-          :call, {conn, _opts} ->
-            unauthorized_response(conn)
-        end)
-        |> post("/generated/security/with-scopes", @invalid_body)
-
-      assert %{"error" => "unauthorized_from_test"} == json_response(conn, 401)
-    end
-  end
-
-  describe "POST /multi-scheme-security" do
-    test "returns 200 when security plug allows", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "multiSchemeSecurity", [
-              %{"someApiKey" => ["scope1", "scope2"], "someOauth" => ["so"]}
-            ])
-
-          :call, {conn, _opts} ->
-            conn
-        end)
-        |> post("/generated/security/multi-scheme-security", @invalid_body)
-
-      assert json_response(conn, 422)
+    test "/multi-scheme-security", %{conn: conn} do
+      test_route(conn, ~p"/security/multi-scheme-security", "multiSchemeSecurity", [
+        %{"someApiKey" => ["scope1", "scope2"], "someOauth" => ["so"]}
+      ])
     end
 
-    test "returns 401 when security plug halts", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "multiSchemeSecurity", [
-              %{"someApiKey" => ["scope1", "scope2"], "someOauth" => ["so"]}
-            ])
-
-          :call, {conn, _opts} ->
-            unauthorized_response(conn)
-        end)
-        |> post("/generated/security/multi-scheme-security", @invalid_body)
-
-      assert %{"error" => "unauthorized_from_test"} == json_response(conn, 401)
-    end
-  end
-
-  describe "POST /multi-choice-security" do
-    test "returns 200 when security plug allows", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "multiChoiceSecurity", [
-              %{"someApiKey" => ["scope1", "scope2"]},
-              %{"someOauth" => ["so"]}
-            ])
-
-          :call, {conn, _opts} ->
-            conn
-        end)
-        |> post("/generated/security/multi-choice-security", @invalid_body)
-
-      assert json_response(conn, 422)
-    end
-
-    test "returns 401 when security plug halts", %{conn: conn} do
-      conn =
-        conn
-        |> with_security(fn
-          :init, opts ->
-            assert_security(opts, "multiChoiceSecurity", [
-              %{"someApiKey" => ["scope1", "scope2"]},
-              %{"someOauth" => ["so"]}
-            ])
-
-          :call, {conn, _opts} ->
-            unauthorized_response(conn)
-        end)
-        |> post("/generated/security/multi-choice-security", @invalid_body)
-
-      assert %{"error" => "unauthorized_from_test"} == json_response(conn, 401)
+    test "/multi-choice-security", %{conn: conn} do
+      test_route(conn, ~p"/security/multi-choice-security", "multiChoiceSecurity", [
+        %{"someApiKey" => ["scope1", "scope2"]},
+        %{"someOauth" => ["so"]}
+      ])
     end
   end
 end

@@ -30,16 +30,6 @@ defmodule Oaskit.TestWeb.SecurityController do
     json(conn, %{})
   end
 
-  operation :false_security,
-    operation_id: "falseSecurity",
-    security: false,
-    request_body: {@common_request_schema, description: "common body"},
-    responses: [ok: {@common_response_schema, description: "common response"}]
-
-  def false_security(conn, _params) do
-    json(conn, %{})
-  end
-
   operation :no_scopes,
     operation_id: "noScopes",
     security: [%{someApiKey: []}],

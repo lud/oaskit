@@ -1,0 +1,288 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Oaskit Security API",
+    "version": "0.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001/"
+    }
+  ],
+  "security": [
+    {
+      "global": [
+        "some:global1",
+        "some:global2"
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "globalSec": {
+        "description": "an API key",
+        "in": "header",
+        "name": "api-key",
+        "type": "apiKey"
+      },
+      "someApiKey": {
+        "description": "an API key",
+        "in": "header",
+        "name": "api-key",
+        "type": "apiKey"
+      },
+      "someOauth": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://learn.openapis.org/oauth/2.0/auth",
+            "scopes": {
+              "some:scope1": "Some Description",
+              "some:scope2": "Some Description"
+            },
+            "tokenUrl": "https://learn.openapis.org/oauth/2.0/token"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "paths": {
+    "/security/empty-security": {
+      "post": {
+        "security": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "emptySecurity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/security/multi-choice-security": {
+      "post": {
+        "security": [
+          {
+            "someApiKey": [
+              "scope1",
+              "scope2"
+            ]
+          },
+          {
+            "someOauth": [
+              "so"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "multiChoiceSecurity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/security/multi-scheme-security": {
+      "post": {
+        "security": [
+          {
+            "someApiKey": [
+              "scope1",
+              "scope2"
+            ],
+            "someOauth": [
+              "so"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "multiSchemeSecurity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/security/no-scopes": {
+      "post": {
+        "security": [
+          {
+            "someApiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "noScopes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/security/no-security": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "noSecurity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/security/with-scopes": {
+      "post": {
+        "security": [
+          {
+            "someApiKey": [
+              "some:scope1",
+              "some:scope2"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "withScopes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  }
+}
