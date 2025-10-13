@@ -81,6 +81,8 @@ defmodule Oaskit.Controller do
   * `:responses` - A map or keyword list where keys are status codes (integers
     or atoms) and values are responses definitions. See below for responses
     formats.
+  * `:security` - A list of security requirements for the operation. See
+    the [Security Guide](guides/security.md) for details.
 
   Pass `false` instead of the options to ignore an action function.
 
@@ -142,7 +144,7 @@ defmodule Oaskit.Controller do
 
   * Supported atoms are `true` (a JSON schema that accepts anything), `false` (a
     JSON schema that rejects everything) or a module name. The module must
-    export a `schema/0` function that returns a JSON schema.
+    export a `json_schema/0` function that returns a JSON schema.
   * When passing a tuple, the first element is a schema (boolean or module), but
     a direct JSON schema map (like `%{type: :object, ...}`) is also accepted.
     The second tuple element is a list of options for the response body object.
