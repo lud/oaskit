@@ -29,7 +29,7 @@ defmodule Oaskit.TestWeb.SecurityPlug do
         fun.(conn, opts)
 
       nil ->
-        raise("security plug is not defined")
+        raise("no security mock defined in test for operation #{inspect(opts[:operation_id])}")
         conn
     end
   end

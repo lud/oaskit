@@ -2,7 +2,7 @@ defmodule Oaskit.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/lud/oaskit"
-  @version "0.5.1"
+  @version "0.6.0"
 
   def project do
     [
@@ -100,7 +100,8 @@ defmodule Oaskit.MixProject do
       "CHANGELOG.md",
       "README.md",
       "guides/quickstart.md",
-      "guides/external-specs.md"
+      "guides/external-specs.md",
+      "guides/security.md"
     ]
 
     case existing_guides -- defined_guides do
@@ -124,7 +125,8 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Setup: ~r{guides/(quickstart|external-specs)}
+      Setup: ~r{guides/(quickstart|external-specs)},
+      Security: ~r{guides/security}
     ]
   end
 

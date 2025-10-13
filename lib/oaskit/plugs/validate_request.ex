@@ -133,130 +133,16 @@ defmodule Oaskit.Plugs.ValidateRequest do
 
   ## Security
 
-  When security requirements are defined for an operation using the `:security`
-  option in the operation macro, you must provide a custom security plug to
-  handle authentication and authorization. This plug will be invoked before any
-  other request validation occurs.
-
-  ### Custom Security Plug
-
-  Configure the security plug when setting up `#{inspect(__MODULE__)}`:
+  To enable security validation, set the `:security` option on this plug:
 
       plug Oaskit.Plugs.ValidateRequest,
-        security: MyApp.Plugs.ApiSecurity,
-        custom_opt: "foo"
+        security: MyApp.Plugs.ApiSecurity
 
-  You can also pass options to your security plug. The argument **must** be a
-  keyword list.
-
+      # Or with custom options. The argument MUST be a keyword list.
       plug Oaskit.Plugs.ValidateRequest,
         security: {MyApp.Plugs.ApiSecurity, log_level: :debug}
 
-  ### Security Plug Options
-
-  When a request is made to an operation that defines security requirements,
-  your security plug's `init/1` callback will be invoked with either the options
-  given to `#{inspect(__MODULE__)}` (if you provided a module) or your custom
-  options (if you provided a tuple) ; with two extra options:
-
-  * The `:operation_id` from the operation.
-  * The `:security` requirements from the operation (or the API spec's
-    root-level default if any).
-
-  With this example operation:
-
-      operation :create_post,
-        operation_id: "CreatePost",
-        request_body: PostSchema,
-        security: [%{"usersApiKey" => ["post:read", "post:create"]}]
-
-      def create_post(conn, _) do
-        # ...
-      end
-
-  Your plug would receive those options:
-
-      [
-        operation_id: "CreatePost",
-        security: [%{"usersApiKey" => ["post:read", "post:create"]}],
-        custom_opt: "foo"
-        # ... other validation options
-      ]
-
-  The result of the `init/1` callback is then passed to the `call/2` callback,
-  with the current `conn`, like for any standard plug.
-
-  ### Security Validation
-
-  While you can implement all authentication and authorization in your custom
-  plug, this will most likely be done by other libraries such as `mix
-  phx.gen.auth`, Pow, or Guardian.
-
-  **1. Endpoint/Router level - Authentication**
-
-  Authentication libraries provide plugs used at the endpoint or router level.
-  These plugs should:
-
-  * Validate authentication headers/tokens.
-  * Look up users in the database.
-  * Reject invalid/expired credentials.
-  * Store user information in `conn.private` or `conn.assigns`.
-
-  **2. Oaskit security plug - Authorization**
-
-  Your Oaskit security plug should focus on authorization:
-
-  * Read user data from `conn.private` or `conn.assigns`.
-  * Compare user roles/scopes with the operation's security requirements.
-  * Halt the connection if the user lacks required permissions.
-
-  Security validation happens **before** all other validations. This prevents
-  potential attack vectors through the validation process itself.
-
-  As a consequence, the `Oaskit.Controller.body_params/1` and other helpers
-  cannot be used from your plug as those casted values are not yet defined.
-
-  Your security plug **must** use `Plug.Conn.halt/1` to prevent unauthorized
-  access. The `#{inspect(__MODULE__)}` plug checks the `:halted` property:
-
-  * **If halted**: The request is stopped immediately. No further validation
-    occurs and the controller action is not called.
-  * **If not halted**: The request validation continues (body, params, etc.) and
-    your controller will be called if validation succeeds.
-
-  To halt the conn, use the `Plug.Conn.halt/1` function:
-
-        conn
-        |> put_status(401)
-        |> json(%{error: "Unauthorized"})
-        |> halt()
-
-  > ### The operations `:security` option must be handled {: .warning}
-  >
-  > If no custom plug is defined but one of your operation defines the
-  > `:security` option, or the root-level `:security` option is defined, Oaskit
-  > will default to returning a 401 response with a raw `"unauthorized"` body.
-  >
-  > This is made so nobody will expect that the security will be automatically
-  > enforced although Oaskit cannot know how to do it.
-  >
-  > Security requirements vary greatly between applications, and we want to make
-  > it explicit that you are responsible for protecting your API endpoints.
-
-  ### Disabling security checks
-
-  If you prefer to handle security entirely through other means, disable the
-  Oaskit security mechanism:
-
-      plug Oaskit.Plugs.ValidateRequest,
-        security: false
-
-  ### Operations without security
-
-  The security plug is **only called** for operations that explicitly define the
-  `:security` option. Operations without this option will skip security
-  validation entirely, unless security requirements are defined at the root
-  level of your OpenAPI specification.
+  For details on implementing security plugs and handling authorization, see the [Security Guide](guides/security.md).
 
   ## Error handling
 

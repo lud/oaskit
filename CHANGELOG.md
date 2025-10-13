@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2025-10-11
+
+### 🚀 Features
+
+- Added operation-level security check using user-defined plugs
+- Added support for root level security requirements
+- [**breaking**] Handling security is now mandatory
+
+### 🐛 Bug Fixes
+
+- Ensure response body is a binary in Oaskit.Test.valid_response (#23)
+- Fixed normalization of %Reference{} structs
+
 ## [0.5.1] - 2025-10-10
 
 ### 🐛 Bug Fixes
