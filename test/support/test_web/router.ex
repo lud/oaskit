@@ -59,6 +59,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/generic", ParamController, :generic_param_types
       get "/arrays", ParamController, :array_types
       get "/explicit-brackets", ParamController, :explicit_brackets
+      get "/module-arrays", ParamController, :array_types_with_module
       get "/boolean-schema-false", ParamController, :boolean_schema_false
 
       scope "/s/:shape" do

@@ -695,6 +695,47 @@ defmodule Oaskit.Web.ParamTest do
       assert "users[]" in parameter_names
       assert "ids[]" in parameter_names
     end
+
+    test "with module schemas", %{conn: conn} do
+      # Test that module schemas defining arrays are handled correctly
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/module-arrays?numbers[]=1.5&numbers[]=2.7&numbers[]=3.14",
+          fn conn, _params ->
+            # Phoenix should parse brackets correctly
+            assert %{
+                     "numbers" => ["1.5", "2.7", "3.14"]
+                   } == conn.query_params
+
+            # Oaskit should cast and store with clean keys
+            assert %{
+                     numbers: [1.5, 2.7, 3.14]
+                   } == conn.private.oaskit.query_params
+
+            json(conn, %{data: "module_arrays_handled"})
+          end
+        )
+
+      assert %{"data" => "module_arrays_handled"} = valid_response(PathsApiSpec, conn, 200)
+
+      # Verify OpenAPI spec shows brackets for module array schema parameters
+      spec = Oaskit.cast!(PathsApiSpec)
+      module_operation = spec.paths
+                        |> Enum.find_value(fn {_path, path_item} ->
+                          Enum.find_value(path_item, fn {_verb, operation} ->
+                            if operation.operationId =~ "array_types_with_module" do
+                              operation
+                            end
+                          end)
+                        end)
+
+      assert module_operation, "Could not find array_types_with_module operation"
+      parameter_names = Enum.map(module_operation.parameters, & &1.name)
+
+      # Module array schema parameters should show brackets in OpenAPI spec
+      assert "numbers[]" in parameter_names
+    end
   end
 
   describe "boolean schema false in query params" do
