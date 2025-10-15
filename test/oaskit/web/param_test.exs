@@ -593,6 +593,108 @@ defmodule Oaskit.Web.ParamTest do
                }
              } = valid_response(PathsApiSpec, conn, 400)
     end
+
+    test "array parameters with explicit brackets in controller definition", %{conn: conn} do
+      # This test verifies that parameters defined with [] in controller work correctly
+      # and that the OpenAPI spec generation handles bracket normalization
+
+      # First, let's test that the existing array_types endpoint works with the Phoenix format
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/arrays?numbers[]=789&numbers[]=101112&names[]=Charlie&names[]=Delta",
+          fn conn, _params ->
+            # Phoenix should parse brackets correctly
+            assert %{
+                     "numbers" => ["789", "101112"],
+                     "names" => ["Charlie", "Delta"]
+                   } == conn.query_params
+
+            # Oaskit should cast and store without brackets in the internal key
+            assert %{
+                     numbers: [789, 101_112],
+                     names: ["Charlie", "Delta"]
+                   } == conn.private.oaskit.query_params
+
+            json(conn, %{data: "brackets_handled"})
+          end
+        )
+
+      assert %{"data" => "brackets_handled"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "OpenAPI spec generation includes brackets for array query parameters" do
+      # Test that the generated OpenAPI spec has the correct parameter names with brackets
+      spec = Oaskit.cast!(PathsApiSpec)
+
+      # Find the array_types operation
+      array_operation =
+        spec.paths
+        |> Enum.find_value(fn {_path, path_item} ->
+          Enum.find_value(path_item, fn {_verb, operation} ->
+            if operation.operationId =~ "array_types" do
+              operation
+            end
+          end)
+        end)
+
+      assert array_operation, "Could not find array_types operation"
+
+      # Check that array parameters have brackets in the OpenAPI spec
+      parameter_names = Enum.map(array_operation.parameters, & &1.name)
+
+      # Array query parameters should have brackets in the OpenAPI spec
+      assert "numbers[]" in parameter_names
+      assert "names[]" in parameter_names
+    end
+
+    test "handles parameters defined with explicit brackets in controller", %{conn: conn} do
+      # Test the second requirement: handle parameters that already have brackets
+      # in their controller definition. This simulates external OpenAPI document usage.
+
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/explicit-brackets?users[]=Alice&users[]=Bob&ids[]=1&ids[]=2",
+          fn conn, _params ->
+            # Phoenix should parse brackets correctly
+            assert %{
+                     "users" => ["Alice", "Bob"],
+                     "ids" => ["1", "2"]
+                   } == conn.query_params
+
+            # Oaskit should cast and store with clean keys (brackets removed)
+            assert %{
+                     users: ["Alice", "Bob"],
+                     ids: [1, 2]
+                   } == conn.private.oaskit.query_params
+
+            json(conn, %{data: "explicit_brackets_handled"})
+          end
+        )
+
+      assert %{"data" => "explicit_brackets_handled"} = valid_response(PathsApiSpec, conn, 200)
+
+      # Verify OpenAPI spec shows brackets for these parameters too
+      spec = Oaskit.cast!(PathsApiSpec)
+
+      explicit_operation =
+        spec.paths
+        |> Enum.find_value(fn {_path, path_item} ->
+          Enum.find_value(path_item, fn {_verb, operation} ->
+            if operation.operationId =~ "explicit_brackets" do
+              operation
+            end
+          end)
+        end)
+
+      assert explicit_operation, "Could not find explicit_brackets operation"
+      parameter_names = Enum.map(explicit_operation.parameters, & &1.name)
+
+      # Parameters should show brackets in OpenAPI spec
+      assert "users[]" in parameter_names
+      assert "ids[]" in parameter_names
+    end
   end
 
   describe "boolean schema false in query params" do

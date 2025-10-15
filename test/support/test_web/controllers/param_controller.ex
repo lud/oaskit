@@ -123,4 +123,15 @@ defmodule Oaskit.TestWeb.ParamController do
   def array_types(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :explicit_brackets,
+    parameters: [
+      "users[]": [in: :query, schema: array_of(string())],
+      "ids[]": [in: :query, schema: array_of(integer())]
+    ],
+    responses: dummy_responses_with_error()
+
+  def explicit_brackets(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

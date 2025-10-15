@@ -296,7 +296,8 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   # sobelow_skip ["DOS.StringToAtom"]
   defp build_parameter_validation(parameter, rev_path, jsv_ctx) do
-    key = String.to_atom(parameter.name)
+    bin_key = remove_brackets_from_param_name(parameter.name)
+    key = String.to_atom(bin_key)
 
     {schema_key, jsv_ctx} =
       case parameter do
@@ -307,7 +308,7 @@ defmodule Oaskit.Internal.SpecBuilder do
       end
 
     built = %{
-      bin_key: parameter.name,
+      bin_key: bin_key,
       key: key,
       required: parameter_required(parameter),
       schema_key: schema_key,
@@ -499,5 +500,22 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   defp rev_path_to_ref([], acc) do
     Ref.pointer!(acc, :root)
+  end
+
+  # Helper function to remove brackets from parameter names for validation.
+  #
+  # Phoenix/Plug parses query parameters like "colors[]=red&colors[]=yellow" into
+  # %{"colors" => ["red", "yellow"]} - removing the brackets during parsing.
+  # However, the OpenAPI spec shows these parameters with brackets for compliance.
+  #
+  # This function ensures validation uses clean parameter names that match what
+  # Phoenix provides in conn.query_params, while the OpenAPI spec output can
+  # show the bracketed format for standards compliance.
+  defp remove_brackets_from_param_name(name) when is_binary(name) do
+    if String.ends_with?(name, "[]") do
+      String.slice(name, 0..-3//1)
+    else
+      name
+    end
   end
 end

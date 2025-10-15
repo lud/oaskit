@@ -85,7 +85,55 @@ defmodule Oaskit.Spec.Parameter do
     ])
     |> normalize_schema(:schema)
     |> skip(:content)
+    |> format_array_parameter_name_for_openapi()
     |> collect()
+  end
+
+  # Format array query parameter names with brackets for OpenAPI spec output.
+  # This ensures OpenAPI spec compliance while keeping internal validation clean.
+  #
+  # The OpenAPI 3.x standard expects array query parameters to be named with
+  # brackets (e.g., "colors[]") when style=form and explode=true, which is the
+  # default for query parameters. However, Phoenix/Plug removes these brackets
+  # during query parameter parsing, so internally we need clean names.
+  #
+  # This function runs during spec normalization to add brackets to array query
+  # parameter names for the final OpenAPI document output.
+  defp format_array_parameter_name_for_openapi(%{out: out} = normalizer) do
+    name_entry = Enum.find(out, fn {key, _value} -> key == "name" end)
+    in_entry = Enum.find(out, fn {key, _value} -> key == "in" end)
+    schema_entry = Enum.find(out, fn {key, _value} -> key == "schema" end)
+
+    case {name_entry, in_entry, schema_entry} do
+      {{"name", name}, {"in", "query"}, {"schema", schema}} when is_binary(name) ->
+        if is_array_schema?(schema) and not String.ends_with?(name, "[]") do
+          # Replace the name entry with bracketed version
+          new_out =
+            Enum.map(out, fn
+              {"name", ^name} -> {"name", name <> "[]"}
+              other -> other
+            end)
+
+          %{normalizer | out: new_out}
+        else
+          normalizer
+        end
+
+      _ ->
+        normalizer
+    end
+  end
+
+  defp is_array_schema?(%{"type" => "array"}) do
+    true
+  end
+
+  defp is_array_schema?(%{type: :array}) do
+    true
+  end
+
+  defp is_array_schema?(_) do
+    false
   end
 
   def from_controller!(_name, %Reference{} = ref) do

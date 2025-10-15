@@ -58,6 +58,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/t/:theme/c/:color", ParamController, :two_path_params
       get "/generic", ParamController, :generic_param_types
       get "/arrays", ParamController, :array_types
+      get "/explicit-brackets", ParamController, :explicit_brackets
       get "/boolean-schema-false", ParamController, :boolean_schema_false
 
       scope "/s/:shape" do
