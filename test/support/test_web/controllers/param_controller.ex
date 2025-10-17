@@ -115,8 +115,40 @@ defmodule Oaskit.TestWeb.ParamController do
 
   operation :array_types,
     parameters: [
-      numbers: [in: :query, schema: array_of(integer())],
-      names: [in: :query, schema: array_of(string())]
+      query__array__style_form__explode_false: [
+        in: :query,
+        explode: false,
+        schema: array_of(integer())
+      ],
+      query__array__style_form__explode_true: [
+        in: :query,
+        explode: true,
+        schema: array_of(integer())
+      ],
+      query__array__style_spaceDelimited__explode_false: [
+        in: :query,
+        explode: false,
+        style: :spaceDelimited,
+        schema: array_of(integer())
+      ],
+      query__array__style_spaceDelimited__explode_true: [
+        in: :query,
+        explode: true,
+        style: :spaceDelimited,
+        schema: array_of(integer())
+      ],
+      query__array__style_pipeDelimited__explode_false: [
+        in: :query,
+        explode: false,
+        style: :pipeDelimited,
+        schema: array_of(integer())
+      ],
+      query__array__style_pipeDelimited__explode_true: [
+        in: :query,
+        explode: true,
+        style: :pipeDelimited,
+        schema: array_of(integer())
+      ]
     ],
     responses: dummy_responses_with_error()
 

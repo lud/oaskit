@@ -234,26 +234,45 @@ defmodule Oaskit.Validation.RequestValidator do
     JSV.validate(value, jsv_root, cast: true, cast_formats: true, key: jsv_key)
   end
 
-  defp precast_parameter(value, fun) when is_function(fun, 1) do
-    fun.(value)
-  end
-
-  defp precast_parameter(values, {:list, fun}) when is_list(values) and is_function(fun, 1) do
-    precast_list(values, fun, [])
-  end
-
-  defp precast_parameter(_values, {:list, fun}) when is_function(fun, 1) do
-    {:error, :non_array_parameter}
-  end
-
-  defp precast_list([h | t], fun, acc) do
-    case fun.(h) do
-      {:ok, v} -> precast_list(t, fun, [v | acc])
+  defp precast_parameter(value, [h | t]) do
+    case apply_precast(value, h) do
+      {:ok, value} -> precast_parameter(value, t)
       {:error, _} = err -> err
     end
   end
 
-  defp precast_list([], _, acc) do
+  defp precast_parameter(value, []) do
+    {:ok, value}
+  end
+
+  defp apply_precast(value, fun) when is_function(fun, 1) do
+    fun.(value)
+  end
+
+  defp apply_precast(values, {:array, fun}) when is_list(values) and is_function(fun, 1) do
+    precast_array(values, fun, [])
+  end
+
+  defp apply_precast(_values, {:array, fun}) when is_function(fun, 1) do
+    {:error, :non_array_parameter}
+  end
+
+  defp apply_precast(value, {:split, splitter}) when is_binary(value) do
+    {:ok, String.split(value, splitter)}
+  end
+
+  defp apply_precast(value, _) do
+    {:error, :non_string_parameter}
+  end
+
+  defp precast_array([h | t], fun, acc) do
+    case fun.(h) do
+      {:ok, v} -> precast_array(t, fun, [v | acc])
+      {:error, _} = err -> err
+    end
+  end
+
+  defp precast_array([], _, acc) do
     {:ok, :lists.reverse(acc)}
   end
 end

@@ -481,27 +481,82 @@ defmodule Oaskit.Web.ParamTest do
 
   describe "array parameters" do
     test "valid array parameters", %{conn: conn} do
+      # All parameters have a schema of array_of(integer()) and the validated
+      # values should be [1,2,3]
+
+      valid_array_parameters =
+        [
+          # simple form comma separated list
+          "query__array__style_form__explode_false=1,2,3",
+
+          # form exploded in multiple values
+          "query__array__style_form__explode_true[]=1",
+          "query__array__style_form__explode_true[]=2",
+          "query__array__style_form__explode_true[]=3",
+
+          # With delimiters when the list is not exploded in multiple query
+          # params
+          "query__array__style_spaceDelimited__explode_false=1%202%203",
+          "query__array__style_pipeDelimited__explode_false=1|2|3",
+
+          # With delimiters but exploded in multiple params the delimiter will
+          # be ignored
+          "query__array__style_spaceDelimited__explode_true[]=1",
+          "query__array__style_spaceDelimited__explode_true[]=2",
+          "query__array__style_spaceDelimited__explode_true[]=3",
+          #
+          "query__array__style_pipeDelimited__explode_true[]=1",
+          "query__array__style_pipeDelimited__explode_true[]=2",
+          "query__array__style_pipeDelimited__explode_true[]=3"
+        ]
+        |> Enum.join("&")
+        |> dbg()
+
       conn =
         get_reply(
           conn,
-          ~p"/generated/params/some-slug/arrays?numbers[]=123&numbers[]=456&names[]=Alice&names[]=Bob",
+          # Do not use verifies routes here or it will re-encode the query parameters
+          "/generated/params/some-slug/arrays?#{valid_array_parameters}" |> dbg(),
           fn conn, params ->
             # Assert that Phoenix doesn't cast the parameters
+            params |> dbg()
+
             assert %{
                      "slug" => "some-slug",
-                     "numbers" => ["123", "456"],
-                     "names" => ["Alice", "Bob"]
+                     # Phoenix parses arrays automatically as we provided the
+                     # [] suffix to param names
+                     "query__array__style_form__explode_true" => ["1", "2", "3"],
+                     "query__array__style_pipeDelimited__explode_true" => ["1", "2", "3"],
+                     "query__array__style_spaceDelimited__explode_true" => ["1", "2", "3"],
+
+                     # Parameters without the suffix are kept as strings
+                     "query__array__style_form__explode_false" => "1,2,3",
+                     "query__array__style_spaceDelimited__explode_false" => "1 2 3",
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
                    } == params
 
+            # Same in raw query params
             assert %{
-                     "numbers" => ["123", "456"],
-                     "names" => ["Alice", "Bob"]
+                     # Phoenix parses arrays automatically as we provided the
+                     # [] suffix to param names
+                     "query__array__style_form__explode_true" => ["1", "2", "3"],
+                     "query__array__style_pipeDelimited__explode_true" => ["1", "2", "3"],
+                     "query__array__style_spaceDelimited__explode_true" => ["1", "2", "3"],
+
+                     # Parameters without the suffix are kept as strings
+                     "query__array__style_form__explode_false" => "1,2,3",
+                     "query__array__style_spaceDelimited__explode_false" => "1 2 3",
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
                    } == conn.query_params
 
-            # Assert that Oaskit properly casts the parameters
+            # Assert that Oaskit properly casts the arrays
             assert %{
-                     numbers: [123, 456],
-                     names: ["Alice", "Bob"]
+                     query__array__style_form__explode_false: [1, 2, 3],
+                     query__array__style_form__explode_true: [1, 2, 3],
+                     query__array__style_pipeDelimited__explode_false: [1, 2, 3],
+                     query__array__style_pipeDelimited__explode_true: [1, 2, 3],
+                     query__array__style_spaceDelimited__explode_false: [1, 2, 3],
+                     query__array__style_spaceDelimited__explode_true: [1, 2, 3]
                    } == conn.private.oaskit.query_params
 
             json(conn, %{data: "ok"})

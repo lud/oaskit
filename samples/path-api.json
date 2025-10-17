@@ -990,7 +990,19 @@
         "parameters": [
           {
             "in": "query",
-            "name": "numbers",
+            "name": "query__array__style_form__explode_false",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "query__array__style_form__explode_true",
             "required": false,
             "schema": {
               "items": {
@@ -1001,14 +1013,53 @@
           },
           {
             "in": "query",
-            "name": "names",
+            "name": "query__array__style_spaceDelimited__explode_false",
             "required": false,
             "schema": {
               "items": {
-                "type": "string"
+                "type": "integer"
               },
               "type": "array"
-            }
+            },
+            "style": "spaceDelimited"
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "query__array__style_spaceDelimited__explode_true",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "style": "spaceDelimited"
+          },
+          {
+            "in": "query",
+            "name": "query__array__style_pipeDelimited__explode_false",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "style": "pipeDelimited"
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "query__array__style_pipeDelimited__explode_true",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "style": "pipeDelimited"
           },
           {
             "in": "path",

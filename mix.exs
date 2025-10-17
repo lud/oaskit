@@ -101,7 +101,8 @@ defmodule Oaskit.MixProject do
       "README.md",
       "guides/quickstart.md",
       "guides/external-specs.md",
-      "guides/security.md"
+      "guides/security.md",
+      "guides/limitations.md"
     ]
 
     case existing_guides -- defined_guides do
@@ -125,7 +126,7 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Setup: ~r{guides/(quickstart|external-specs)},
+      Setup: ~r{guides/(quickstart|external-specs|limitations)},
       Security: ~r{guides/security}
     ]
   end
