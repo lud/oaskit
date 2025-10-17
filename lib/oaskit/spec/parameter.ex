@@ -86,6 +86,35 @@ defmodule Oaskit.Spec.Parameter do
     |> normalize_schema(:schema)
     |> skip(:content)
     |> collect()
+    |> format_array_parameter_name_for_openapi()
+  end
+
+  # Format array query parameter names with brackets for OpenAPI spec output.
+  # This ensures OpenAPI spec compliance while keeping internal validation clean.
+  #
+  # The OpenAPI 3.x standard expects array query parameters to be named with
+  # brackets (e.g., "colors[]") when style=form and explode=true, which is the
+  # default for query parameters. However, Phoenix/Plug removes these brackets
+  # during query parameter parsing, so internally we need clean names.
+  #
+  # This function runs during spec normalization to add brackets to array query
+  # parameter names for the final OpenAPI document output.
+  defp format_array_parameter_name_for_openapi(
+         {%{"name" => name, "in" => "query", "schema" => %{"type" => "array"}} = data, ctx}
+       )
+       when is_binary(name) do
+    data =
+      if String.ends_with?(name, "[]") do
+        data
+      else
+        Map.update!(data, "name", &(&1 <> "[]"))
+      end
+
+    {data, ctx}
+  end
+
+  defp format_array_parameter_name_for_openapi({data, ctx}) do
+    {data, ctx}
   end
 
   def from_controller!(_name, %Reference{} = ref) do
