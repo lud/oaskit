@@ -481,27 +481,79 @@ defmodule Oaskit.Web.ParamTest do
 
   describe "array parameters" do
     test "valid array parameters", %{conn: conn} do
+      # All parameters have a schema of array_of(integer()) and the validated
+      # values should be [1,2,3]
+
+      valid_array_parameters =
+        [
+          # simple form comma separated list
+          "query__array__style_form__explode_false=1,2,3",
+
+          # form exploded in multiple values
+          "query__array__style_form__explode_true[]=1",
+          "query__array__style_form__explode_true[]=2",
+          "query__array__style_form__explode_true[]=3",
+
+          # With delimiters when the list is not exploded in multiple query
+          # params
+          "query__array__style_spaceDelimited__explode_false=1%202%203",
+          "query__array__style_pipeDelimited__explode_false=1|2|3",
+
+          # With delimiters but exploded in multiple params the delimiter will
+          # be ignored
+          "query__array__style_spaceDelimited__explode_true[]=1",
+          "query__array__style_spaceDelimited__explode_true[]=2",
+          "query__array__style_spaceDelimited__explode_true[]=3",
+          #
+          "query__array__style_pipeDelimited__explode_true[]=1",
+          "query__array__style_pipeDelimited__explode_true[]=2",
+          "query__array__style_pipeDelimited__explode_true[]=3"
+        ]
+        |> Enum.join("&")
+
       conn =
         get_reply(
           conn,
-          ~p"/generated/params/some-slug/arrays?numbers[]=123&numbers[]=456&names[]=Alice&names[]=Bob",
+          ~p"/generated/params/some-slug/arrays" <> "?" <> valid_array_parameters,
           fn conn, params ->
             # Assert that Phoenix doesn't cast the parameters
+
             assert %{
                      "slug" => "some-slug",
-                     "numbers" => ["123", "456"],
-                     "names" => ["Alice", "Bob"]
+                     # Phoenix parses arrays automatically as we provided the
+                     # [] suffix to param names
+                     "query__array__style_form__explode_true" => ["1", "2", "3"],
+                     "query__array__style_pipeDelimited__explode_true" => ["1", "2", "3"],
+                     "query__array__style_spaceDelimited__explode_true" => ["1", "2", "3"],
+
+                     # Parameters without the suffix are kept as strings
+                     "query__array__style_form__explode_false" => "1,2,3",
+                     "query__array__style_spaceDelimited__explode_false" => "1 2 3",
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
                    } == params
 
+            # Same in raw query params
             assert %{
-                     "numbers" => ["123", "456"],
-                     "names" => ["Alice", "Bob"]
+                     # Phoenix parses arrays automatically as we provided the
+                     # [] suffix to param names
+                     "query__array__style_form__explode_true" => ["1", "2", "3"],
+                     "query__array__style_pipeDelimited__explode_true" => ["1", "2", "3"],
+                     "query__array__style_spaceDelimited__explode_true" => ["1", "2", "3"],
+
+                     # Parameters without the suffix are kept as strings
+                     "query__array__style_form__explode_false" => "1,2,3",
+                     "query__array__style_spaceDelimited__explode_false" => "1 2 3",
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
                    } == conn.query_params
 
-            # Assert that Oaskit properly casts the parameters
+            # Assert that Oaskit properly casts the arrays
             assert %{
-                     numbers: [123, 456],
-                     names: ["Alice", "Bob"]
+                     query__array__style_form__explode_false: [1, 2, 3],
+                     query__array__style_form__explode_true: [1, 2, 3],
+                     query__array__style_pipeDelimited__explode_false: [1, 2, 3],
+                     query__array__style_pipeDelimited__explode_true: [1, 2, 3],
+                     query__array__style_spaceDelimited__explode_false: [1, 2, 3],
+                     query__array__style_spaceDelimited__explode_true: [1, 2, 3]
                    } == conn.private.oaskit.query_params
 
             json(conn, %{data: "ok"})
@@ -511,11 +563,129 @@ defmodule Oaskit.Web.ParamTest do
       assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
-    test "invalid array parameters", %{conn: conn} do
+    test "invalid array parameters", %{conn: base_conn} do
+      test_invalid_qs = fn qs ->
+        conn = get(base_conn, ~p"/generated/params/some-slug/arrays" <> "?" <> qs)
+
+        valid_response(PathsApiSpec, conn, 400)
+      end
+
+      assert_array_parameter_type_error = fn error, parameter ->
+        assert %{
+                 "error" => %{
+                   "in" => "parameters",
+                   "kind" => "bad_request",
+                   "message" => "Bad Request",
+                   "parameters_errors" => [
+                     %{
+                       "in" => "query",
+                       "kind" => "invalid_parameter",
+                       "parameter" => ^parameter,
+                       "validation_error" => %{
+                         "details" => [
+                           %{
+                             "errors" => [
+                               %{
+                                 "kind" => "type",
+                                 "message" => "value is not of type integer"
+                               }
+                             ],
+                             "valid" => false
+                           },
+                           %{
+                             "errors" => [
+                               %{
+                                 "kind" => "items",
+                                 "message" =>
+                                   "item at index " <>
+                                     <<_>> <> " does not validate the 'items' schema"
+                               }
+                             ],
+                             "valid" => false
+                           }
+                         ],
+                         "valid" => false
+                       }
+                     }
+                   ]
+                 }
+               } = error
+      end
+
+      # # form exploded in multiple values
+      # "query__array__style_form__explode_true[]=1",
+      # "query__array__style_form__explode_true[]=2",
+      # "query__array__style_form__explode_true[]=3",
+
+      # # With delimiters when the list is not exploded in multiple query
+      # # params
+      # "query__array__style_spaceDelimited__explode_false=1%202%203",
+      # "query__array__style_pipeDelimited__explode_false=1|2|3",
+
+      # # With delimiters but exploded in multiple params the delimiter will
+      # # be ignored
+      # "query__array__style_spaceDelimited__explode_true[]=1",
+      # "query__array__style_spaceDelimited__explode_true[]=2",
+      # "query__array__style_spaceDelimited__explode_true[]=3",
+      # #
+      # "query__array__style_pipeDelimited__explode_true[]=1",
+      # "query__array__style_pipeDelimited__explode_true[]=2",
+      # "query__array__style_pipeDelimited__explode_true[]=3"
+
+      # Explode false
+
+      err = test_invalid_qs.("query__array__style_form__explode_false=1,not_an_int,3")
+      assert_array_parameter_type_error.(err, "query__array__style_form__explode_false")
+
+      err =
+        test_invalid_qs.("query__array__style_spaceDelimited__explode_false=not_an_int%202%203")
+
+      assert_array_parameter_type_error.(err, "query__array__style_spaceDelimited__explode_false")
+
+      err = test_invalid_qs.("query__array__style_pipeDelimited__explode_false=1|2|not_an_int")
+      assert_array_parameter_type_error.(err, "query__array__style_pipeDelimited__explode_false")
+
+      # Explode true
+
+      err =
+        test_invalid_qs.(
+          "query__array__style_form__explode_true[]=1&" <>
+            "query__array__style_form__explode_true[]=not_an_int&" <>
+            "query__array__style_form__explode_true[]=3"
+        )
+
+      assert_array_parameter_type_error.(err, "query__array__style_form__explode_true")
+
+      err =
+        test_invalid_qs.(
+          "query__array__style_spaceDelimited__explode_true[]=1&" <>
+            "query__array__style_spaceDelimited__explode_true[]=not_an_int&" <>
+            "query__array__style_spaceDelimited__explode_true[]=3"
+        )
+
+      assert_array_parameter_type_error.(err, "query__array__style_spaceDelimited__explode_true")
+
+      err =
+        test_invalid_qs.(
+          "query__array__style_pipeDelimited__explode_true[]=1&" <>
+            "query__array__style_pipeDelimited__explode_true[]=not_an_int&" <>
+            "query__array__style_pipeDelimited__explode_true[]=3"
+        )
+
+      assert_array_parameter_type_error.(err, "query__array__style_pipeDelimited__explode_true")
+    end
+
+    test "non-array parameter when array expected", %{conn: conn} do
+      # This works with explode: true because Phoenix/Plug are supposed to
+      # provide a list.
+      #
+      # This is also a shortcomming of Oaskit: with array schemas it can only
+      # support parameters with the `[]` suffix.
       conn =
         get(
           conn,
-          ~p"/generated/params/some-slug/arrays?numbers[]=not-a-number&numbers[]=456&names[]=Alice&names[]=123"
+          ~p"/generated/params/some-slug/arrays" <>
+            "?" <> "query__array__style_form__explode_true=123"
         )
 
       assert %{
@@ -527,36 +697,9 @@ defmodule Oaskit.Web.ParamTest do
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
-                     "message" => "invalid parameter numbers in query",
-                     "parameter" => "numbers",
-                     "validation_error" => _
-                   }
-                 ]
-               }
-             } = valid_response(PathsApiSpec, conn, 400)
-    end
-
-    test "non-array parameter when array expected", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/some-slug/arrays?numbers=123&names=Alice")
-
-      assert %{
-               "error" => %{
-                 "operation_id" => "param_array_types" <> _,
-                 "message" => "Bad Request",
-                 "in" => "parameters",
-                 "parameters_errors" => [
-                   %{
-                     "in" => "query",
-                     "kind" => "invalid_parameter",
-                     "message" => "invalid parameter names in query",
-                     "parameter" => "names",
-                     "validation_error" => _
-                   },
-                   %{
-                     "in" => "query",
-                     "kind" => "invalid_parameter",
-                     "message" => "invalid parameter numbers in query",
-                     "parameter" => "numbers",
+                     "message" =>
+                       "invalid parameter query__array__style_form__explode_true in query",
+                     "parameter" => "query__array__style_form__explode_true",
                      "validation_error" => _
                    }
                  ]

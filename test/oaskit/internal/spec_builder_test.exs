@@ -71,7 +71,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                         key: :param_p1,
                         required: true,
                         schema_key:
-                          {:precast, precast_fun,
+                          {:precast, precast,
                            {:pointer, :root,
                             ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
                         bin_key: "param_p1"
@@ -107,6 +107,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
              }
            } = built
 
+    assert [precast_fun | []] = precast
     %{module: JSV.Cast, name: :string_to_integer, arity: 1} = Map.new(Function.info(precast_fun))
   end
 
@@ -198,7 +199,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                           key: :dry_run,
                           required: false,
                           schema_key:
-                            {:precast, caster,
+                            {:precast, precast,
                              {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
                           bin_key: "dry_run"
                         },
@@ -230,8 +231,10 @@ defmodule Oaskit.Internal.SpecBuilderTest do
              } =
                built
 
+      assert [precast_fun | []] = precast
+
       assert %{module: JSV.Cast, name: :string_to_boolean, arity: 1} =
-               Map.new(Function.info(caster))
+               Map.new(Function.info(precast_fun))
     end
 
     test "with responses" do

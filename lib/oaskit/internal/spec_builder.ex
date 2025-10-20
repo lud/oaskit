@@ -302,7 +302,7 @@ defmodule Oaskit.Internal.SpecBuilder do
       case parameter do
         %{schema: true} -> {:no_validation, jsv_ctx}
         %{schema: nil} -> {:no_validation, jsv_ctx}
-        %{schema: schema} -> build_parameter_schema(schema, ["schema" | rev_path], jsv_ctx)
+        %{schema: _schema} -> build_parameter_schema(parameter, ["schema" | rev_path], jsv_ctx)
         _ -> {:no_validation, jsv_ctx}
       end
 
@@ -328,11 +328,13 @@ defmodule Oaskit.Internal.SpecBuilder do
     end
   end
 
-  defp build_parameter_schema(schema, rev_path, jsv_ctx) do
-    # schema is already defined in the JSV build context, it is not given to the
-    # builder. But it is used to check if we need to precast the values, as
+  defp build_parameter_schema(parameter, rev_path, jsv_ctx) do
+    # The schema is already defined in the JSV build context, it is not fed to
+    # the builder. It is only used to check if we need to precast the values, as
     # params are always received as strings.
-    precast = parameter_precast(schema, rev_path, :root, jsv_ctx)
+    {precast, jsv_ctx} = parameter_precast(parameter, _ns = :root, jsv_ctx)
+
+    # Here we actually build the schema pointed by the path
     {jsv_key, jsv_ctx} = build_schema_key(rev_path, jsv_ctx)
 
     final_validator =
@@ -344,31 +346,87 @@ defmodule Oaskit.Internal.SpecBuilder do
     {final_validator, jsv_ctx}
   end
 
-  defp parameter_precast(schema, rev_path, ns, jsv_ctx) do
+  defp parameter_precast(original_parameter, ns, jsv_ctx) do
+    # For now we will only handle explode and delimiters in query parameters
+
+    parameter = Parameter.with_defaults(original_parameter)
+
+    {_precast, _jsv_ctx} =
+      case parameter do
+        %{in: :path, explode: false, style: :simple} ->
+          # support precast in path with simple
+          do_precast_for_type(parameter, ns, jsv_ctx)
+
+        %{in: loc} when loc in [:path, :header, :cookie] ->
+          {:noprecast, jsv_ctx}
+
+        %{in: :query, explode: true, style: _} ->
+          # style does not matter when exploded into multiple param occurences.
+          do_precast_for_type(parameter, ns, jsv_ctx)
+
+        %{in: :query, explode: false, style: :form} ->
+          do_precast_for_type(parameter, ns, jsv_ctx, [{:split, ","}])
+
+        %{in: :query, explode: false, style: :spaceDelimited} ->
+          do_precast_for_type(parameter, ns, jsv_ctx, [{:split, " "}])
+
+        %{in: :query, explode: false, style: :pipeDelimited} ->
+          do_precast_for_type(parameter, ns, jsv_ctx, [{:split, "|"}])
+
+        _other ->
+          # debug_opts =
+          #   original_parameter
+          #   |> Map.take([:in, :explode, :style])
+          #   |> Map.to_list()
+          #   |> inspect()
+
+          # raise ArgumentError,
+          #       "unsupported combination of parameter options for parameter " <>
+          #         "#{inspect(original_parameter.name)}, got: #{debug_opts}"
+
+          # In case of error, instead of failing we will let the users handle
+          # the parsing, so they can still make their code behave like the
+          # OpenAPI specification describes.
+          {:noprecast, jsv_ctx}
+      end
+  end
+
+  # When returing :noprecast, the prev_casters are discarded!
+  defp do_precast_for_type(parameter, ns, jsv_ctx, prev_casters \\ []) do
+    %{schema: schema} = parameter
+    {schema_type, jsv_ctx} = get_parameter_schema_type(schema, ns, jsv_ctx)
+
+    precast =
+      case schema_type do
+        :integer ->
+          {:precast, prev_casters ++ [&Cast.string_to_integer/1]}
+
+        :boolean ->
+          {:precast, prev_casters ++ [&Cast.string_to_boolean/1]}
+
+        :number ->
+          {:precast, prev_casters ++ [&Cast.string_to_number/1]}
+
+        {:array, :integer} ->
+          {:precast, prev_casters ++ [{:array, &Cast.string_to_integer/1}]}
+
+        :schema_type_not_found ->
+          :noprecast
+      end
+
+    {precast, jsv_ctx}
+  end
+
+  defp get_parameter_schema_type(schema, ns, jsv_ctx) do
     case schema do
-      %{"type" => "integer"} ->
-        {:precast, &Cast.string_to_integer/1}
-
-      %{"type" => "boolean"} ->
-        {:precast, &Cast.string_to_boolean/1}
-
-      %{"type" => "number"} ->
-        {:precast, &Cast.string_to_number/1}
-
-      %{"type" => "array", "items" => %{"type" => "integer"}} ->
-        {:precast, {:list, &Cast.string_to_integer/1}}
-
-      %{"type" => "array", "items" => %{"type" => "boolean"}} ->
-        {:precast, {:list, &Cast.string_to_boolean/1}}
-
-      %{"type" => "array", "items" => %{"type" => "number"}} ->
-        {:precast, {:list, &Cast.string_to_number/1}}
-
-      %{"$ref" => _} = subschema ->
-        parameter_precast_ref(subschema, rev_path, ns, jsv_ctx)
-
-      _ ->
-        :noprecast
+      %{"type" => "integer"} -> {:integer, jsv_ctx}
+      %{"type" => "boolean"} -> {:boolean, jsv_ctx}
+      %{"type" => "number"} -> {:number, jsv_ctx}
+      %{"type" => "array", "items" => %{"type" => "integer"}} -> {{:array, :integer}, jsv_ctx}
+      %{"type" => "array", "items" => %{"type" => "boolean"}} -> {{:array, :boolean}, jsv_ctx}
+      %{"type" => "array", "items" => %{"type" => "number"}} -> {{:array, :number}, jsv_ctx}
+      %{"$ref" => _} -> deref_parameter_schema_type(schema, ns, jsv_ctx)
+      _ -> {:schema_type_not_found, jsv_ctx}
     end
   end
 
@@ -385,7 +443,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   #
   # Also JSV needs to expose the build context as a struct, currently we are
   # digging into a private record.
-  defp parameter_precast_ref(%{"$ref" => ref} = subschema, rev_path, ns, jsv_ctx) do
+  defp deref_parameter_schema_type(%{"$ref" => ref} = subschema, ns, jsv_ctx) do
     {:ok, sub_ns} =
       case subschema do
         %{"$id" => id} -> RNS.derive(ns, id)
@@ -399,10 +457,10 @@ defmodule Oaskit.Internal.SpecBuilder do
     resolved = Builder.fetch_resolved!(builder, key)
     {resolved.raw, sub_ns, {:build, new_builder, jsv_validators}}
   rescue
-    _ -> :noprecast
+    _ -> {:schema_type_not_found, jsv_ctx}
   else
     {new_schema, new_ns, new_jsv_ctx} ->
-      parameter_precast(new_schema, rev_path, new_ns, new_jsv_ctx)
+      get_parameter_schema_type(new_schema, new_ns, new_jsv_ctx)
   end
 
   # -- Responses Validation ---------------------------------------------------

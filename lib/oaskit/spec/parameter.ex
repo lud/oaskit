@@ -27,27 +27,24 @@ defmodule Oaskit.Spec.Parameter do
       #   type: :boolean,
       #   description: "Sets the ability to pass empty-valued parameters."
       # },
-      # style:
-      #   JSV.Schema.string_to_atom_enum(
-      #     %{
-      #       description:
-      #         "Describes how the parameter value will be serialized. See OpenAPI spec for allowed values.",
-      #         "default": :simple
-      #     },
-      #     [
-      #       :matrix,
-      #       :label,
-      #       :form,
-      #       :simple,
-      #       :spaceDelimited,
-      #       :pipeDelimited,
-      #       :deepObject
-      #     ]
-      #   ),
-      # explode: %{
-      #   type: :boolean,
-      #   description: "When true, array or object values generate separate parameters."
-      # },
+      style:
+        string_enum_to_atom_or_nil(
+          [
+            :matrix,
+            :label,
+            :form,
+            :simple,
+            :spaceDelimited,
+            :pipeDelimited,
+            :deepObject
+          ],
+          description:
+            "Describes how the parameter value will be serialized. See OpenAPI spec for allowed values."
+        ),
+      explode: %{
+        type: :boolean,
+        description: "When true, array or object values generate separate parameters."
+      },
       allowReserved: %{
         type: :boolean,
         description: "Allows reserved characters in parameter values."
@@ -74,14 +71,15 @@ defmodule Oaskit.Spec.Parameter do
     data
     |> from(__MODULE__, ctx)
     |> normalize_default([
-      :name,
-      :in,
-      :description,
-      :required,
-      :deprecated,
-      :explode,
       :allowReserved,
-      :examples
+      :deprecated,
+      :description,
+      :examples,
+      :explode,
+      :in,
+      :name,
+      :required,
+      :style
     ])
     |> normalize_schema(:schema)
     |> skip(:content)
@@ -98,6 +96,8 @@ defmodule Oaskit.Spec.Parameter do
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)
+    |> take_default(:explode, nil)
+    |> take_default(:style, nil)
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
     |> take_default_lazy(:examples, fn ->
       case Access.fetch(spec, :example) do
@@ -113,6 +113,57 @@ defmodule Oaskit.Spec.Parameter do
       {:ok, loc}
     else
       {:error, "parameter :in only supports :path and :query"}
+    end
+  end
+
+  @doc """
+  Returns the given parameter with the expected default values for style and
+  explode.
+
+  Default style are:
+
+  * `:form` for query and cookie parameters
+  * `:simple` for header and path parameters
+
+  Default explode is `true` when the style is `:form`, `false` otherwise.
+
+  See [the
+  specifications](https://spec.openapis.org/oas/v3.1.2.html#parameter-object)
+  for more information.
+  """
+  def with_defaults(%__MODULE__{} = parameter) do
+    %{in: loc, style: style, explode: explode?} = parameter
+
+    style =
+      if is_nil(style) do
+        parameter_default_style(loc)
+      else
+        style
+      end
+
+    explode? =
+      if is_nil(explode?) do
+        parameter_default_explode?(style)
+      else
+        explode?
+      end
+
+    %{parameter | style: style, explode: explode?}
+  end
+
+  defp parameter_default_style(param_in) do
+    case param_in do
+      :query -> :form
+      :cookie -> :form
+      :path -> :simple
+      :header -> :simple
+    end
+  end
+
+  defp parameter_default_explode?(param_style) do
+    case param_style do
+      :form -> true
+      other when is_atom(other) -> false
     end
   end
 end

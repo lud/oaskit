@@ -81,8 +81,6 @@ defmodule Oaskit.Controller do
   * `:responses` - A map or keyword list where keys are status codes (integers
     or atoms) and values are responses definitions. See below for responses
     formats.
-  * `:security` - A list of security requirements for the operation. See
-    the [Security Guide](guides/security.md) for details.
 
   Pass `false` instead of the options to ignore an action function.
 
