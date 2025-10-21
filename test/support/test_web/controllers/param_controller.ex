@@ -155,4 +155,24 @@ defmodule Oaskit.TestWeb.ParamController do
   def array_types(conn, params) do
     Responder.reply(conn, params)
   end
+
+  # operation :bracket_types,
+  #   operation_id: "parameter_bracket_types",
+  #   parameters: [
+  #     "explicit_brackets_array[]": [
+  #       in: :query,
+  #       explode: true,
+  #       schema: array_of(integer())
+  #     ],
+  #     "explicit_brackets_scalar[]": [
+  #       in: :query,
+  #       explode: true,
+  #       schema: integer()
+  #     ]
+  #   ],
+  #   responses: dummy_responses_with_error()
+
+  # def bracket_types(conn, params) do
+  #   Responder.reply(conn, params)
+  # end
 end

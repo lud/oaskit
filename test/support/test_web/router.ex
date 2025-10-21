@@ -56,15 +56,17 @@ defmodule Oaskit.TestWeb.Router do
     scope "/params/:slug", Oaskit.TestWeb do
       get "/t/:theme", ParamController, :single_path_param
       get "/t/:theme/c/:color", ParamController, :two_path_params
-      get "/generic", ParamController, :generic_param_types
-      get "/arrays", ParamController, :array_types
-      get "/boolean-schema-false", ParamController, :boolean_schema_false
 
       scope "/s/:shape" do
         get "/", ParamController, :scope_only
         get "/t/:theme", ParamController, :scope_and_single
         get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
       end
+
+      get "/generic", ParamController, :generic_param_types
+      get "/arrays", ParamController, :array_types
+      # get "/bracket-types", ParamController, :bracket_types
+      get "/boolean-schema-false", ParamController, :boolean_schema_false
     end
 
     post "/no-html-errors", Oaskit.TestWeb.JsonErrorsController, :create_plant

@@ -13,6 +13,10 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
       paths:
         Paths.from_router(Oaskit.TestWeb.Router,
           filter: fn route ->
+            # focus on a single action for debugging
+            #
+            # match?(%{plug: Oaskit.TestWeb.ParamController, plug_opts: :single_path_param}, route)
+
             case route.path do
               "/generated" <> _ -> true
               _ -> false

@@ -30,7 +30,7 @@ defmodule Oaskit.Web.ParamTest do
     test "valid param", %{conn: conn} do
       conn =
         get_reply(conn, ~p"/generated/params/some-slug/t/dark", fn conn, _params ->
-          assert %{theme: :dark} = conn.private.oaskit.path_params
+          assert %{theme: :dark, slug: "some-slug"} = conn.private.oaskit.path_params
           json(conn, %{data: "ok"})
         end)
 
@@ -735,6 +735,20 @@ defmodule Oaskit.Web.ParamTest do
                  ]
                }
              } = valid_response(PathsApiSpec, conn, 400)
+    end
+
+    # IO.warn("test array parameters with explode: false at the pathitem level (shared params)")
+
+    @tag :skip
+    test "explicit brackets in param names", %{conn: conn} do
+      get_reply(
+        conn,
+        ~p"/generated/params/some-slug/bracket-types?explicit_brackets_array[]=1&explicit_brackets_array[]=2",
+        fn conn, _params ->
+          conn.private.oaskit.query_params
+          raise "foo"
+        end
+      )
     end
   end
 

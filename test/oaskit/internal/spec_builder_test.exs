@@ -70,10 +70,10 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                         in: :path,
                         key: :param_p1,
                         required: true,
+                        precast: precast,
                         schema_key:
-                          {:precast, precast,
-                           {:pointer, :root,
-                            ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
+                          {:pointer, :root,
+                           ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]},
                         bin_key: "param_p1"
                       }
                     ],
@@ -82,6 +82,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                         in: :query,
                         key: :param_q1_orderby,
                         required: false,
+                        precast: nil,
                         schema_key:
                           {:pointer, :root,
                            ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
@@ -198,15 +199,16 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                           in: :query,
                           key: :dry_run,
                           required: false,
+                          precast: precast,
                           schema_key:
-                            {:precast, precast,
-                             {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
+                            {:pointer, :root, ["components", "parameters", "DryRun", "schema"]},
                           bin_key: "dry_run"
                         },
                         %{
                           in: :query,
                           key: :source,
                           required: false,
+                          precast: nil,
                           schema_key:
                             {:pointer, :root, ["components", "parameters", "Source", "schema"]},
                           bin_key: "source"

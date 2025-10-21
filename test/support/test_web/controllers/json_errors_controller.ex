@@ -29,6 +29,6 @@ defmodule Oaskit.TestWeb.JsonErrorsController do
 
   @spec create_plant(term, term) :: no_return()
   def create_plant(_conn, _params) do
-    raise "only used with erroring payloads"
+    raise "this route is only used with invalid payloads"
   end
 end

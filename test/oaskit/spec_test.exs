@@ -463,6 +463,7 @@ defmodule Oaskit.SpecTest do
                "/generated/no-params",
                "/generated/params/{slug}/arrays",
                "/generated/params/{slug}/boolean-schema-false",
+               # "/generated/params/{slug}/bracket-types",
                "/generated/params/{slug}/generic",
                "/generated/params/{slug}/s/{shape}",
                "/generated/params/{slug}/s/{shape}/t/{theme}",
