@@ -155,4 +155,34 @@ defmodule Oaskit.TestWeb.ParamController do
   def array_types(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :explicit_brackets,
+    parameters: [
+      "users[]": [in: :query, schema: array_of(string())],
+      "ids[]": [in: :query, schema: array_of(integer())]
+    ],
+    responses: dummy_responses_with_error()
+
+  def explicit_brackets(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  defmodule Numbers do
+    def json_schema do
+      %JSV.Schema{
+        type: :array,
+        items: %{type: :number}
+      }
+    end
+  end
+
+  operation :array_types_with_module,
+    parameters: [
+      numbers: [in: :query, schema: Numbers],
+    ],
+    responses: dummy_responses_with_error()
+
+  def array_types_with_module(conn, params) do
+    Responder.reply(conn, params)
+  end
 end
