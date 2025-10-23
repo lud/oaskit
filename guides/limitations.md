@@ -44,16 +44,22 @@ types:
 Other types should be handled by the schema directly.
 
 
-## Query string parameters arrays
+## Exploded array query string parameters
 
-**Oaskit only supports `explode: false` for query string parameters**. This will
-be implemented for other parameters types eventually.
+Oaskit supports `explode: true` for query string parameters. It is actually the
+default value in OpenAPI 3.1.
 
 Phoenix expect query parameters to use the `[]` notation when an array is
 expected:
 
 ```text
 ?users[]=Alice&users[]=Bob
+```
+
+And parses it as this:
+
+```elixir
+%{"users" => ["Alice", "Bob"]}
 ```
 
 OpenAPI allows parameters to be defined as arrays, and expect the underlying
@@ -63,15 +69,42 @@ implementation to make an array out of it:
 ?users=Alice&users=Bob         # This will not work with Phoenix/Oaskit
 ```
 
-Oaskit relies on Phoenix to parse the query parameters, as the Plug pipeline will replace the query parameters in the `conn` before it reaches Oaskit code.
+Oaskit relies on Phoenix to parse the query parameters, as the Plug pipeline
+will replace the query parameters in the `conn` before it reaches Oaskit code.
 
-To fix this, Oaskit will automatically add the `[]` suffix in parameter names when serializing an OpenAPI specification to JSON.
+### Parameter validation
 
-Also, when using Oaskit with a pre-existing OpenAPI specification document
-(instead of using the controller macros), Oaskit will accept both forms for the
-parameter name in the input specification (`users` or `users[]`) and will check
-if the schema `type` element is `array` to expect that Phoenix/Plug have parsed
-a list or a scalar value.
+Given those circumstances, when a parameter name is defined as `"users[]"` (for
+instance in an external OpenAPI specification imported in Oaskit), Oaskit will
+strip the brackets on validation, expecting a `"users"` key in the
+`conn.query_params` parsed by Phoenix.
+
+If a custom parser passes `%{"users[]" => [...]}`, Oaskit will not use that
+value and will consider the parameter as missing, leading to a 400 error if the
+parameter is mandatory.
+
+### Spec generation
+
+When dumping the OpenAPI to JSON, Oaskit will automatically add the `[]` suffix
+in the parameter names if it can detect that the parameter has a schema that
+validates an array. Detection of the schema type is best effort and will work if
+the parameter JSON schema has the `array` type, or if it is a reference to a
+schema with the `array` type.
+
+In the other cases that cannot be detected, the parameter name should contain
+the brackets suffix. For instance:
+
+```elixir
+operation :show_users,
+  operation_id: "ShowUsers",
+  parameters: [
+    "users_ids[]": [
+      in: :query,
+      # Schema does not matter, Oaskit will not strip the suffix
+      # if the schema does not have the array type.
+      schema: ...
+    ],
+```
 
 
 ## Query strings parameters style

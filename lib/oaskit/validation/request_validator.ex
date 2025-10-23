@@ -115,6 +115,7 @@ defmodule Oaskit.Validation.RequestValidator do
   defp validate_parameter(parameter, raw_params, jsv_root, acc, errors) do
     %{
       bin_key: bin_key,
+      ext_key: ext_key,
       key: key,
       schema_key: jsv_key,
       required: required?,
@@ -134,7 +135,7 @@ defmodule Oaskit.Validation.RequestValidator do
           {:error, validation_error} ->
             err = %InvalidParameterError{
               in: parameter.in,
-              name: bin_key,
+              name: ext_key,
               value: value,
               validation_error: validation_error
             }

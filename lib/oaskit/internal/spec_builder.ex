@@ -4,6 +4,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   alias JSV.Key
   alias JSV.Ref
   alias JSV.RNS
+  alias Oaskit.Spec.Components
   alias Oaskit.Spec.Operation
   alias Oaskit.Spec.Parameter
   alias Oaskit.Spec.PathItem
@@ -56,7 +57,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   end
 
   defp deref(%Reference{"$ref": "#/" <> bin_path = full_path}, expected, _rev_path, spec) do
-    {object, rev_path} = resolve_ref(spec, String.split(bin_path, "/"), [])
+    {object, rev_path} = resolve_ref(spec, String.split(bin_path, "/"))
 
     case object do
       %^expected{} = found ->
@@ -66,6 +67,9 @@ defmodule Oaskit.Internal.SpecBuilder do
         raise "could not dereference #{inspect(full_path)} (using #{inspect(:lists.reverse(rev_path))}), " <>
                 "expected struct #{inspect(expected)}, found #{inspect(other)}"
     end
+  rescue
+    _ in KeyError ->
+      reraise ArgumentError, "could not find reference #{full_path}", __STACKTRACE__
   end
 
   defp deref(%mod{} = object, mod, rev_path, _spec) do
@@ -76,9 +80,23 @@ defmodule Oaskit.Internal.SpecBuilder do
     {nil, rev_path}
   end
 
-  # When resolving a reference into the spec, if the spec is a struct then we
-  # cast the path segment to an atom. Otherwise we keep it as string.
+  defp resolve_ref(data, path, rev_path_acc \\ [])
+
+  defp resolve_ref(%Components{} = object, [h | t], acc) do
+    h = String.to_existing_atom(h)
+
+    subs =
+      case Map.fetch!(object, h) do
+        nil -> %{}
+        %{} = map -> map
+      end
+
+    resolve_ref(subs, t, [h | acc])
+  end
+
   defp resolve_ref(%_struct{} = object, [h | t], acc) do
+    # When resolving a reference into the spec, if the spec is a struct then we
+    # cast the path segment to an atom. Otherwise we keep it as string.
     h = String.to_existing_atom(h)
     resolve_ref(Map.fetch!(object, h), t, [h | acc])
   end
@@ -296,7 +314,6 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   # sobelow_skip ["DOS.StringToAtom"]
   defp build_parameter_validation(parameter, rev_path, jsv_ctx) do
-    key = String.to_atom(parameter.name)
     parameter = Parameter.with_defaults(parameter)
 
     # get a simplified version of the schema (we are interested in the type for
@@ -310,6 +327,21 @@ defmodule Oaskit.Internal.SpecBuilder do
     {schema_summary, jsv_ctx} = summarize_parameter_schema(parameter.schema, :root, jsv_ctx)
     precast = build_parameter_precast(parameter, schema_summary)
 
+    # We will strip the brackets from the name if present, as phoenix casts
+    # `?a[]=1&a[]=2` as `%{"a"=>[1,2]}` and not `%{"a[]"=>[1,2]}`.
+    #
+    # We should do that for parameters that are arrays with explode:true but we
+    # cannot make sure that we expect an array. The schema could be a reference
+    # to an anyOf of references to an if/else, etc. Too many cases. So we will
+    # always strip the brackets.
+    bin_key = strip_brackets_suffix(parameter.name)
+
+    # On the other hand we will report errors with the brackets enforced only if
+    # we detected an array type.
+    ext_key = ensure_brackets_suffix(parameter, schema_summary)
+
+    key = String.to_atom(bin_key)
+
     {schema_key, jsv_ctx} =
       case parameter do
         %{schema: true} -> {:no_validation, jsv_ctx}
@@ -319,7 +351,8 @@ defmodule Oaskit.Internal.SpecBuilder do
       end
 
     built = %{
-      bin_key: parameter.name,
+      bin_key: bin_key,
+      ext_key: ext_key,
       key: key,
       required: parameter_required(parameter),
       precast: precast,
@@ -328,6 +361,24 @@ defmodule Oaskit.Internal.SpecBuilder do
     }
 
     {built, jsv_ctx}
+  end
+
+  defp strip_brackets_suffix(name) do
+    case String.ends_with?(name, "[]") do
+      true -> String.slice(name, 0..-3//1)
+      false -> name
+    end
+  end
+
+  defp ensure_brackets_suffix(%{explode: true, name: name}, {:array, _}) do
+    case String.ends_with?(name, "[]") do
+      true -> name
+      false -> name <> "[]"
+    end
+  end
+
+  defp ensure_brackets_suffix(%{name: name}, _) do
+    name
   end
 
   defp parameter_required(%Parameter{required: req?}) when is_boolean(req?) do

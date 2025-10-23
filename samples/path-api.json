@@ -355,6 +355,18 @@
         },
         "description": "A response to be used from a $ref"
       }
+    },
+    "parameters": {
+      "QueryParamArrayOfIntegers": {
+        "in": "query",
+        "name": "some_ints",
+        "schema": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      }
     }
   },
   "paths": {
@@ -962,6 +974,47 @@
         "operationId": "param_no_params_LQEIGEQ"
       }
     },
+    "/generated/params/{slug}/array-ref": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_array_ref",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/QueryParamArrayOfIntegers"
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "/generated/params/{slug}/arrays": {
       "get": {
         "responses": {
@@ -1113,6 +1166,65 @@
             "name": "also_reject",
             "required": false,
             "schema": false
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/generated/params/{slug}/bracket-types": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_bracket_types",
+        "parameters": [
+          {
+            "explode": true,
+            "in": "query",
+            "name": "explicit_brackets_array[]",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "explicit_brackets_scalar[]",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
           },
           {
             "in": "path",

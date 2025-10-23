@@ -654,7 +654,7 @@ defmodule Oaskit.Web.ParamTest do
             "query__array__style_form__explode_true[]=3"
         )
 
-      assert_array_parameter_type_error.(err, "query__array__style_form__explode_true")
+      assert_array_parameter_type_error.(err, "query__array__style_form__explode_true[]")
 
       err =
         test_invalid_qs.(
@@ -663,7 +663,10 @@ defmodule Oaskit.Web.ParamTest do
             "query__array__style_spaceDelimited__explode_true[]=3"
         )
 
-      assert_array_parameter_type_error.(err, "query__array__style_spaceDelimited__explode_true")
+      assert_array_parameter_type_error.(
+        err,
+        "query__array__style_spaceDelimited__explode_true[]"
+      )
 
       err =
         test_invalid_qs.(
@@ -672,7 +675,7 @@ defmodule Oaskit.Web.ParamTest do
             "query__array__style_pipeDelimited__explode_true[]=3"
         )
 
-      assert_array_parameter_type_error.(err, "query__array__style_pipeDelimited__explode_true")
+      assert_array_parameter_type_error.(err, "query__array__style_pipeDelimited__explode_true[]")
     end
 
     test "non-array parameter when array expected", %{conn: conn} do
@@ -698,8 +701,8 @@ defmodule Oaskit.Web.ParamTest do
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" =>
-                       "invalid parameter query__array__style_form__explode_true in query",
-                     "parameter" => "query__array__style_form__explode_true",
+                       "invalid parameter query__array__style_form__explode_true[] in query",
+                     "parameter" => "query__array__style_form__explode_true[]",
                      "validation_error" => _
                    }
                  ]
@@ -737,18 +740,96 @@ defmodule Oaskit.Web.ParamTest do
              } = valid_response(PathsApiSpec, conn, 400)
     end
 
-    # IO.warn("test array parameters with explode: false at the pathitem level (shared params)")
+    test "array parameters from a reference", %{conn: base_conn} do
+      # Using a reference as a parameter, it should be validated, and support
+      # casting to array and integers.
+      conn =
+        get_reply(
+          base_conn,
+          ~p"/generated/params/some-slug/array-ref?some_ints[]=1&some_ints[]=2",
+          fn conn, _ ->
+            assert %{some_ints: [1, 2]} = conn.private.oaskit.query_params
+            json(conn, %{data: "ok"})
+          end
+        )
 
-    @tag :skip
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+
+      conn =
+        get(
+          base_conn,
+          ~p"/generated/params/some-slug/array-ref?some_ints[]=1&some_ints[]=not_an_int"
+        )
+
+      assert %{
+               "error" => %{
+                 "operation_id" => "parameter_array_ref" <> _,
+                 "message" => "Bad Request",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter some_ints[] in query",
+                     "parameter" => "some_ints[]",
+                     "validation_error" => _
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
+    end
+
+    # TODO pathitem parameters
+
     test "explicit brackets in param names", %{conn: conn} do
-      get_reply(
-        conn,
-        ~p"/generated/params/some-slug/bracket-types?explicit_brackets_array[]=1&explicit_brackets_array[]=2",
-        fn conn, _params ->
-          conn.private.oaskit.query_params
-          raise "foo"
-        end
-      )
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/bracket-types?explicit_brackets_array[]=1&explicit_brackets_array[]=2",
+          fn conn, _params ->
+            assert %{explicit_brackets_array: [1, 2]} = conn.private.oaskit.query_params
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "error reporting with explicit brackets in param names", %{conn: conn} do
+      conn =
+        get(
+          conn,
+          ~p"/generated/params/some-slug/bracket-types?explicit_brackets_array[]=1&explicit_brackets_array[]=not_an_int"
+        )
+
+      assert %{
+               "error" => %{
+                 "in" => "parameters",
+                 "operation_id" => "parameter_bracket_types",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     # The parameter name is reported with the brackets, since
+                     # it is an array
+                     "message" => "invalid parameter explicit_brackets_array[] in query",
+                     "parameter" => "explicit_brackets_array[]",
+                     #
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{"kind" => "type", "message" => "value is not of type integer"}
+                           ]
+                         },
+                         _array_error
+                       ],
+                       "valid" => false
+                     }
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
     end
   end
 

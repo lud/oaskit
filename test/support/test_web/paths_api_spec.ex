@@ -15,7 +15,7 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
           filter: fn route ->
             # focus on a single action for debugging
             #
-            # match?(%{plug: Oaskit.TestWeb.ParamController, plug_opts: :single_path_param}, route)
+            # match?(%{plug: Oaskit.TestWeb.ParamController, plug_opts: :array_ref}, route)
 
             case route.path do
               "/generated" <> _ -> true
@@ -25,6 +25,13 @@ defmodule Oaskit.TestWeb.PathsApiSpec do
         ),
       servers: [Server.from_config(:oaskit, Oaskit.TestWeb.Endpoint)],
       components: %{
+        parameters: %{
+          QueryParamArrayOfIntegers: %{
+            name: "some_ints",
+            in: :query,
+            schema: %{type: :array, items: %{type: :integer}}
+          }
+        },
         responses: %{
           SpecialFortune: %{
             description: "A response to be used from a $ref",

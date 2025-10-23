@@ -77,7 +77,6 @@ defmodule Oaskit.Spec.Operation do
   end
 
   def from_controller!(spec, opts) do
-    shared_parameters = Keyword.get(opts, :shared_parameters, [])
     shared_tags = Keyword.get(opts, :shared_tags, [])
 
     spec
@@ -86,7 +85,7 @@ defmodule Oaskit.Spec.Operation do
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)
     |> take_default(:tags, nil, &merge_tags(&1, shared_tags))
-    |> take_default(:parameters, nil, &cast_params(&1, shared_parameters))
+    |> take_default(:parameters, nil, &cast_params(&1, opts))
     |> take_default(:description, nil)
     |> take_required(:responses, &cast_responses/1)
     |> take_default(:security, nil, &cast_security/1)
@@ -99,22 +98,36 @@ defmodule Oaskit.Spec.Operation do
     |> into()
   end
 
-  defp cast_params(parameters, shared_parameters) when is_map(parameters) do
-    cast_params(Map.to_list(parameters), shared_parameters)
+  defp cast_params(parameters, opts) when is_map(parameters) do
+    cast_params(Map.to_list(parameters), opts)
   end
 
-  defp cast_params(parameters, shared_parameters) when is_list(parameters) do
+  defp cast_params(parameters, opts) when is_list(parameters) do
     if not Keyword.keyword?(parameters) do
       raise ArgumentError, "expected parameters to be a keyword list or map"
     end
 
-    parameters = Enum.map(parameters, fn {k, p} -> Parameter.from_controller!(k, p) end)
+    shared_parameters = Keyword.get(opts, :shared_parameters, [])
+
+    {parameters, defined_by_op} =
+      Enum.map_reduce(parameters, [], fn {k, p}, locals ->
+        case Parameter.from_controller!(k, p) do
+          %Parameter{name: name, in: loc} = param ->
+            {param, [{{name, loc}, true} | locals]}
+
+          %Reference{} = ref ->
+            maybe_warn_parameter_reference(k, p, opts)
+
+            {ref, locals}
+        end
+      end)
+
+    defined_by_op = Map.new(defined_by_op)
 
     # We need to merge shared parameters
-    defined_by_op = Map.new(parameters, fn %{name: name, in: loc} -> {{name, loc}, true} end)
 
     add_parameters =
-      Enum.filter(shared_parameters, fn %{name: name, in: loc} ->
+      Enum.filter(shared_parameters, fn %{name: name, in: loc} when is_binary(name) ->
         not Map.has_key?(defined_by_op, {name, loc})
       end)
 
@@ -124,6 +137,33 @@ defmodule Oaskit.Spec.Operation do
   defp cast_params(other, _) do
     raise ArgumentError,
           "invalid parameters, expected a map, list or keyword list, got: #{inspect(other)}"
+  end
+
+  defp maybe_warn_parameter_reference(k, p, opts) do
+    case k do
+      :_ -> :ok
+      _ -> warn_parameter_reference(k, p, opts)
+    end
+  end
+
+  defp warn_parameter_reference(k, p, opts) do
+    controller = Keyword.fetch!(opts, :controller)
+    action = Keyword.fetch!(opts, :action)
+
+    IO.warn(
+      "It is not possible to change a parameter name to #{inspect(k)} " <>
+        "with the operation macro in #{inspect(controller)} " <>
+        "when using a reference.\n" <>
+        "Please define the parameter with the :_ key to suppress this warning:\n" <>
+        """
+
+            operation, #{inspect(action)},
+              # ...
+              parameters: [
+                _: #{inspect(p)}
+              ]
+        """
+    )
   end
 
   defp cast_responses(responses) when is_map(responses) do

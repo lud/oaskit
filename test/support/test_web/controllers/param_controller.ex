@@ -1,4 +1,5 @@
 defmodule Oaskit.TestWeb.ParamController do
+  alias Oaskit.Spec.Reference
   alias Oaskit.TestWeb.Responder
   use JSV.Schema
   use Oaskit.TestWeb, :controller
@@ -156,23 +157,36 @@ defmodule Oaskit.TestWeb.ParamController do
     Responder.reply(conn, params)
   end
 
-  # operation :bracket_types,
-  #   operation_id: "parameter_bracket_types",
-  #   parameters: [
-  #     "explicit_brackets_array[]": [
-  #       in: :query,
-  #       explode: true,
-  #       schema: array_of(integer())
-  #     ],
-  #     "explicit_brackets_scalar[]": [
-  #       in: :query,
-  #       explode: true,
-  #       schema: integer()
-  #     ]
-  #   ],
-  #   responses: dummy_responses_with_error()
+  operation :bracket_types,
+    operation_id: "parameter_bracket_types",
+    parameters: [
+      "explicit_brackets_array[]": [
+        in: :query,
+        explode: true,
+        schema: array_of(integer())
+      ],
+      # This one is not used in tests but it should keep the brackets when the
+      # spec.json is dumped.
+      "explicit_brackets_scalar[]": [
+        in: :query,
+        explode: true,
+        schema: integer()
+      ]
+    ],
+    responses: dummy_responses_with_error()
 
-  # def bracket_types(conn, params) do
-  #   Responder.reply(conn, params)
-  # end
+  def bracket_types(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :array_ref,
+    operation_id: "parameter_array_ref",
+    parameters: [
+      _: %Reference{"$ref": "#/components/parameters/QueryParamArrayOfIntegers"}
+    ],
+    responses: dummy_responses_with_error()
+
+  def array_ref(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

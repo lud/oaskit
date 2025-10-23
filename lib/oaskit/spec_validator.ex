@@ -34,6 +34,27 @@ defmodule Oaskit.SpecValidator do
   require Oaskit.Spec.Tag
   require Oaskit.Spec.XML
 
+  defmodule Error do
+    defexception [:jsv_err, :spec]
+
+    def message(%{jsv_err: e, spec: spec}) do
+      prelude =
+        case spec do
+          %{"info" => %{"title" => title, "version" => version}}
+          when title != "" and version != "" ->
+            "invalid OpenAPI specification '" <> title <> "' version " <> version
+
+          %{"info" => %{"title" => title}} when title != "" ->
+            "invalid OpenAPI specification '" <> title <> "'"
+
+          _ ->
+            "invalid OpenAPI specification"
+        end
+
+      prelude <> ", " <> Exception.message(e)
+    end
+  end
+
   @moduledoc """
   A helper module used to cast and validate OpenAPI specifications into structs.
 
@@ -54,15 +75,17 @@ defmodule Oaskit.SpecValidator do
 
   Raises on error.
   """
-  def validate!(data) do
-    JSV.validate!(data, @openapi_schema)
+  def validate!(spec) do
+    JSV.validate!(spec, @openapi_schema)
+  rescue
+    e in JSV.ValidationError -> reraise(Error, [jsv_err: e, spec: spec], __STACKTRACE__)
   end
 
   @doc """
   Validates the given OpenAPI specification and returns an
   `#{inspect(Oaskit.Spec.OpenAPI)}` struct in a result tuple.
   """
-  def validate(data) do
-    JSV.validate(data, @openapi_schema)
+  def validate(spec) do
+    JSV.validate(spec, @openapi_schema)
   end
 end

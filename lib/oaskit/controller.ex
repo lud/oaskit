@@ -287,6 +287,7 @@ defmodule Oaskit.Controller do
   defmacro operation(action, spec) when is_atom(action) and is_list(spec) do
     spec = maybe_expand_aliases(spec, __CALLER__)
     spec = ensure_operation_id(spec, action, __CALLER__)
+    module = __CALLER__.module
 
     quote bind_quoted: binding() do
       {verb, spec} = Controller.__pop_verb(spec)
@@ -300,7 +301,9 @@ defmodule Oaskit.Controller do
       operation =
         Operation.from_controller!(spec,
           shared_parameters: shared_parameters,
-          shared_tags: shared_tags
+          shared_tags: shared_tags,
+          controller: module,
+          action: action
         )
 
       @oaskit_operations {action, operation, verb}

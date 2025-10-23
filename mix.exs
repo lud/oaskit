@@ -64,8 +64,7 @@ defmodule Oaskit.MixProject do
   end
 
   defp description do
-    "A set of macros and plugs for Elixir/Phoenix applications to automatically " <>
-      "validate incoming HTTP requests based on the OpenAPI Specification v3.1."
+    "OpenAPI 3.1 validation, generation and utilities for for Elixir/Phoenix."
   end
 
   defp package do

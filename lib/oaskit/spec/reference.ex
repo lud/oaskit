@@ -1,6 +1,7 @@
 defmodule Oaskit.Spec.Reference do
   use JSV.Schema
 
+  @derive {Inspect, optional: [:summary, :description]}
   defschema %{
     title: "Reference",
     type: :object,

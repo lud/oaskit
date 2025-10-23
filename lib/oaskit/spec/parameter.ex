@@ -93,7 +93,7 @@ defmodule Oaskit.Spec.Parameter do
   def from_controller!(name, spec) when is_atom(name) and is_list(spec) do
     spec
     |> make(__MODULE__)
-    |> put(:name, name)
+    |> put(:name, to_string(name))
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)
     |> take_default(:explode, nil)
