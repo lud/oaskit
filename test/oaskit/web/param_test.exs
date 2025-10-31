@@ -921,6 +921,53 @@ defmodule Oaskit.Web.ParamTest do
     end
   end
 
+  describe "header parameters" do
+    test "valid header parameter", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("string-param", "test-value")
+        |> put_req_header("integer-param", "4")
+        |> put_req_header("boolean-param", "false")
+        |> put_req_header("number-param", "4.2")
+        |> put_req_header("array-param", "1,2,3")
+        |> get_reply(~p"/generated/params/some-slug/header-param", fn conn, _params ->
+          # Header parameters are stored in conn.private.oaskit.header_params
+          assert %{
+                   "string-param": "test-value",
+                   "integer-param": 4,
+                   "boolean-param": false,
+                   "number-param": 4.2,
+                   "array-param": [1, 2, 3]
+                 } = conn.private.oaskit.header_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "missing required header parameter", %{conn: conn} do
+      # The string_param header is required
+      conn = get(conn, ~p"/generated/params/some-slug/header-param")
+
+      assert %{
+               "error" => %{
+                 "message" => "Bad Request",
+                 "operation_id" => "parameter_header",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "header",
+                     "kind" => "missing_parameter",
+                     "message" => "missing parameter string-param in header",
+                     "parameter" => "string-param"
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
+    end
+  end
+
   describe "html error rendering" do
     @describetag [req_accept: "text/html"]
 

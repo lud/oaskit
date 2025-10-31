@@ -328,7 +328,7 @@ defmodule Oaskit.ErrorHandler.Default.BadRequestErrorSchema do
         array_of(%{
           type: :object,
           properties: %{
-            in: enum(["query", "path"]),
+            in: enum(["query", "path", "header"]),
             kind: enum(["invalid_parameter", "missing_parameter"]),
             message: string(),
             parameter: string()

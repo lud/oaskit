@@ -109,10 +109,10 @@ defmodule Oaskit.Spec.Parameter do
   end
 
   defp validate_location(loc) do
-    if loc in [:path, :query] do
+    if loc in [:path, :query, :header] do
       {:ok, loc}
     else
-      {:error, "parameter :in only supports :path and :query"}
+      {:error, "parameter :in only supports :path, :query and :header"}
     end
   end
 

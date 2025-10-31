@@ -19,6 +19,7 @@ defmodule Oaskit.Validation.RequestValidator do
           body_params: map,
           query_params: map,
           path_params: map,
+          header_params: map,
           operation_id: binary
         }
 
@@ -63,6 +64,7 @@ defmodule Oaskit.Validation.RequestValidator do
       body_params: %{},
       query_params: %{},
       path_params: %{},
+      header_params: %{},
       operation_id: operation_id
     }
 
@@ -87,8 +89,12 @@ defmodule Oaskit.Validation.RequestValidator do
   end
 
   defp validate_parameters(req_data, by_location, jsv_root) do
-    %{path_params: raw_path_params, query_params: raw_query_params} = req_data
-    %{path: path_specs, query: query_specs} = by_location
+    %{path_params: raw_path_params, query_params: raw_query_params, req_headers: req_headers} =
+      req_data
+
+    %{path: path_specs, query: query_specs, header: header_specs} = by_location
+
+    raw_header_params = Map.new(req_headers)
 
     {cast_path_params, path_errors} =
       validate_parameters_group(path_specs, raw_path_params, jsv_root)
@@ -96,13 +102,21 @@ defmodule Oaskit.Validation.RequestValidator do
     {cast_query_params, query_errors} =
       validate_parameters_group(query_specs, raw_query_params, jsv_root)
 
-    case {path_errors, query_errors} do
-      {[], []} ->
-        private = %{path_params: cast_path_params, query_params: cast_query_params}
+    {cast_header_params, header_errors} =
+      validate_parameters_group(header_specs, raw_header_params, jsv_root)
+
+    case {path_errors, query_errors, header_errors} do
+      {[], [], []} ->
+        private = %{
+          path_params: cast_path_params,
+          query_params: cast_query_params,
+          header_params: cast_header_params
+        }
+
         {:ok, private}
 
       _ ->
-        {:error, {:parameters_errors, path_errors ++ query_errors}}
+        {:error, {:parameters_errors, path_errors ++ query_errors ++ header_errors}}
     end
   end
 

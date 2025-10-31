@@ -68,6 +68,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/array-ref", ParamController, :array_ref
       get "/bracket-types", ParamController, :bracket_types
       get "/boolean-schema-false", ParamController, :boolean_schema_false
+      get "/header-param", ParamController, :header_param
     end
 
     post "/no-html-errors", Oaskit.TestWeb.JsonErrorsController, :create_plant
