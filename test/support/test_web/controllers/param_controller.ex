@@ -189,4 +189,19 @@ defmodule Oaskit.TestWeb.ParamController do
   def array_ref(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :header_param,
+    operation_id: "parameter_header",
+    parameters: [
+      "string-param": [in: :header, schema: string(), required: true],
+      "integer-param": [in: :header, schema: integer()],
+      "boolean-param": [in: :header, schema: boolean()],
+      "number-param": [in: :header, schema: number()],
+      "array-param": [in: :header, schema: array_of(integer())]
+    ],
+    responses: dummy_responses_with_error()
+
+  def header_param(conn, params) do
+    Responder.reply(conn, params)
+  end
 end
