@@ -94,7 +94,10 @@ defmodule Oaskit.Validation.RequestValidator do
 
     %{path: path_specs, query: query_specs, header: header_specs} = by_location
 
-    raw_header_params = Map.new(req_headers)
+    raw_header_params =
+      Enum.reduce(req_headers, %{}, fn {k, v}, acc ->
+        Map.put_new(acc, k, v)
+      end)
 
     {cast_path_params, path_errors} =
       validate_parameters_group(path_specs, raw_path_params, jsv_root)
