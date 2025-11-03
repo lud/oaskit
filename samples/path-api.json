@@ -184,7 +184,8 @@
                 "in": {
                   "enum": [
                     "query",
-                    "path"
+                    "path",
+                    "header"
                   ]
                 },
                 "kind": {
@@ -1118,6 +1119,15 @@
             "style": "pipeDelimited"
           },
           {
+            "explode": false,
+            "in": "query",
+            "name": "query__integer__style_form__explode_false",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
             "in": "path",
             "name": "slug",
             "required": true,
@@ -1294,6 +1304,87 @@
             "required": false,
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/generated/params/{slug}/header-param": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_header",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "string-param",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "integer-param",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "boolean-param",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "number-param",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "header",
+            "name": "array-param",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
             }
           },
           {

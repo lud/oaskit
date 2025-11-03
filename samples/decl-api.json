@@ -198,7 +198,8 @@
                 "in": {
                   "enum": [
                     "query",
-                    "path"
+                    "path",
+                    "header"
                   ]
                 },
                 "kind": {
