@@ -507,7 +507,10 @@ defmodule Oaskit.Web.ParamTest do
           #
           "query__array__style_pipeDelimited__explode_true[]=1",
           "query__array__style_pipeDelimited__explode_true[]=2",
-          "query__array__style_pipeDelimited__explode_true[]=3"
+          "query__array__style_pipeDelimited__explode_true[]=3",
+
+          # integer with explode false
+          "query__integer__style_form__explode_false=1"
         ]
         |> Enum.join("&")
 
@@ -529,7 +532,8 @@ defmodule Oaskit.Web.ParamTest do
                      # Parameters without the suffix are kept as strings
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
-                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3",
+                     "query__integer__style_form__explode_false" => "1"
                    } == params
 
             # Same in raw query params
@@ -543,7 +547,8 @@ defmodule Oaskit.Web.ParamTest do
                      # Parameters without the suffix are kept as strings
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
-                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3",
+                     "query__integer__style_form__explode_false" => "1"
                    } == conn.query_params
 
             # Assert that Oaskit properly casts the arrays
@@ -553,7 +558,8 @@ defmodule Oaskit.Web.ParamTest do
                      query__array__style_pipeDelimited__explode_false: [1, 2, 3],
                      query__array__style_pipeDelimited__explode_true: [1, 2, 3],
                      query__array__style_spaceDelimited__explode_false: [1, 2, 3],
-                     query__array__style_spaceDelimited__explode_true: [1, 2, 3]
+                     query__array__style_spaceDelimited__explode_true: [1, 2, 3],
+                     query__integer__style_form__explode_false: 1
                    } == conn.private.oaskit.query_params
 
             json(conn, %{data: "ok"})
@@ -918,6 +924,53 @@ defmodule Oaskit.Web.ParamTest do
         end)
 
       assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+  end
+
+  describe "header parameters" do
+    test "valid header parameter", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("string-param", "test-value")
+        |> put_req_header("integer-param", "4")
+        |> put_req_header("boolean-param", "false")
+        |> put_req_header("number-param", "4.2")
+        |> put_req_header("array-param", "1,2,3")
+        |> get_reply(~p"/generated/params/some-slug/header-param", fn conn, _params ->
+          # Header parameters are stored in conn.private.oaskit.header_params
+          assert %{
+                   "string-param": "test-value",
+                   "integer-param": 4,
+                   "boolean-param": false,
+                   "number-param": 4.2,
+                   "array-param": [1, 2, 3]
+                 } = conn.private.oaskit.header_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "missing required header parameter", %{conn: conn} do
+      # The string_param header is required
+      conn = get(conn, ~p"/generated/params/some-slug/header-param")
+
+      assert %{
+               "error" => %{
+                 "message" => "Bad Request",
+                 "operation_id" => "parameter_header",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "header",
+                     "kind" => "missing_parameter",
+                     "message" => "missing parameter string-param in header",
+                     "parameter" => "string-param"
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
     end
   end
 

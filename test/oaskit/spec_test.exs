@@ -466,6 +466,7 @@ defmodule Oaskit.SpecTest do
                "/generated/params/{slug}/boolean-schema-false",
                "/generated/params/{slug}/bracket-types",
                "/generated/params/{slug}/generic",
+               "/generated/params/{slug}/header-param",
                "/generated/params/{slug}/s/{shape}",
                "/generated/params/{slug}/s/{shape}/t/{theme}",
                "/generated/params/{slug}/s/{shape}/t/{theme}/c/{color}",

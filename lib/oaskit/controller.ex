@@ -697,6 +697,19 @@ defmodule Oaskit.Controller do
   end
 
   @doc """
+  Accepts a `Plug.Conn` struct, a parameter name (as atom) and a default value.
+
+  Returns the validated parameter from `conn.oaskit.private.header_params` if
+  found, or the default value.
+  """
+  def header_param(%Plug.Conn{} = conn, name, default \\ nil) do
+    case conn do
+      %{private: %{oaskit: %{header_params: %{^name => value}}}} -> value
+      _ -> default
+    end
+  end
+
+  @doc """
   Returns the validated body from the given `Plug.Conn` struct.
   """
   def body_params(%Plug.Conn{} = conn) do
