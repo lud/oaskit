@@ -507,7 +507,10 @@ defmodule Oaskit.Web.ParamTest do
           #
           "query__array__style_pipeDelimited__explode_true[]=1",
           "query__array__style_pipeDelimited__explode_true[]=2",
-          "query__array__style_pipeDelimited__explode_true[]=3"
+          "query__array__style_pipeDelimited__explode_true[]=3",
+
+          # integer with explode false
+          "query__integer__style_form__explode_false=1"
         ]
         |> Enum.join("&")
 
@@ -529,7 +532,8 @@ defmodule Oaskit.Web.ParamTest do
                      # Parameters without the suffix are kept as strings
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
-                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3",
+                     "query__integer__style_form__explode_false" => "1"
                    } == params
 
             # Same in raw query params
@@ -543,7 +547,8 @@ defmodule Oaskit.Web.ParamTest do
                      # Parameters without the suffix are kept as strings
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
-                     "query__array__style_pipeDelimited__explode_false" => "1|2|3"
+                     "query__array__style_pipeDelimited__explode_false" => "1|2|3",
+                     "query__integer__style_form__explode_false" => "1"
                    } == conn.query_params
 
             # Assert that Oaskit properly casts the arrays
@@ -553,7 +558,8 @@ defmodule Oaskit.Web.ParamTest do
                      query__array__style_pipeDelimited__explode_false: [1, 2, 3],
                      query__array__style_pipeDelimited__explode_true: [1, 2, 3],
                      query__array__style_spaceDelimited__explode_false: [1, 2, 3],
-                     query__array__style_spaceDelimited__explode_true: [1, 2, 3]
+                     query__array__style_spaceDelimited__explode_true: [1, 2, 3],
+                     query__integer__style_form__explode_false: 1
                    } == conn.private.oaskit.query_params
 
             json(conn, %{data: "ok"})

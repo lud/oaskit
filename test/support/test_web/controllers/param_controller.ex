@@ -149,6 +149,11 @@ defmodule Oaskit.TestWeb.ParamController do
         explode: true,
         style: :pipeDelimited,
         schema: array_of(integer())
+      ],
+      query__integer__style_form__explode_false: [
+        in: :query,
+        explode: false,
+        schema: integer()
       ]
     ],
     responses: dummy_responses_with_error()

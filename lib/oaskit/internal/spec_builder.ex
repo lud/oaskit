@@ -453,14 +453,14 @@ defmodule Oaskit.Internal.SpecBuilder do
 
       %{in: :path, explode: false, style: :simple} ->
         # support precast in path with simple
-        build_precast_for_type(schema_summary)
+        build_precast_for_type([], schema_summary)
 
       #
       # Header parameters
 
       %{in: :header, explode: _, style: :simple} ->
-        schema_summary
-        |> build_split_precast_for_type(",")
+        []
+        |> build_split_precast_for_type(schema_summary, ",")
         |> build_precast_for_type(schema_summary)
 
       #
@@ -478,23 +478,23 @@ defmodule Oaskit.Internal.SpecBuilder do
 
       %{in: :query, explode: true, style: _} ->
         # style does not matter when exploded into multiple param occurences.
-        build_precast_for_type(schema_summary)
+        build_precast_for_type([], schema_summary)
 
       # - Non-exploded query parameters, support form,spaceDelimited,pipeDelimited
 
       %{in: :query, explode: false, style: :form} ->
-        schema_summary
-        |> build_split_precast_for_type(",")
+        []
+        |> build_split_precast_for_type(schema_summary, ",")
         |> build_precast_for_type(schema_summary)
 
       %{in: :query, explode: false, style: :spaceDelimited} ->
-        schema_summary
-        |> build_split_precast_for_type(" ")
+        []
+        |> build_split_precast_for_type(schema_summary, " ")
         |> build_precast_for_type(schema_summary)
 
       %{in: :query, explode: false, style: :pipeDelimited} ->
-        schema_summary
-        |> build_split_precast_for_type("|")
+        []
+        |> build_split_precast_for_type(schema_summary, "|")
         |> build_precast_for_type(schema_summary)
 
       #
@@ -521,7 +521,7 @@ defmodule Oaskit.Internal.SpecBuilder do
     end
   end
 
-  defp build_split_precast_for_type(prev_casters \\ [], schema_summary, splitter)
+  defp build_split_precast_for_type(prev_casters, schema_summary, splitter)
        when splitter in [",", " ", "|"] do
     case schema_summary do
       {:array, _} -> prev_casters ++ [{:split, splitter}]
@@ -530,7 +530,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   end
 
   # When returing :noprecast, the prev_casters are discarded!
-  defp build_precast_for_type(prev_casters \\ [], schema_summary) do
+  defp build_precast_for_type(prev_casters, schema_summary) do
     case schema_summary do
       :integer -> prev_casters ++ [&Cast.string_to_integer/1]
       :boolean -> prev_casters ++ [&Cast.string_to_boolean/1]
