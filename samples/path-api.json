@@ -89,6 +89,14 @@
         ],
         "type": "object"
       },
+      "Oaskit.TestWeb.ParamController.Colors": {
+        "enum": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "type": "string"
+      },
       "Oaskit.TestWeb.Schemas.FortuneCookie": {
         "properties": {
           "category": {
@@ -1117,6 +1125,18 @@
               "type": "array"
             },
             "style": "pipeDelimited"
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "query__array__colors__style_form__explode_false",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Oaskit.TestWeb.ParamController.Colors"
+              },
+              "type": "array"
+            }
           },
           {
             "explode": false,
