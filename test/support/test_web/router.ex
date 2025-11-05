@@ -15,6 +15,10 @@ defmodule Oaskit.TestWeb.Router do
     plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.SecurityApiSpec
   end
 
+  pipeline :api_orval do
+    plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.OrvalApiSpec
+  end
+
   scope "/generated" do
     pipe_through :api_from_paths
 
@@ -117,6 +121,13 @@ defmodule Oaskit.TestWeb.Router do
     post "/potions", Oaskit.TestWeb.LabController, :create_potion
     get "/:lab/alchemists", Oaskit.TestWeb.LabController, :list_alchemists
     post "/:lab/alchemists", Oaskit.TestWeb.LabController, :search_alchemists
+  end
+
+  scope "/orval" do
+    pipe_through :api_orval
+
+    get "/test-arrays", Oaskit.TestWeb.OrvalController, :test_arrays
+    post "/users", Oaskit.TestWeb.OrvalController, :create_user
   end
 
   # outside of the scope but we pass the spec

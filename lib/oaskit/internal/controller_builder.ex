@@ -5,8 +5,10 @@ defmodule Oaskit.Internal.ControllerBuilder do
 
   @undef :__undef__
 
-  def make(opts, target) when is_list(opts) when is_map(opts) do
-    {target, opts, %{}}
+  defstruct [:target, :input, :output]
+
+  def make(spec, target) when is_list(spec) when is_map(spec) do
+    %__MODULE__{target: target, input: spec, output: %{}}
   end
 
   def make(other, target) do
@@ -19,15 +21,18 @@ defmodule Oaskit.Internal.ControllerBuilder do
     {:ok, value}
   end
 
-  defp with_cast(target, input, output, key, value, caster) do
+  defp with_cast(builder, key, value, caster) do
+    %__MODULE__{output: output} = builder
+
     case cast(value, caster) do
       {:ok, cast_value} ->
-        {target, input, Map.put(output, key, cast_value)}
+        %{builder | output: Map.put(output, key, cast_value)}
 
       {:error, errmsg} when is_binary(errmsg) ->
         raise ArgumentError,
           message:
-            "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
+            "could not cast key #{inspect(key)} when building" <>
+              " #{inspect(builder.target)}, got: #{errmsg}"
     end
   end
 
@@ -75,43 +80,64 @@ defmodule Oaskit.Internal.ControllerBuilder do
     Map.put(container, key, value)
   end
 
-  def put({target, input, output}, key, value) when is_atom(key) do
-    {target, input, set(output, key, value)}
+  def put(builder, key, value) when is_atom(key) do
+    %__MODULE__{output: output} = builder
+    %{builder | output: set(output, key, value)}
   end
 
-  def rename_input({target, input, output}, inkey, outkey) do
+  def rename_input(builder, inkey, outkey) do
+    %__MODULE__{input: input} = builder
+
     case pop(input, inkey) do
-      {:ok, value, input} -> {target, set(input, outkey, value), output}
-      :error -> {target, input, output}
+      {:ok, value, input} -> %{builder | input: set(input, outkey, value)}
+      :error -> builder
     end
   end
 
-  def take_required({target, input, output}, key, cast \\ &nocast/1) do
+  def take_required(builder, key, cast \\ &nocast/1) do
+    %__MODULE__{target: target, input: input} = builder
+
     case pop(input, key) do
       {:ok, value, input} ->
-        with_cast(target, input, output, key, value, cast)
+        with_cast(%{builder | input: input}, key, value, cast)
 
       :error ->
         raise ArgumentError, "key #{inspect(key)} is required when building #{inspect(target)}"
     end
   end
 
-  def take_default({target, input, output}, key, default, cast \\ &nocast/1) do
+  def take_default(builder, key, default, cast \\ &nocast/1) do
+    %__MODULE__{input: input, output: output} = builder
+
     case pop(input, key) do
-      {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
-      :error -> {target, input, Map.put(output, key, default)}
+      {:ok, value, input} -> with_cast(%{builder | input: input}, key, value, cast)
+      :error -> %{builder | output: Map.put(output, key, default)}
     end
   end
 
-  def take_default_lazy({target, input, output}, key, generate, cast \\ &nocast/1)
+  def take_default_lazy(builder, key, generate, cast \\ &nocast/1)
       when is_function(generate, 0) do
+    %__MODULE__{input: input, output: output} = builder
+
     case pop(input, key) do
-      {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
-      :error -> {target, input, Map.put(output, key, generate.())}
+      {:ok, value, input} -> with_cast(%{builder | input: input}, key, value, cast)
+      :error -> %{builder | output: Map.put(output, key, generate.())}
     end
   end
 
-  def into({target, _, output}) do
+  def ensure_schema(schema) when is_map(schema) when is_boolean(schema) do
+    {:ok, schema}
+  end
+
+  def ensure_schema(schema) when is_atom(schema) do
+    case JSV.Schema.schema_module?(schema) do
+      true -> {:ok, schema}
+      false -> {:error, {:invalid_schema, schema}}
+    end
+  end
+
+  def into(builder) do
+    %__MODULE__{target: target, output: output} = builder
     struct!(target, output)
   end
 end

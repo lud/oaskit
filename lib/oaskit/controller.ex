@@ -298,15 +298,31 @@ defmodule Oaskit.Controller do
       shared_tags =
         :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :oaskit_tags, [])))
 
-      operation =
-        Operation.from_controller!(spec,
-          shared_parameters: shared_parameters,
-          shared_tags: shared_tags,
-          controller: module,
-          action: action
-        )
+      try do
+        operation =
+          Operation.from_controller!(spec,
+            shared_parameters: shared_parameters,
+            shared_tags: shared_tags,
+            controller: module,
+            action: action
+          )
 
-      @oaskit_operations {action, operation, verb}
+        @oaskit_operations {action, operation, verb}
+        :ok
+      rescue
+        e ->
+          IO.puts(Exception.format(:error, e, __STACKTRACE__))
+          {:error, e}
+      end
+      |> case do
+        :ok ->
+          :ok
+
+        {:error, e} ->
+          raise ArgumentError,
+                "could not build operation #{inspect(action)} in #{inspect(module)}," <>
+                  " got: #{Exception.message(e)}"
+      end
     end
   end
 

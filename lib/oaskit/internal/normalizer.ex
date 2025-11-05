@@ -73,7 +73,7 @@ defmodule Oaskit.Internal.Normalizer do
 
     ctx =
       Enum.reduce(predefs, ctx, fn {refname, module}, ctx ->
-        {normal_schema, ctx} = do_normalize_schema(Schema.from_module(module), ctx)
+        {normal_schema, ctx} = deep_normalize_schema(Schema.from_module(module), ctx)
 
         %{
           ctx
@@ -87,7 +87,7 @@ defmodule Oaskit.Internal.Normalizer do
     # The raw schemas are easier to normalize
     ctx =
       Enum.reduce(others, ctx, fn {refname, raw_schema}, ctx ->
-        {normal_schema, ctx} = do_normalize_schema(raw_schema, ctx)
+        {normal_schema, ctx} = deep_normalize_schema(raw_schema, ctx)
 
         %{
           ctx
@@ -121,8 +121,8 @@ defmodule Oaskit.Internal.Normalizer do
           "expected a map or %#{inspect(sourcemod)}{}, got: #{inspect(other)}"
   end
 
-  def normalize_subs(bld, [{_, _} | _] = keymap) when is_list(keymap) do
-    %__MODULE__{data: data, ctx: ctx, out: outlist} = bld
+  def normalize_subs(normalizer, [{_, _} | _] = keymap) when is_list(keymap) do
+    %__MODULE__{data: data, ctx: ctx, out: outlist} = normalizer
 
     {data, outlist, ctx} =
       Enum.reduce(keymap, {data, outlist, ctx}, fn {key, caster}, {data, outlist, ctx} = acc ->
@@ -136,12 +136,12 @@ defmodule Oaskit.Internal.Normalizer do
         end
       end)
 
-    %{bld | data: data, ctx: ctx, out: outlist}
+    %{normalizer | data: data, ctx: ctx, out: outlist}
   end
 
   # accepting a function to handle additional properties
-  def normalize_subs(bld, caster) when is_function(caster, 2) when is_tuple(caster) do
-    %__MODULE__{data: data, ctx: ctx, out: outlist} = bld
+  def normalize_subs(normalizer, caster) when is_function(caster, 2) when is_tuple(caster) do
+    %__MODULE__{data: data, ctx: ctx, out: outlist} = normalizer
 
     {outlist, ctx} =
       data
@@ -152,43 +152,43 @@ defmodule Oaskit.Internal.Normalizer do
         {[{bin_key, value} | outlist], ctx}
       end)
 
-    %{bld | data: %{}, ctx: ctx, out: outlist}
+    %{normalizer | data: %{}, ctx: ctx, out: outlist}
   end
 
-  def normalize_default(bld, :all) do
-    %__MODULE__{data: data, out: outlist} = bld
+  def normalize_default(normalizer, :all) do
+    %__MODULE__{data: data, out: outlist} = normalizer
 
     outlist =
       Enum.reduce(data, outlist, fn {key, value}, outlist ->
         [{ensure_binary_key(key), to_json_decoded(value)} | outlist]
       end)
 
-    %{bld | data: %{}, out: outlist}
+    %{normalizer | data: %{}, out: outlist}
   end
 
-  def normalize_default(bld, keys) when is_list(keys) do
-    normalize_subs(bld, Enum.map(keys, &{&1, :default}))
+  def normalize_default(normalizer, keys) when is_list(keys) do
+    normalize_subs(normalizer, Enum.map(keys, &{&1, :default}))
   end
 
-  def normalize_schema(bld, key) when is_atom(key) do
-    %__MODULE__{data: data, ctx: ctx, out: outlist} = bld
+  def normalize_schema(normalizer, key) when is_atom(key) do
+    %__MODULE__{data: data, ctx: ctx, out: outlist} = normalizer
 
     case pop_normal(data, key) do
       {:ok, bin_key, {schema, data}} ->
         {replacement_schema, ctx} = do_normalize_schema(schema, ctx)
-        %{bld | data: data, ctx: ctx, out: [{bin_key, replacement_schema} | outlist]}
+        %{normalizer | data: data, ctx: ctx, out: [{bin_key, replacement_schema} | outlist]}
 
       :error ->
-        bld
+        normalizer
     end
   end
 
-  def skip(bld, key) when is_atom(key) do
-    %__MODULE__{data: data} = bld
+  def skip(normalizer, key) when is_atom(key) do
+    %__MODULE__{data: data} = normalizer
 
     case pop_normal(data, key) do
-      {:ok, _bin_key, {_value, data}} -> %{bld | data: data}
-      :error -> bld
+      {:ok, _bin_key, {_value, data}} -> %{normalizer | data: data}
+      :error -> normalizer
     end
   end
 
@@ -360,6 +360,12 @@ defmodule Oaskit.Internal.Normalizer do
 
   # Normalizing schemas
 
+  defp do_normalize_schema(schema, ctx) do
+    # TODO raise if not valid schema (map or boolean) (null should not be
+    # present at all)
+    deep_normalize_schema(schema, ctx)
+  end
+
   # Scalar values
   #
   # At the top level this will have the following behaviour:
@@ -368,7 +374,8 @@ defmodule Oaskit.Internal.Normalizer do
   #   They will be rejected on validation.
   #
   # When nested in a list or map, it's a sub schema value.
-  defp do_normalize_schema(scalar, ctx)
+
+  defp deep_normalize_schema(scalar, ctx)
        when is_binary(scalar)
        when is_number(scalar)
        when is_boolean(scalar)
@@ -380,7 +387,7 @@ defmodule Oaskit.Internal.Normalizer do
   #
   # When the atom is a module  that has already been normalized, we can just
   # reuse the reference name of the schema.
-  defp do_normalize_schema(module, ctx) when is_map_key(ctx.seen_schema_mods, module) do
+  defp deep_normalize_schema(module, ctx) when is_map_key(ctx.seen_schema_mods, module) do
     refname = Map.fetch!(ctx.seen_schema_mods, module)
     replacement = refname_to_schema(refname)
     {replacement, ctx}
@@ -390,32 +397,32 @@ defmodule Oaskit.Internal.Normalizer do
   #
   # When the atom is a module we will call the .json_schema() function from it,
   # otherwise it's a sub schema value, we turn it into a string.
-  defp do_normalize_schema(atom, ctx) when is_atom(atom) do
+  defp deep_normalize_schema(atom, ctx) when is_atom(atom) do
     if Schema.schema_module?(atom) do
       normalize_module_schema(atom, ctx)
     else
-      do_normalize_schema(Atom.to_string(atom), ctx)
+      deep_normalize_schema(Atom.to_string(atom), ctx)
     end
   end
 
-  defp do_normalize_schema(struct, ctx) when is_struct(struct) do
+  defp deep_normalize_schema(struct, ctx) when is_struct(struct) do
     struct
     |> JSV.Normalizer.Normalize.normalize()
-    |> do_normalize_schema(ctx)
+    |> deep_normalize_schema(ctx)
   end
 
-  defp do_normalize_schema(map, ctx) when is_map(map) do
+  defp deep_normalize_schema(map, ctx) when is_map(map) do
     {pairs, ctx} =
       Enum.map_reduce(map, ctx, fn {k, v}, ctx ->
-        {v, ctx} = do_normalize_schema(v, ctx)
+        {v, ctx} = deep_normalize_schema(v, ctx)
         {{ensure_binary_key(k), v}, ctx}
       end)
 
     {Map.new(pairs), ctx}
   end
 
-  defp do_normalize_schema(list, ctx) when is_list(list) do
-    Enum.map_reduce(list, ctx, &do_normalize_schema/2)
+  defp deep_normalize_schema(list, ctx) when is_list(list) do
+    Enum.map_reduce(list, ctx, &deep_normalize_schema/2)
   end
 
   defp normalize_module_schema(module, ctx) do
@@ -447,7 +454,7 @@ defmodule Oaskit.Internal.Normalizer do
         components_schemas: Map.put(ctx.components_schemas, refname, :__placeholder__)
     }
 
-    {normal_schema, ctx} = do_normalize_schema(schema, ctx)
+    {normal_schema, ctx} = deep_normalize_schema(schema, ctx)
 
     ctx = %{
       ctx

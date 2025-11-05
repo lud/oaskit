@@ -1,0 +1,101 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Oaskit Orval API",
+    "version": "0.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "UserBodySchema": {
+        "title": "UserBodySchema",
+        "description": "Some body that needs to be respected by orval. Foo Bar Foo!",
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "default": "admin",
+            "enum": [
+              "admin",
+              "user",
+              "visitor"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "paths": {
+    "/orval/test-arrays": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "TestArrays",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "simple_explode_integers[]",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          }
+        ]
+      }
+    },
+    "/orval/users": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "CreateUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserBodySchema"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  }
+}

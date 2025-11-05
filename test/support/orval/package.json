@@ -1,0 +1,23 @@
+{
+  "name": "oaskit-orval-test",
+  "version": "0.0.1",
+  "description": "Just a test setup client",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "orval",
+    "start": "tsx src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.0",
+    "orval": "^7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

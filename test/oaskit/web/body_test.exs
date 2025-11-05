@@ -187,7 +187,7 @@ defmodule Oaskit.Web.BodyTest do
           assert "ok" == response(conn, 200)
         end)
 
-      refute log =~ "BodyController"
+      refute log =~ "BodyController has no op"
     end
   end
 

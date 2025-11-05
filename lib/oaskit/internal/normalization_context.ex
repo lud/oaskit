@@ -20,8 +20,8 @@ defmodule Oaskit.Internal.NormalizationContext do
   @type t :: %__MODULE__{}
 end
 
-defimpl Inspect, for: Oaskit.Internal.NormalizationContext do
-  def inspect(_, _) do
-    "#Oaskit.Internal.NormalizationContext<>"
-  end
-end
+# defimpl Inspect, for: Oaskit.Internal.NormalizationContext do
+#   def inspect(_, _) do
+#     "#Oaskit.Internal.NormalizationContext<>"
+#   end
+# end

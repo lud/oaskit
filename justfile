@@ -32,7 +32,7 @@ changelog:
 css-min:
   npx css-minify -f priv/assets/error.css -o priv/assets
 
-dump: dump-paths dump-declarative dump-security
+dump: dump-paths dump-declarative dump-security dump-orval
 
 dump-paths:
   mix openapi.dump Oaskit.TestWeb.PathsApiSpec --pretty -o samples/path-api.json
@@ -42,6 +42,13 @@ dump-declarative:
 
 dump-security:
   mix openapi.dump Oaskit.TestWeb.SecurityApiSpec --pretty -o samples/security-api.json
+
+dump-orval:
+  mix openapi.dump Oaskit.TestWeb.OrvalApiSpec --pretty -o samples/orval-api.json
+  cd test/support/orval && npm install && npm run generate
+
+test-orval: dump-orval
+  cd test/support/orval && npm start
 
 docs:
   mix rdmx.update README.md

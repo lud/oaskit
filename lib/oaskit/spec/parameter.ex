@@ -95,7 +95,7 @@ defmodule Oaskit.Spec.Parameter do
     |> make(__MODULE__)
     |> put(:name, to_string(name))
     |> take_required(:in, &validate_location/1)
-    |> take_default(:schema, _boolean_schema = true)
+    |> take_default(:schema, _boolean_schema = true, &ensure_schema/1)
     |> take_default(:explode, nil)
     |> take_default(:style, nil)
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
