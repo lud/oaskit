@@ -82,7 +82,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                         in: :query,
                         key: :param_q1_orderby,
                         required: false,
-                        precast: nil,
+                        precast: [],
                         schema_key:
                           {:pointer, :root,
                            ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
@@ -208,7 +208,7 @@ defmodule Oaskit.Internal.SpecBuilderTest do
                           in: :query,
                           key: :source,
                           required: false,
-                          precast: nil,
+                          precast: [],
                           schema_key:
                             {:pointer, :root, ["components", "parameters", "Source", "schema"]},
                           bin_key: "source"

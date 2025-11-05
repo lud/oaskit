@@ -510,7 +510,10 @@ defmodule Oaskit.Web.ParamTest do
           "query__array__style_pipeDelimited__explode_true[]=3",
 
           # integer with explode false
-          "query__integer__style_form__explode_false=1"
+          "query__integer__style_form__explode_false=1",
+
+          # colors with explode false
+          "query__array__colors__style_form__explode_false=red,blue"
         ]
         |> Enum.join("&")
 
@@ -533,7 +536,8 @@ defmodule Oaskit.Web.ParamTest do
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
                      "query__array__style_pipeDelimited__explode_false" => "1|2|3",
-                     "query__integer__style_form__explode_false" => "1"
+                     "query__integer__style_form__explode_false" => "1",
+                     "query__array__colors__style_form__explode_false" => "red,blue"
                    } == params
 
             # Same in raw query params
@@ -548,7 +552,8 @@ defmodule Oaskit.Web.ParamTest do
                      "query__array__style_form__explode_false" => "1,2,3",
                      "query__array__style_spaceDelimited__explode_false" => "1 2 3",
                      "query__array__style_pipeDelimited__explode_false" => "1|2|3",
-                     "query__integer__style_form__explode_false" => "1"
+                     "query__integer__style_form__explode_false" => "1",
+                     "query__array__colors__style_form__explode_false" => "red,blue"
                    } == conn.query_params
 
             # Assert that Oaskit properly casts the arrays
@@ -559,7 +564,8 @@ defmodule Oaskit.Web.ParamTest do
                      query__array__style_pipeDelimited__explode_true: [1, 2, 3],
                      query__array__style_spaceDelimited__explode_false: [1, 2, 3],
                      query__array__style_spaceDelimited__explode_true: [1, 2, 3],
-                     query__integer__style_form__explode_false: 1
+                     query__integer__style_form__explode_false: 1,
+                     query__array__colors__style_form__explode_false: ["red", "blue"]
                    } == conn.private.oaskit.query_params
 
             json(conn, %{data: "ok"})

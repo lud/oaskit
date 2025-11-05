@@ -5,6 +5,13 @@ defmodule Oaskit.TestWeb.ParamController do
   use Oaskit.TestWeb, :controller
 
   @moduledoc false
+  defmodule Colors do
+    alias JSV.Schema
+
+    def json_schema do
+      %Schema{type: :string, enum: ["red", "green", "blue"]}
+    end
+  end
 
   @shape string_enum_to_atom([:square, :circle])
   @theme string_enum_to_atom([:dark, :light])
@@ -149,6 +156,11 @@ defmodule Oaskit.TestWeb.ParamController do
         explode: true,
         style: :pipeDelimited,
         schema: array_of(integer())
+      ],
+      query__array__colors__style_form__explode_false: [
+        in: :query,
+        explode: false,
+        schema: array_of(Colors)
       ],
       query__integer__style_form__explode_false: [
         in: :query,

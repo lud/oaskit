@@ -396,17 +396,53 @@ defmodule Oaskit.Internal.SpecBuilder do
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp summarize_parameter_schema(schema, ns, jsv_ctx) do
     case schema do
-      true -> {:noprecast_schema_type, jsv_ctx}
-      false -> {:noprecast_schema_type, jsv_ctx}
-      nil -> {:noprecast_schema_type, jsv_ctx}
-      %{"type" => "integer"} -> {:integer, jsv_ctx}
-      %{"type" => "boolean"} -> {:boolean, jsv_ctx}
-      %{"type" => "number"} -> {:number, jsv_ctx}
-      %{"type" => "array", "items" => %{"type" => "integer"}} -> {{:array, :integer}, jsv_ctx}
-      %{"type" => "array", "items" => %{"type" => "boolean"}} -> {{:array, :boolean}, jsv_ctx}
-      %{"type" => "array", "items" => %{"type" => "number"}} -> {{:array, :number}, jsv_ctx}
-      %{"$ref" => _} -> summarize_parameter_schema_ref(schema, ns, jsv_ctx)
-      _too_hard_for_best_effort -> {:noprecast_schema_type, jsv_ctx}
+      true ->
+        {:noprecast_schema_type, jsv_ctx}
+
+      false ->
+        {:noprecast_schema_type, jsv_ctx}
+
+      nil ->
+        {:noprecast_schema_type, jsv_ctx}
+
+      %{"type" => "integer"} ->
+        {:integer, jsv_ctx}
+
+      %{"type" => "boolean"} ->
+        {:boolean, jsv_ctx}
+
+      %{"type" => "number"} ->
+        {:number, jsv_ctx}
+
+      %{"type" => "string"} ->
+        {:string, jsv_ctx}
+
+      %{"type" => "array", "items" => %{"type" => "integer"}} ->
+        {{:array, :integer}, jsv_ctx}
+
+      %{"type" => "array", "items" => %{"type" => "boolean"}} ->
+        {{:array, :boolean}, jsv_ctx}
+
+      %{"type" => "array", "items" => %{"type" => "number"}} ->
+        {{:array, :number}, jsv_ctx}
+
+      %{"type" => "array", "items" => %{"type" => "string"}} ->
+        {{:array, :string}, jsv_ctx}
+
+      %{"type" => "array", "items" => %{"$ref" => _} = item_ref} ->
+        case summarize_parameter_schema_ref(item_ref, ns, jsv_ctx) do
+          {type, jsv_ctx} when type in [:integer, :boolean, :number, :string] ->
+            {{:array, type}, jsv_ctx}
+
+          _ ->
+            {:noprecast_schema_type, jsv_ctx}
+        end
+
+      %{"$ref" => _} ->
+        summarize_parameter_schema_ref(schema, ns, jsv_ctx)
+
+      _too_hard_for_best_effort ->
+        {:noprecast_schema_type, jsv_ctx}
     end
   end
 
@@ -530,16 +566,40 @@ defmodule Oaskit.Internal.SpecBuilder do
   end
 
   # When returing :noprecast, the prev_casters are discarded!
-  defp build_precast_for_type(prev_casters, schema_summary) do
-    case schema_summary do
-      :integer -> prev_casters ++ [&Cast.string_to_integer/1]
-      :boolean -> prev_casters ++ [&Cast.string_to_boolean/1]
-      :number -> prev_casters ++ [&Cast.string_to_number/1]
-      {:array, :integer} -> prev_casters ++ [{:array, &Cast.string_to_integer/1}]
-      {:array, :boolean} -> prev_casters ++ [{:array, &Cast.string_to_boolean/1}]
-      {:array, :number} -> prev_casters ++ [{:array, &Cast.string_to_number/1}]
-      :noprecast_schema_type -> nil
-    end
+  defp build_precast_for_type(prev_casters, :integer) do
+    prev_casters ++ [&Cast.string_to_integer/1]
+  end
+
+  defp build_precast_for_type(prev_casters, :boolean) do
+    prev_casters ++ [&Cast.string_to_boolean/1]
+  end
+
+  defp build_precast_for_type(prev_casters, :number) do
+    prev_casters ++ [&Cast.string_to_number/1]
+  end
+
+  defp build_precast_for_type(prev_casters, :string) do
+    prev_casters
+  end
+
+  defp build_precast_for_type(prev_casters, {:array, :integer}) do
+    prev_casters ++ [{:array, &Cast.string_to_integer/1}]
+  end
+
+  defp build_precast_for_type(prev_casters, {:array, :boolean}) do
+    prev_casters ++ [{:array, &Cast.string_to_boolean/1}]
+  end
+
+  defp build_precast_for_type(prev_casters, {:array, :number}) do
+    prev_casters ++ [{:array, &Cast.string_to_number/1}]
+  end
+
+  defp build_precast_for_type(prev_casters, {:array, :string}) do
+    prev_casters
+  end
+
+  defp build_precast_for_type(_prev_casters, :noprecast_schema_type) do
+    nil
   end
 
   # -- Responses Validation ---------------------------------------------------
