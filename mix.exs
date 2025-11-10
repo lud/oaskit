@@ -43,7 +43,7 @@ defmodule Oaskit.MixProject do
       {:jsv, "~> 0.10"},
       {:plug, ">= 1.16.0"},
       {:decimal, "~> 2.0", optional: true},
-      {:texture, "~> 0.2.1"},
+      {:texture, "~> 0.3"},
       {:cli_mate, "~> 0.8.1"},
 
       # Test
