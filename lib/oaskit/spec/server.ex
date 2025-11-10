@@ -45,9 +45,9 @@ defmodule Oaskit.Spec.Server do
   * `:path` defaults to `"/"`.
   """
   def from_config(otp_app, endpoint_module) when is_atom(otp_app) and is_atom(endpoint_module) do
-    with {:ok, config} <- Application.fetch_env(otp_app, endpoint_module),
-         {:ok, url} <- Keyword.fetch(config, :url),
-         {:ok, host} <- Keyword.fetch(url, :host) do
+    with {:ok, config} <- fetch_endpoint_config(otp_app, endpoint_module),
+         {:ok, url} <- fetch_required(config, :url),
+         {:ok, host} <- fetch_required(url, :host) do
       port = Keyword.get(url, :port, 443)
       scheme = Keyword.get(url, :scheme, "https")
       path = Keyword.get(url, :path, "/")
@@ -56,7 +56,25 @@ defmodule Oaskit.Spec.Server do
 
       %__MODULE__{url: to_string(uri)}
     else
-      e -> raise ArgumentError, "could not build url from configuration: #{inspect(e)}"
+      {:error, reason} ->
+        raise ArgumentError,
+              "could not build url from endpoint #{inspect(endpoint_module)} configuration: #{inspect(reason)}"
+    end
+  end
+
+  # Fetches a required value from a Keyword list, returning {:ok, value}
+  # or {:error, reason} for explicit error handling in `with` statements.
+  defp fetch_required(keyword, key) do
+    case Keyword.fetch(keyword, key) do
+      {:ok, value} -> {:ok, value}
+      :error -> {:error, {:missing_key, key}}
+    end
+  end
+
+  defp fetch_endpoint_config(otp_app, module) do
+    case Application.fetch_env(otp_app, module) do
+      {:ok, _} = ok -> ok
+      :error -> {:error, {:no_config, module}}
     end
   end
 end
