@@ -2,13 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.6.0] - 2025-10-11
+## [0.7.0] - 2025-11-13
+
+### 🚀 Features
+
+- Support explode and delimiters in query parameters validator
+- Automatically strip '[]' suffix from parameter names in validation
+- Add support to simple header parameters (#37)
+- Add precast for array of ref query parameter (#38)
+
+### 🚜 Refactor
+
+- Simplify parameter precast build code
+- Return explicit server config fetch errors
+
+### 📚 Documentation
+
+- Document security option on operation macro
+
+### 🧪 Testing
+
+- Instrument Orval to test enforced array brackets
+
+## [0.6.0] - 2025-10-13
 
 ### 🚀 Features
 
 - Added operation-level security check using user-defined plugs
 - Added support for root level security requirements
-- [**breaking**] Handling security is now mandatory
+- Handling security is now mandatory
 
 ### 🐛 Bug Fixes
 
