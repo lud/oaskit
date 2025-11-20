@@ -112,7 +112,7 @@ defmodule Oaskit do
   @callback cache_variant :: term
 
   @doc """
-  Normalizes and extention key and value to a JSON encodable form.
+  Normalizes an extention key and value to a JSON encodable form.
 
   Extensions are keys that are not known by Oaskit. They can be given to the
   `Oaskit.Controller.operation/2` macro or found in a raw JSON specification.
