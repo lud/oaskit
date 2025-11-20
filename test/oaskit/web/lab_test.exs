@@ -333,4 +333,24 @@ defmodule Oaskit.Web.LabTest do
       assert %{"data" => [_, _]} = valid_response(DeclarativeApiSpec, conn, 200)
     end
   end
+
+  describe "operation extensions in provided specs" do
+    test "extensions are available", %{conn: conn} do
+      conn =
+        get_reply(
+          conn,
+          ~p"/provided/potions/extensions",
+          nil,
+          fn
+            conn, _params ->
+              assert %{"x-rate-limit" => 1000, "admin-rate-limit" => 10_000} ==
+                       conn.private.oaskit.extensions
+
+              json(conn, @alchemists_page)
+          end
+        )
+
+      assert %{"data" => [_, _]} = valid_response(DeclarativeApiSpec, conn, 200)
+    end
+  end
 end

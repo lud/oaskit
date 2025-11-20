@@ -21,4 +21,10 @@ defmodule Oaskit.TestWeb.LabController do
   def search_alchemists(conn, params) do
     Responder.reply(conn, params)
   end
+
+  use_operation :extensions_check, "potionExtensions"
+
+  def extensions_check(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

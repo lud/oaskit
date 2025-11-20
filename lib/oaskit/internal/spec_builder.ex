@@ -30,7 +30,9 @@ defmodule Oaskit.Internal.SpecBuilder do
           build_op_validation(rev_path, op, pathitem_parameters, spec, jsv_ctx, opts)
 
         security = build_op_security(rev_path, op, global_security)
-        {{op_id, %{security: security, validation: validation}}, jsv_ctx}
+        extensions = build_op_extensions(rev_path, op, opts)
+
+        {{op_id, %{security: security, validation: validation, extensions: extensions}}, jsv_ctx}
       end)
 
     jsv_root = JSV.to_root!(jsv_ctx, :root)
@@ -668,6 +670,26 @@ defmodule Oaskit.Internal.SpecBuilder do
       nil -> global_security
       defined -> defined
     end
+  end
+
+  # -- Extensions -------------------------------------------------------------
+
+  defp build_op_extensions(_rev_path, op, opts) when map_size(op.extensions) > 0 do
+    mod = opts[:spec_module]
+
+    op.extensions
+    |> Enum.flat_map(fn pair ->
+      case mod.load_extension(pair) do
+        {k, v} -> [{k, v}]
+        nil -> []
+        other -> exit({:bad_return_value, other})
+      end
+    end)
+    |> Map.new()
+  end
+
+  defp build_op_extensions(_rev_path, _op, _) do
+    %{}
   end
 
   # -- Helpers ----------------------------------------------------------------

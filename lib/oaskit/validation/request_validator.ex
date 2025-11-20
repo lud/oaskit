@@ -43,31 +43,34 @@ defmodule Oaskit.Validation.RequestValidator do
   end
 
   def validate_request(%RequestData{} = req_data, {_, _} = built_spec, operation_id) do
-    case fetch_validations(built_spec, operation_id) do
-      {:ok, validations_with_root} ->
-        run_validations(req_data, validations_with_root, operation_id)
+    case fetch_operation(built_spec, operation_id) do
+      {:ok, {operation, jsv_root}} ->
+        %{validation: validation, extensions: extensions} = operation
+
+        private_accin = %{
+          body_params: %{},
+          query_params: %{},
+          path_params: %{},
+          header_params: %{},
+          operation_id: operation_id,
+          extensions: extensions
+        }
+
+        run_validations(req_data, {validation, jsv_root}, private_accin)
 
       {:error, _} = err ->
         err
     end
   end
 
-  defp fetch_validations({op_map, jsv_root}, operation_id) do
+  defp fetch_operation({op_map, jsv_root}, operation_id) do
     case op_map do
-      %{^operation_id => %{validation: op_validations}} -> {:ok, {op_validations, jsv_root}}
+      %{^operation_id => operation} -> {:ok, {operation, jsv_root}}
       _ -> {:error, {:not_built, operation_id}}
     end
   end
 
-  defp run_validations(req_data, {validations, jsv_root}, operation_id) do
-    private_accin = %{
-      body_params: %{},
-      query_params: %{},
-      path_params: %{},
-      header_params: %{},
-      operation_id: operation_id
-    }
-
+  defp run_validations(req_data, {validations, jsv_root}, private_accin) do
     Enum.reduce_while(validations, {:ok, private_accin}, fn
       validation, {:ok, private} ->
         # we are not collecting all errors but rather stop on the first error. If

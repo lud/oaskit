@@ -136,6 +136,16 @@ defmodule Oaskit.Internal.ControllerBuilder do
     end
   end
 
+  def collect_leftovers(builder, key) do
+    exts =
+      case builder.input do
+        [] -> nil
+        other -> Map.new(other)
+      end
+
+    %{builder | output: Map.put(builder.output, key, exts)}
+  end
+
   def into(builder) do
     %__MODULE__{target: target, output: output} = builder
     struct!(target, output)
