@@ -6,6 +6,8 @@ defmodule Oaskit.Spec.Operation do
   import Oaskit.Internal.ControllerBuilder
   use Oaskit.Internal.SpecObject
 
+  @additional_properties :extensions
+
   defschema %{
     title: "Operation",
     type: :object,
@@ -67,7 +69,35 @@ defmodule Oaskit.Spec.Operation do
       security: {:list, Oaskit.Spec.SecurityRequirement},
       servers: {:list, Oaskit.Spec.Server}
     )
+    # collect extensions added by the operation macro
+    |> normalize_splat(:extensions, &normalize_extensions/2)
+    # This will collect leftover keys when the data was a raw map
     |> collect()
+  end
+
+  defp normalize_extensions(map, ctx) when map_size(map) == 0 do
+    {[], ctx}
+  end
+
+  defp normalize_extensions(_map, %{spec_module: nil} = ctx) do
+    {[], ctx}
+  end
+
+  defp normalize_extensions(map, %{spec_module: mod} = ctx) when is_map(map) do
+    private_extensions? = ctx.private_extensions?
+
+    pairs =
+      Enum.flat_map(map, fn pair ->
+        case mod.dump_extension(pair) do
+          {"x-" <> _ = bin_key, _} = new_pair when is_binary(bin_key) -> [new_pair]
+          {bin_key, _} = new_pair when is_binary(bin_key) and private_extensions? -> [new_pair]
+          {bin_key, _} when is_binary(bin_key) -> []
+          nil -> []
+          other -> exit({:bad_return_value, other})
+        end
+      end)
+
+    {pairs, ctx}
   end
 
   def from_controller!(spec, opts \\ [])
@@ -95,6 +125,7 @@ defmodule Oaskit.Spec.Operation do
       nil,
       {&RequestBody.from_controller/1, "invalid request body"}
     )
+    |> collect_leftovers(:extensions)
     |> into()
   end
 

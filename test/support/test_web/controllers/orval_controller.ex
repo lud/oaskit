@@ -2,6 +2,8 @@ defmodule Oaskit.TestWeb.OrvalController do
   use JSV.Schema
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   operation :test_arrays,
     operation_id: "TestArrays",
     parameters: [

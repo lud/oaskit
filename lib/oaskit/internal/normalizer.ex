@@ -15,10 +15,11 @@ defmodule Oaskit.Internal.Normalizer do
   @callback normalize!(data :: term, ctx :: NormalizationContext.t()) ::
               {struct, NormalizationContext.t()}
 
-  def normalize!(openapi_spec) when is_map(openapi_spec) do
+  def normalize!(openapi_spec, opts \\ []) when is_map(openapi_spec) do
     # Boostrap normalization by creating a context with all schemas from
     # #/components/schemas normalized.
-    {openapi_spec, ctx} = normalize_predef_schemas(openapi_spec)
+    {openapi_spec, ctx} = normalize_predef_schemas(openapi_spec, opts)
+
     {normal, ctx} = normalize!(openapi_spec, OpenAPI, ctx)
 
     put_in(
@@ -28,24 +29,34 @@ defmodule Oaskit.Internal.Normalizer do
     )
   end
 
-  defp empty_context do
-    %NormalizationContext{seen_schema_mods: %{}, components_schemas: %{}, rev_path: []}
+  defp empty_context(opts) do
+    new_context(_seen_schema_mods = %{}, _components_schemas = %{}, _rev_path = [], opts)
   end
 
-  defp normalize_predef_schemas(openapi_spec) do
-    with {:ok, "components", {components, rest_spec}} <- pop_normal(openapi_spec, :components),
+  defp new_context(seen_schema_mods, components_schemas, rev_path, opts) do
+    %NormalizationContext{
+      seen_schema_mods: seen_schema_mods,
+      components_schemas: components_schemas,
+      rev_path: rev_path,
+      spec_module: opts[:spec_module],
+      private_extensions?: opts[:private_extensions] == true
+    }
+  end
+
+  defp normalize_predef_schemas(openapi_spec, opts) do
+    with {:ok, "components", {components, rest_spec}} <- pop_nkey(openapi_spec, :components),
          {:ok, "schemas", {components_schemas, rest_components}} <-
-           pop_normal(components, :schemas) do
-      ctx = initialize_context_with_predefs(components_schemas)
+           pop_nkey(components, :schemas) do
+      ctx = initialize_context_with_predefs(components_schemas, opts)
       ctx = %{ctx | rev_path: []}
 
       {Map.put(rest_spec, "components", rest_components), ctx}
     else
-      :error -> {openapi_spec, empty_context()}
+      :error -> {openapi_spec, empty_context(opts)}
     end
   end
 
-  defp initialize_context_with_predefs(schemas_map) do
+  defp initialize_context_with_predefs(schemas_map, opts) do
     {predefs, others} =
       Enum.split_with(schemas_map, fn {_refname, schema} ->
         is_atom(schema) and Schema.schema_module?(schema)
@@ -62,11 +73,7 @@ defmodule Oaskit.Internal.Normalizer do
     seen = Map.new(predefs, fn {refname, module} -> {module, refname} end)
 
     # We can boostrap the normalization with that in the context.
-    ctx = %NormalizationContext{
-      seen_schema_mods: seen,
-      components_schemas: placeholders,
-      rev_path: ["schemas", "components"]
-    }
+    ctx = new_context(seen, placeholders, _rev_path = ["schemas", "components"], opts)
 
     # To normalize the module schemas we just have to normalize their exported
     # .json_schema() and replace the placeholder with the result
@@ -126,7 +133,7 @@ defmodule Oaskit.Internal.Normalizer do
 
     {data, outlist, ctx} =
       Enum.reduce(keymap, {data, outlist, ctx}, fn {key, caster}, {data, outlist, ctx} = acc ->
-        case pop_normal(data, key) do
+        case pop_nkey(data, key) do
           {:ok, bin_key, {value, data}} ->
             {cast_value, ctx} = downpath(ctx, bin_key, &apply_caster(value, caster, &1))
             {data, [{bin_key, cast_value} | outlist], ctx}
@@ -155,6 +162,50 @@ defmodule Oaskit.Internal.Normalizer do
     %{normalizer | data: %{}, ctx: ctx, out: outlist}
   end
 
+  # passes the input key to the caster function. That function must return a
+  # list of pairs. The pairs will be added to the output map.
+  def normalize_splat(normalizer, input_key, caster) when is_function(caster, 2) do
+    %__MODULE__{data: data, ctx: ctx, out: outlist} = normalizer
+
+    case pop_nkey(data, input_key) do
+      {:ok, bin_key, {value, data}} ->
+        case splat_properties(bin_key, value, ctx, caster, outlist) do
+          :ignore -> normalizer
+          {outlist, ctx} -> %{normalizer | data: data, ctx: ctx, out: outlist}
+        end
+
+      :error ->
+        normalizer
+    end
+  end
+
+  defp splat_properties(bin_key, value, ctx, caster, outlist) do
+    {value, ctx} = downpath(ctx, bin_key, &apply_caster(value, caster, &1))
+
+    case value do
+      [] ->
+        :ignore
+
+      pairs ->
+        # We do not allow extensions to override known values for now.
+        # The keys are binaries so Enum.into will not work.
+
+        outlist =
+          Enum.reduce(pairs, outlist, fn {k, v}, acc when is_binary(k) ->
+            list_keystore_new(acc, k, 0, v)
+          end)
+
+        {outlist, ctx}
+    end
+  end
+
+  defp list_keystore_new(list, k, pos, v) do
+    case List.keymember?(list, k, pos) do
+      true -> list
+      false -> [{k, v} | list]
+    end
+  end
+
   def normalize_default(normalizer, :all) do
     %__MODULE__{data: data, out: outlist} = normalizer
 
@@ -173,7 +224,7 @@ defmodule Oaskit.Internal.Normalizer do
   def normalize_schema(normalizer, key) when is_atom(key) do
     %__MODULE__{data: data, ctx: ctx, out: outlist} = normalizer
 
-    case pop_normal(data, key) do
+    case pop_nkey(data, key) do
       {:ok, bin_key, {schema, data}} ->
         {replacement_schema, ctx} = do_normalize_schema(schema, ctx)
         %{normalizer | data: data, ctx: ctx, out: [{bin_key, replacement_schema} | outlist]}
@@ -186,28 +237,28 @@ defmodule Oaskit.Internal.Normalizer do
   def skip(normalizer, key) when is_atom(key) do
     %__MODULE__{data: data} = normalizer
 
-    case pop_normal(data, key) do
+    case pop_nkey(data, key) do
       {:ok, _bin_key, {_value, data}} -> %{normalizer | data: data}
       :error -> normalizer
     end
   end
 
   def collect(%__MODULE__{data: data, ctx: ctx, out: outlist}) do
-    {extensions, _leftovers} = collect_remaining(data)
+    extensions = collect_x_extensions(data, ctx.private_extensions?)
     collected = Map.merge(Map.new(extensions), Map.new(outlist))
     {collected, ctx}
   end
 
-  defp collect_remaining(data) do
-    {extensions, leftovers} =
-      data
-      |> Enum.map(fn {k, v} -> {to_string(k), v} end)
-      |> Enum.reduce({_extensions = [], _leftovers = []}, fn
-        {"x-" <> _ = key, value}, {exts, left} -> {[{key, to_json_decoded(value)} | exts], left}
-        {key, value}, {exts, left} -> {exts, [{key, to_json_decoded(value)} | left]}
-      end)
+  defp collect_x_extensions(data, private_extensions?) do
+    Enum.flat_map(data, fn {k, v} ->
+      k = to_string(k)
 
-    {extensions, leftovers}
+      case k do
+        "x-" <> _ = binkey -> [{binkey, to_json_decoded(v)}]
+        binkey when private_extensions? -> [{binkey, to_json_decoded(v)}]
+        _ -> []
+      end
+    end)
   end
 
   defp downpath(ctx, key, fun) do
@@ -227,29 +278,30 @@ defmodule Oaskit.Internal.Normalizer do
     %{ctx | rev_path: tl(ctx.rev_path)}
   end
 
-  # pops a key regardless of atom/binary encoding:
+  # pops a "normal" key regardless of atom/binary encoding:
   # * If the key is in the map, we pop it
   # * Otherwise if the key is an atom, we try to pop its binary form
+  # * Otherwise if the key is an integer, we try to pop its binary form
   # * If nothing works it's an error
   #
   # The function also returns the binary key
-  defp pop_normal(map, key) when is_map_key(map, key) do
+  defp pop_nkey(map, key) when is_map_key(map, key) do
     {:ok, to_string(key), Map.pop!(map, key)}
   end
 
-  defp pop_normal(map, key) when is_atom(key) do
-    pop_normal(map, Atom.to_string(key))
+  defp pop_nkey(map, key) when is_atom(key) do
+    pop_nkey(map, Atom.to_string(key))
   end
 
-  defp pop_normal(map, key) when is_integer(key) do
-    pop_normal(map, Integer.to_string(key))
+  defp pop_nkey(map, key) when is_integer(key) do
+    pop_nkey(map, Integer.to_string(key))
   end
 
-  defp pop_normal(_map, key) when is_binary(key) do
+  defp pop_nkey(_map, key) when is_binary(key) do
     :error
   end
 
-  defp pop_normal(_map, key) do
+  defp pop_nkey(_map, key) do
     raise ArgumentError, "invalid key: #{inspect(key)}"
   end
 

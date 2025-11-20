@@ -20,7 +20,25 @@ defmodule Oaskit.TestWeb.DeclarativeApiSpec do
     "paths" => %{
       # Atom paths work
       :"/potions" => %{"$ref" => "#/components/pathItems/CreatePotionPath"},
-      "/{lab}/alchemists" => %{"$ref" => "#/components/pathItems/AlchemistsPath"}
+      "/{lab}/alchemists" => %{"$ref" => "#/components/pathItems/AlchemistsPath"},
+      "/potions/extensions" => %{
+        "get" => %{
+          "operationId" => "potionExtensions",
+          # Don't cook too much
+          "x-rate-limit" => 1000,
+          "admin-rate-limit" => 10_000,
+          "responses" => %{
+            "200" => %{
+              "description" => "Potion created successfully",
+              "content" => %{
+                "application/json" => %{
+                  "schema" => %{}
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "components" => %{
       "pathItems" => %{

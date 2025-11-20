@@ -14,14 +14,21 @@ defmodule Oaskit.Internal.NormalizationContext do
 
     # A map of %{refname => normal schema} to define the #/components/schemas
     # part of the normalized spec.
-    :components_schemas
+    :components_schemas,
+
+    # The original module defining the OpenAPI specification under
+    # normalization. Used for normalization of custom OpenAPI components.
+    :spec_module,
+
+    # Whether to keep unknown keys that do not start with "x-" in operations.
+    :private_extensions?
   ]
   defstruct @enforce_keys
   @type t :: %__MODULE__{}
 end
 
-# defimpl Inspect, for: Oaskit.Internal.NormalizationContext do
-#   def inspect(_, _) do
-#     "#Oaskit.Internal.NormalizationContext<>"
-#   end
-# end
+defimpl Inspect, for: Oaskit.Internal.NormalizationContext do
+  def inspect(_, _) do
+    "#Oaskit.Internal.NormalizationContext<>"
+  end
+end

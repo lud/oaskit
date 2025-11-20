@@ -90,6 +90,12 @@ defmodule Oaskit.TestWeb.Router do
       get "/fortune-500-bad-default-resp", ResponseController, :invalid_default_resp
     end
 
+    scope "/extensions", Oaskit.TestWeb do
+      get "/with-json-encodable-ext", ExtensionController, :with_json_encodable_ext
+      get "/with-public-and-private", ExtensionController, :with_public_and_private
+      get "/with-non-json", ExtensionController, :with_non_json
+    end
+
     scope "/method", Oaskit.TestWeb do
       get "/p", MethodController, :same_fun
       post "/p", MethodController, :same_fun
@@ -113,14 +119,15 @@ defmodule Oaskit.TestWeb.Router do
     post "/multi-choice-security", SecurityController, :multi_choice_security
   end
 
-  scope "/provided" do
+  scope "/provided", Oaskit.TestWeb do
     pipe_through :api_from_doc
 
     # Spec controller route for DeclarativeApiSpec
 
-    post "/potions", Oaskit.TestWeb.LabController, :create_potion
-    get "/:lab/alchemists", Oaskit.TestWeb.LabController, :list_alchemists
-    post "/:lab/alchemists", Oaskit.TestWeb.LabController, :search_alchemists
+    post "/potions", LabController, :create_potion
+    get "/:lab/alchemists", LabController, :list_alchemists
+    post "/:lab/alchemists", LabController, :search_alchemists
+    get "/potions/extensions", LabController, :extensions_check
   end
 
   scope "/orval" do

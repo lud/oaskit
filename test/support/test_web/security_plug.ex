@@ -2,14 +2,14 @@ defmodule Oaskit.TestWeb.SecurityPlug do
   alias Plug.Conn
   import ExUnit.Assertions
 
-  @moduledoc """
-  A mock security plug that calls a function stored in conn private data. Used
-  for testing security validation in the pipeline.
+  @moduledoc false
 
-  The fun is set in the conn as a private data, and so can only be called from
-  the call/2 callback. The init/1 callback will simply return the opts as they
-  are.
-  """
+  # A mock security plug that calls a function stored in conn private data. Used
+  # for testing security validation in the pipeline.
+
+  # The fun is set in the conn as a private data, and so can only be called from
+  # the call/2 callback. The init/1 callback will simply return the opts as they
+  # are.
 
   def init(opts) do
     assert Keyword.has_key?(opts, :operation_id)

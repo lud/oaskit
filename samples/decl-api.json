@@ -532,6 +532,22 @@
     "/potions": {
       "$ref": "#/components/pathItems/CreatePotionPath"
     },
+    "/potions/extensions": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Potion created successfully"
+          }
+        },
+        "operationId": "potionExtensions",
+        "x-rate-limit": 1000
+      }
+    },
     "/{lab}/alchemists": {
       "$ref": "#/components/pathItems/AlchemistsPath"
     }

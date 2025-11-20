@@ -26,6 +26,7 @@ defmodule Oaskit.MixProject do
   defp elixirc_paths(env) do
     case env do
       :prod -> ["lib"]
+      :docs -> ["lib"]
       _ -> ["lib", "test/support"]
     end
   end
@@ -40,7 +41,7 @@ defmodule Oaskit.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.10"},
+      {:jsv, "~> 0.12"},
       {:plug, ">= 1.16.0"},
       {:decimal, "~> 2.0", optional: true},
       {:texture, "~> 0.3"},
@@ -57,7 +58,7 @@ defmodule Oaskit.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: [:dev, :test, :doc], runtime: false},
+      {:ex_doc, "~> 0.38", only: [:dev, :test, :docs], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]
@@ -100,6 +101,7 @@ defmodule Oaskit.MixProject do
       "README.md",
       "guides/quickstart.md",
       "guides/external-specs.md",
+      "guides/extensions.md",
       "guides/security.md",
       "guides/limitations.md"
     ]
@@ -125,7 +127,7 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Setup: ~r{guides/(quickstart|external-specs|limitations)},
+      Setup: ~r{guides/(quickstart|external-specs|extensions|limitations)},
       Security: ~r{guides/security}
     ]
   end
@@ -148,7 +150,8 @@ defmodule Oaskit.MixProject do
     [
       preferred_envs: [
         dialyzer: :test,
-        "oapi.phx.test": :test
+        "oapi.phx.test": :test,
+        docs: :docs
       ]
     ]
   end
