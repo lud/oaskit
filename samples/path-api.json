@@ -732,6 +732,7 @@
             "description": "no description"
           }
         },
+        "deprecated": true,
         "operationId": "extension_with_public_and_private_WJZSI6Y",
         "x-public-ext": "some public"
       }

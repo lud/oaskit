@@ -29,6 +29,7 @@ defmodule Oaskit.TestWeb.ExtensionController do
   operation :with_public_and_private,
     "x-public-ext": "some public",
     "private-ext": "some private",
+    deprecated: true,
     responses: dummy_responses()
 
   def with_public_and_private(conn, params) do
