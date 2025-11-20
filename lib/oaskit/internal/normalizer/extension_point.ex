@@ -6,7 +6,7 @@ defmodule Oaskit.Internal.Normalizer.ExtensionPoint do
   defimpl JSV.Normalizer.Normalize do
     def normalize(%{original_value: v}) do
       # The orginal value may be a struct, but the normalizer will not accept
-      # that so we call a new normalizer instance on the value.
+      # that return value so we call a new normalizer instance on the value.
       JSV.Normalizer.normalize(v)
     end
   end

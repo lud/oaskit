@@ -35,11 +35,11 @@ defmodule Oaskit.TestWeb.ExtensionController do
     Responder.reply(conn, params)
   end
 
-  operation :with_struct,
+  operation :with_non_json,
     "private-struct": %Oaskit.TestWeb.ExtensionController.SomeStruct{foo: :bar},
     responses: dummy_responses()
 
-  def with_struct(conn, params) do
+  def with_non_json(conn, params) do
     Responder.reply(conn, params)
   end
 end

@@ -1,6 +1,8 @@
 defmodule Oaskit.TestWeb.SecurityController do
   use Oaskit.TestWeb, :controller
 
+  @moduledoc false
+
   @common_request_schema %{
     "type" => "object",
     "required" => ["should_be"],

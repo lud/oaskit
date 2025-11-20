@@ -5,8 +5,11 @@ defmodule Oaskit.TestWeb.ParamController do
   use Oaskit.TestWeb, :controller
 
   @moduledoc false
+
   defmodule Colors do
     alias JSV.Schema
+
+    @moduledoc false
 
     def json_schema do
       %Schema{type: :string, enum: ["red", "green", "blue"]}

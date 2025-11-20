@@ -701,6 +701,23 @@
         "operationId": "extension_with_json_encodable_ext_WJZSI6Y"
       }
     },
+    "/generated/extensions/with-non-json": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "extension_with_non_json_WJZSI6Y"
+      }
+    },
     "/generated/extensions/with-public-and-private": {
       "get": {
         "responses": {
@@ -717,23 +734,6 @@
         },
         "operationId": "extension_with_public_and_private_WJZSI6Y",
         "x-public-ext": "some public"
-      }
-    },
-    "/generated/extensions/with-struct": {
-      "get": {
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "_dummy_schema": true
-                }
-              }
-            },
-            "description": "no description"
-          }
-        },
-        "operationId": "extension_with_struct_WJZSI6Y"
       }
     },
     "/generated/meta/after-metas": {

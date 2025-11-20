@@ -93,7 +93,7 @@ defmodule Oaskit.TestWeb.Router do
     scope "/extensions", Oaskit.TestWeb do
       get "/with-json-encodable-ext", ExtensionController, :with_json_encodable_ext
       get "/with-public-and-private", ExtensionController, :with_public_and_private
-      get "/with-struct", ExtensionController, :with_struct
+      get "/with-non-json", ExtensionController, :with_non_json
     end
 
     scope "/method", Oaskit.TestWeb do

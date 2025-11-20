@@ -130,6 +130,13 @@ defmodule Oaskit do
   With `use Oaskit`, a default implementation is added and will attempt to
   preserve the original value to provide it to controllers without having to
   write a specific normalizer function.
+
+  ### Custom Serialization
+
+  If you override this callback, you should also override `c:load_extension/1`.
+  The default implementation uses an internal struct to wrap the original value
+  and preserve it through normalization. If you override only one of the two,
+  you might lose this behavior or get unexpected results.
   """
   @callback dump_extension(pair :: {String.t() | atom(), term}) ::
               {String.t(), json_decoded() | extension_point} | nil
@@ -159,8 +166,12 @@ defmodule Oaskit do
   return the original declared in controller operations. This works well with
   the default implementation defined for `c:dump_extension/1`.
 
-  If you need custom extension loading, it is recommended to override both
-  callbacks.
+  ### Custom Deserialization
+
+  If you override this callback, you should also override `c:dump_extension/1`.
+  The default implementation uses an internal struct to wrap the original value
+  and preserve it through normalization. If you override only one of the two,
+  you might lose this behavior or get unexpected results.
   """
   @callback load_extension(raw_pair :: {String.t(), term}) :: {term, term} | nil
 

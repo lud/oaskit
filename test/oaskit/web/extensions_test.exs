@@ -57,7 +57,7 @@ defmodule Oaskit.Web.ExtensionsTest do
       conn =
         get_reply(
           conn,
-          ~p"/generated/extensions/with-struct",
+          ~p"/generated/extensions/with-non-json",
           fn
             conn, _params ->
               assert %{
