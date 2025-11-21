@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-11-21
+
+### 🚀 Features
+
+- Added experimental support for operation extensions
+
+### 🐛 Bug Fixes
+
+- Take all existing operation fields from operation macro
+
 ## [0.7.0] - 2025-11-13
 
 ### 🚀 Features
