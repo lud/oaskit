@@ -13,7 +13,6 @@
     "schemas": {
       "JSV:KeywordError": {
         "title": "JSV:KeywordError",
-        "additionalProperties": false,
         "description": "Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes",
         "properties": {
           "details": {
@@ -39,7 +38,6 @@
       },
       "JSV:ValidationError": {
         "title": "JSV:ValidationError",
-        "additionalProperties": false,
         "description": "This represents a normalized `JSV.ValidationError` in a JSON-encodable way. It contains a list of error units.",
         "properties": {
           "details": {
@@ -59,7 +57,6 @@
       },
       "JSV:ValidationUnit": {
         "title": "JSV:ValidationUnit",
-        "additionalProperties": false,
         "description": "Describes all errors found at given instanceLocation raised by the same sub-schema (same schemaLocation and evaluationPath). It may also represent a positive validation result, (when `valid` is `true`) needed when for instance multiple schemas under `oneOf` validates the input sucessfully.",
         "properties": {
           "errors": {
