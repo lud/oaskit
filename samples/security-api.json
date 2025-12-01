@@ -243,6 +243,48 @@
         }
       }
     },
+    "/security/with-extensions": {
+      "post": {
+        "security": [
+          {
+            "someApiKey": [
+              "some:scope1",
+              "some:scope2"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "common response"
+          }
+        },
+        "operationId": "withExtensions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "should_be": {
+                    "const": "valid"
+                  }
+                },
+                "required": [
+                  "should_be"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "x-some-extension": "hello"
+      }
+    },
     "/security/with-scopes": {
       "post": {
         "security": [

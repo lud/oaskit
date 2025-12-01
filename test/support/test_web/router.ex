@@ -117,6 +117,7 @@ defmodule Oaskit.TestWeb.Router do
     post "/with-scopes", SecurityController, :with_scopes
     post "/multi-scheme-security", SecurityController, :multi_scheme_security
     post "/multi-choice-security", SecurityController, :multi_choice_security
+    post "/with-extensions", SecurityController, :with_extensions
   end
 
   scope "/provided", Oaskit.TestWeb do

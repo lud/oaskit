@@ -268,9 +268,9 @@ defmodule Oaskit.Plugs.ValidateRequest do
     conn =
       Conn.put_private(conn, :oaskit, Map.put(conn.private.oaskit, :operation_id, operation_id))
 
-    security = fetch_security!(op_map, operation_id)
+    {security, extensions} = fetch_security!(op_map, operation_id)
 
-    case call_security(conn, security, operation_id, opts) do
+    case call_security(conn, security, extensions, operation_id, opts) do
       %Plug.Conn{halted: false} = next_conn ->
         do_validate(next_conn, built_spec, operation_id, opts)
 
@@ -289,19 +289,19 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
-  @spec fetch_security!(term, term) :: list | nil
+  @spec fetch_security!(term, term) :: {list | nil, term}
   defp fetch_security!(op_map, operation_id) do
     case op_map do
-      %{^operation_id => %{security: security}} -> security
+      %{^operation_id => %{security: security, extensions: exts}} -> {security, exts}
       _ -> raise_not_built(operation_id)
     end
   end
 
-  defp call_security(conn, nil, _operation_id, _opts) do
+  defp call_security(conn, nil, _, _operation_id, _opts) do
     conn
   end
 
-  defp call_security(conn, security, operation_id, opts) when is_list(security) do
+  defp call_security(conn, security, extensions, operation_id, opts) when is_list(security) do
     case opts.security do
       nil ->
         warn_undef_security(conn, operation_id)
@@ -320,7 +320,13 @@ defmodule Oaskit.Plugs.ValidateRequest do
             mod -> {mod, Map.to_list(opts)}
           end
 
-        plug_opts = Keyword.merge(plug_opts, security: security, operation_id: operation_id)
+        plug_opts =
+          Keyword.merge(plug_opts,
+            security: security,
+            operation_id: operation_id,
+            extensions: extensions
+          )
+
         plug_mod.call(conn, plug_mod.init(plug_opts))
     end
   end
