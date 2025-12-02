@@ -80,7 +80,7 @@ defmodule Oaskit.SpecControllerTest do
 
       assert %{"servers" => servers} = decode_spec(conn)
       assert is_list(servers)
-      assert length(servers) > 0
+      refute Enum.empty?(servers)
 
       server_urls = Enum.map(servers, & &1["url"])
       assert Enum.any?(server_urls, &String.contains?(&1, "localhost"))
