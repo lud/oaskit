@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2025-12-11
+
+### 🚀 Features
+
+- [**breaking**] Renamed unprocessable_entity to unprocessable_content
+
 ## [0.8.0] - 2025-11-21
 
 ### 🚀 Features
