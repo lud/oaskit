@@ -29,7 +29,7 @@ defmodule Oaskit.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "body_boolean_schema_false" <> _,
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -69,7 +69,7 @@ defmodule Oaskit.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "body_inline_single" <> _,
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -115,7 +115,7 @@ defmodule Oaskit.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "custom_operation_id_module_single",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -129,7 +129,7 @@ defmodule Oaskit.Web.BodyTest do
       # schema locations should be in #/components/schemas/...
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "custom_operation_id_module_single",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -204,7 +204,7 @@ defmodule Oaskit.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "body_wildcard_media_type" <> _,
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -264,7 +264,7 @@ defmodule Oaskit.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "body_module_single_not_required" <> _,
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -280,7 +280,7 @@ defmodule Oaskit.Web.BodyTest do
       conn = post(conn, ~p"/generated/body/inline-single", @invalid_payload)
 
       body = response(conn, 422)
-      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
       assert body =~ "<h2>Invalid request body.</h2>"
     end
 
@@ -288,7 +288,7 @@ defmodule Oaskit.Web.BodyTest do
       conn = post(conn, ~p"/generated/body/module-single", @invalid_payload)
 
       body = response(conn, 422)
-      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
       assert body =~ "<h2>Invalid request body.</h2>"
     end
 
@@ -296,7 +296,7 @@ defmodule Oaskit.Web.BodyTest do
       conn = post(conn, ~p"/generated/body/module-single", @invalid_sub)
 
       body = response(conn, 422)
-      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
       assert body =~ "<h2>Invalid request body.</h2>"
     end
 
@@ -320,7 +320,7 @@ defmodule Oaskit.Web.BodyTest do
       conn = post(conn, ~p"/generated/body/form", @invalid_payload)
 
       body = response(conn, 422)
-      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
       assert body =~ ~r{<p>Invalid request for operation <code>body_handle_form_.+</code>.</p>}s
       assert body =~ "<h2>Invalid request body.</h2>"
     end

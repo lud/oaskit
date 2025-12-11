@@ -130,7 +130,7 @@ defmodule Oaskit.Web.LabTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "createPotion",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -143,7 +143,7 @@ defmodule Oaskit.Web.LabTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "createPotion",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -156,7 +156,7 @@ defmodule Oaskit.Web.LabTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "createPotion",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}
@@ -191,7 +191,7 @@ defmodule Oaskit.Web.LabTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Unprocessable Content",
                  "operation_id" => "createPotion",
                  "in" => "body",
                  "validation_error" => %{"valid" => false}

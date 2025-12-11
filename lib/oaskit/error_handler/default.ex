@@ -7,7 +7,7 @@ defmodule Oaskit.ErrorHandler.Default do
   alias Plug.Conn
   alias Plug.Conn.Status
 
-  @status_invalid_body :unprocessable_entity
+  @status_invalid_body :unprocessable_content
   @status_unsupported_media_type :unsupported_media_type
   @status_parameters_errors :bad_request
 
@@ -93,7 +93,7 @@ defmodule Oaskit.ErrorHandler.Default do
   defp response_status(reason) do
     case reason do
       # 422
-      %InvalidBodyError{} -> :unprocessable_entity
+      %InvalidBodyError{} -> :unprocessable_content
       # 415
       %UnsupportedMediaTypeError{} -> :unsupported_media_type
       # 400
@@ -291,7 +291,7 @@ defmodule Oaskit.ErrorHandler.Default.UnprocessableEntityErrorSchema do
     type: :object,
     title: "Oaskit:UnprocessableEntityError",
     properties: %{
-      kind: %{const: "unprocessable_entity"},
+      kind: %{const: "unprocessable_content"},
       validation_error: JSV.error_schema()
     },
     required: [:validation_error]
@@ -366,7 +366,7 @@ defmodule Oaskit.ErrorHandler.Default.ErrorSchema do
       in: enum(["body", "parameters"]),
       message: string(),
       operation_id: string(description: "The ID of the operation that could not be executed"),
-      kind: enum(["unprocessable_entity", "unsupported_media_type", "bad_request"])
+      kind: enum(["unprocessable_content", "unsupported_media_type", "bad_request"])
     },
     required: [:in, :kind, :message, :operation_id],
     oneOf: [

@@ -100,7 +100,7 @@ defmodule Oaskit.TestWeb.ResponseController do
        }, description: "fortune selection"},
     responses: [
       ok: FortuneCookie,
-      unprocessable_entity: Oaskit.ErrorHandler.Default.ErrorResponseSchema,
+      unprocessable_content: Oaskit.ErrorHandler.Default.ErrorResponseSchema,
       default: GenericError
     ]
 

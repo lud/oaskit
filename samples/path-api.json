@@ -243,7 +243,7 @@
           },
           "kind": {
             "enum": [
-              "unprocessable_entity",
+              "unprocessable_content",
               "unsupported_media_type",
               "bad_request"
             ]
@@ -280,7 +280,7 @@
         "title": "Oaskit:UnprocessableEntityError",
         "properties": {
           "kind": {
-            "const": "unprocessable_entity"
+            "const": "unprocessable_content"
           },
           "validation_error": {
             "$ref": "#/components/schemas/JSV:ValidationError"

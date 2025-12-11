@@ -180,7 +180,7 @@ operation :create,
   ],
   responses: [
     created: UserSchema,
-    unprocessable_entity: ErrorSchema
+    unprocessable_content: ErrorSchema
   ]
 
 def create(conn, _params) do

@@ -18,7 +18,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
     test "invalid payload returns JSON error", %{conn: conn} do
       conn = post(conn, ~p"/generated/no-html-errors?an_int=123", @invalid_payload)
 
-      assert %{"error" => %{"in" => "body", "kind" => "unprocessable_entity"}} =
+      assert %{"error" => %{"in" => "body", "kind" => "unprocessable_content"}} =
                valid_response(PathsApiSpec, conn, 422)
     end
 
@@ -27,7 +27,7 @@ defmodule Oaskit.Web.ErroHandlingTest do
       # Even when asking with a form, we are returning JSON
       conn = post(conn, ~p"/generated/no-html-errors?an_int=123", @invalid_form)
 
-      assert %{"error" => %{"in" => "body", "kind" => "unprocessable_entity"}} =
+      assert %{"error" => %{"in" => "body", "kind" => "unprocessable_content"}} =
                valid_response(PathsApiSpec, conn, 422)
     end
 
