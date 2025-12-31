@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2025-12-31
+
+### 🐛 Bug Fixes
+
+- Improve handling of shared and operation tags (#69)
+- Fixed merging of parameters and tag with operation macro
+
 ## [0.9.0] - 2025-12-11
 
 ### 🚀 Features
