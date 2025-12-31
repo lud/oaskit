@@ -16,7 +16,7 @@ defmodule Oaskit.ControllerTest do
       # have a default content type of application/json associated with this
       # schema.
       request_body: {%{type: :string}, []},
-      tags: [:a, :b],
+      tags: ["a", "b"],
       description: "some description",
       summary: "some summary",
       responses: [ok: true]
@@ -28,7 +28,7 @@ defmodule Oaskit.ControllerTest do
              description: "some description",
              summary: "some summary",
              operationId: :some_operation,
-             tags: [:a, :b],
+             tags: ["a", "b"],
              requestBody: %RequestBody{
                content: %{
                  "application/json" => %MediaType{
@@ -265,7 +265,7 @@ defmodule Oaskit.ControllerTest do
       # Shared tags should be applied even when `tags:` is not specified
       # in the operation spec
       spec = [
-        operation_id: :some_operation,
+        operation_id: :some_operation_without_tags,
         responses: [ok: true]
       ]
 
@@ -281,12 +281,10 @@ defmodule Oaskit.ControllerTest do
         responses: [ok: true]
       ]
 
-      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+      assert %Operation{tags: tags} =
+               Operation.from_controller!(spec, shared_tags: ["users", "v1"])
 
-      assert %Operation{tags: tags} = op
-      assert "slow" in tags
-      assert "users" in tags
-      assert "v1" in tags
+      assert ["slow", "users", "v1"] = Enum.sort(tags)
     end
 
     test "operation tags take precedence over shared tags for duplicates" do
@@ -296,11 +294,11 @@ defmodule Oaskit.ControllerTest do
         responses: [ok: true]
       ]
 
-      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+      assert %Operation{tags: tags} =
+               Operation.from_controller!(spec, shared_tags: ["users", "v1"])
 
-      assert %Operation{tags: tags} = op
       # Should contain unique tags only
-      assert length(Enum.filter(tags, &(&1 == "users"))) == 1
+      assert length(tags) == length(Enum.uniq(tags))
     end
 
     test "empty shared_tags with no operation tags results in nil" do
@@ -309,23 +307,135 @@ defmodule Oaskit.ControllerTest do
         responses: [ok: true]
       ]
 
-      op = Operation.from_controller!(spec, shared_tags: [])
-
       # When no shared tags and no operation tags, tags should be nil
-      assert %Operation{tags: nil} = op
+      assert %Operation{tags: nil} = Operation.from_controller!(spec, shared_tags: [])
     end
+  end
 
-    test "explicit nil tags overrides shared tags" do
+  describe "parameters macro" do
+    @shared_parameters [
+      %Oaskit.Spec.Parameter{
+        in: :query,
+        name: "foo",
+        required: false,
+        schema: %{type: :string}
+      },
+      %Oaskit.Spec.Parameter{
+        in: :path,
+        name: "bar",
+        required: true,
+        schema: %{type: :string}
+      }
+    ]
+
+    test "shared parameters are applied when operation omits parameters key" do
+      # Shared parameters should be applied even when `parameters:` is not specified
+      # in the operation spec
       spec = [
-        operation_id: :some_operation,
-        tags: nil,
+        operation_id: :some_operation_without_parameters,
         responses: [ok: true]
       ]
 
-      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+      op =
+        Operation.from_controller!(spec, shared_parameters: @shared_parameters)
 
-      # Explicitly passing tags: nil should override shared tags
-      assert %Operation{tags: nil} = op
+      assert [
+               %Oaskit.Spec.Parameter{
+                 in: :query,
+                 name: "foo",
+                 required: false,
+                 schema: %{type: :string}
+               },
+               %Oaskit.Spec.Parameter{
+                 in: :path,
+                 name: "bar",
+                 required: true,
+                 schema: %{type: :string}
+               }
+             ] = op.parameters
+    end
+
+    test "shared parameters are merged with operation parameters" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [private: [in: :query]],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_parameters: @shared_parameters)
+
+      assert [
+               %Oaskit.Spec.Parameter{
+                 in: :query,
+                 name: "private",
+                 required: false,
+                 schema: true
+               },
+               %Oaskit.Spec.Parameter{
+                 in: :query,
+                 name: "foo",
+                 required: false,
+                 schema: %{type: :string}
+               },
+               %Oaskit.Spec.Parameter{
+                 in: :path,
+                 name: "bar",
+                 required: true,
+                 schema: %{type: :string}
+               }
+             ] = op.parameters
+    end
+
+    test "operation parameters take precedence over shared parameters for duplicates" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [
+          # "foo" in query will have the schema defined in the op, not replaced by the parameter
+          foo: [in: :query, schema: %{type: :integer}],
+          # operation defines "bar" in query, the shared define it in the path, so both will exist
+          bar: [in: :query, schema: %{type: :integer}]
+        ],
+        responses: [ok: true]
+      ]
+
+      op =
+        Operation.from_controller!(spec, shared_parameters: @shared_parameters)
+
+      assert [
+               # "foo" from the operation
+               %Oaskit.Spec.Parameter{
+                 name: "foo",
+                 in: :query,
+                 required: false,
+                 schema: %{type: :integer}
+               },
+               # "bar" in query from the operation
+               %Oaskit.Spec.Parameter{
+                 name: "bar",
+                 in: :query,
+                 required: false,
+                 schema: %{type: :integer}
+               },
+               # "bar" in path from shared
+               %Oaskit.Spec.Parameter{
+                 in: :path,
+                 name: "bar",
+                 required: true,
+                 schema: %{type: :string}
+               }
+             ] = op.parameters
+    end
+
+    test "empty shared_parameters with no operation parameters results in nil" do
+      spec = [
+        operation_id: :some_operation,
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_parameters: [])
+
+      # When no shared parameters and no operation parameters, parameters should be nil
+      assert %Operation{parameters: nil} = op
     end
   end
 end

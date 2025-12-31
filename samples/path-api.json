@@ -802,6 +802,44 @@
         "operationId": "meta_before"
       }
     },
+    "/generated/meta/no-defs": {
+      "get": {
+        "tags": [
+          "shared1",
+          "zzz",
+          "shared2"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "no_defs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "shared1",
+            "required": false,
+            "schema": true
+          },
+          {
+            "in": "query",
+            "name": "shared2",
+            "required": false,
+            "schema": {
+              "pattern": "[0-9]+"
+            }
+          }
+        ]
+      }
+    },
     "/generated/meta/overrides-param": {
       "get": {
         "tags": [

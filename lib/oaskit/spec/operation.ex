@@ -114,20 +114,13 @@ defmodule Oaskit.Spec.Operation do
     |> rename_input(:operation_id, :operationId)
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)
-    |> take_default_lazy(
-      :tags,
-      fn ->
-        case shared_tags do
-          [] ->
-            nil
-
-          [_ | _] ->
-            shared_tags
-        end
-      end,
-      &merge_tags(&1, shared_tags)
+    |> take_default(:tags, [], &cast_tags/1, &merge_tags(&1, shared_tags))
+    |> take_default(
+      :parameters,
+      [],
+      &cast_params(&1, opts),
+      &merge_finalize_params(&1, opts[:shared_parameters])
     )
-    |> take_default(:parameters, nil, &cast_params(&1, opts))
     |> take_default(:description, nil)
     |> take_default(:callbacks, nil)
     |> take_default(:deprecated, nil)
@@ -154,36 +147,56 @@ defmodule Oaskit.Spec.Operation do
       raise ArgumentError, "expected parameters to be a keyword list or map"
     end
 
-    shared_parameters = Keyword.get(opts, :shared_parameters, [])
-
-    {parameters, defined_by_op} =
-      Enum.map_reduce(parameters, [], fn {k, p}, locals ->
+    cast_params =
+      Enum.map(parameters, fn {k, p} ->
         case Parameter.from_controller!(k, p) do
-          %Parameter{name: name, in: loc} = param ->
-            {param, [{{name, loc}, true} | locals]}
+          %Parameter{} = param ->
+            param
 
           %Reference{} = ref ->
             maybe_warn_parameter_reference(k, p, opts)
 
-            {ref, locals}
+            ref
         end
       end)
 
-    defined_by_op = Map.new(defined_by_op)
+    {:ok, cast_params}
+  end
 
-    # We need to merge shared parameters
+  defp cast_params(other, _) do
+    raise ArgumentError,
+          "invalid parameters, expected a map, list or keyword list, got: #{inspect(other)}"
+  end
+
+  defp merge_finalize_params(parameters, nil) do
+    empty_list_to_nil(parameters)
+  end
+
+  defp merge_finalize_params(parameters, []) do
+    empty_list_to_nil(parameters)
+  end
+
+  defp merge_finalize_params(parameters, shared_parameters) do
+    # Build a map of parameters defined in the operation by {name, loc}, so we
+    # do not overrite them with shared parameters. We keep the refs in this map
+    # for simplicity but they will always be defined as we do not resolve them
+    # at this point to see if they override a shared parameter.
+
+    defined_by_op =
+      Map.new(parameters, fn
+        %Parameter{name: name, in: loc} when is_binary(name) -> {{name, loc}, true}
+        %Reference{} = ref -> {ref, true}
+      end)
 
     add_parameters =
       Enum.filter(shared_parameters, fn %{name: name, in: loc} when is_binary(name) ->
         not Map.has_key?(defined_by_op, {name, loc})
       end)
 
-    {:ok, parameters ++ add_parameters}
-  end
+    all_params = parameters ++ add_parameters
 
-  defp cast_params(other, _) do
-    raise ArgumentError,
-          "invalid parameters, expected a map, list or keyword list, got: #{inspect(other)}"
+    # Skip serializing parameters in dumped/served specs in JSON format
+    empty_list_to_nil(all_params)
   end
 
   defp maybe_warn_parameter_reference(k, p, opts) do
@@ -298,14 +311,32 @@ defmodule Oaskit.Spec.Operation do
           "operation macro expects :security to be a list of maps with scope lists as values, got: #{inspect(security)}"
   end
 
-  defp merge_tags(nil, _shared_tags) do
-    {:ok, nil}
+  defp cast_tags(nil) do
+    {:ok, []}
   end
 
-  defp merge_tags(self_tags, shared_tags) do
-    case Enum.uniq(self_tags ++ shared_tags) do
-      [] -> {:ok, nil}
-      tags -> {:ok, tags}
-    end
+  defp cast_tags(list) when is_list(list) do
+    list =
+      Enum.map(list, fn
+        tag when is_atom(tag) -> Atom.to_string(tag)
+        tag when is_binary(tag) -> tag
+        other -> raise ArgumentError, "invalid operation tag: #{inspect(other)}"
+      end)
+
+    {:ok, list}
+  end
+
+  defp merge_tags(tags, shared_tags) do
+    {:ok, shared_tags} = cast_tags(shared_tags)
+    uniq = Enum.uniq(tags ++ shared_tags)
+    empty_list_to_nil(uniq)
+  end
+
+  defp empty_list_to_nil([]) do
+    nil
+  end
+
+  defp empty_list_to_nil([_ | _] = list) do
+    list
   end
 end

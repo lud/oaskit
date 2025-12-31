@@ -290,13 +290,14 @@ defmodule Oaskit.Controller do
     module = __CALLER__.module
 
     quote bind_quoted: binding() do
+      alias Oaskit.Controller
       {verb, spec} = Controller.__pop_verb(spec)
 
       shared_parameters =
-        :lists.reverse(Module.get_attribute(__MODULE__, :oaskit_parameters, []))
+        Controller.__get_shared__(__MODULE__, :oaskit_parameters, [:reverse])
 
       shared_tags =
-        :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :oaskit_tags, [])))
+        Controller.__get_shared__(__MODULE__, :oaskit_tags, [:reverse, :flatten])
 
       try do
         operation =
@@ -324,6 +325,24 @@ defmodule Oaskit.Controller do
                   " got: #{Exception.message(e)}"
       end
     end
+  end
+
+  @doc false
+  def __get_shared__(module, attribute, transforms) do
+    attr = Module.get_attribute(module, attribute, [])
+    shared_transforms(attr, transforms)
+  end
+
+  defp shared_transforms(value, [:reverse | transforms]) do
+    shared_transforms(:lists.reverse(value), transforms)
+  end
+
+  defp shared_transforms(value, [:flatten | transforms]) do
+    shared_transforms(:lists.flatten(value), transforms)
+  end
+
+  defp shared_transforms(value, []) do
+    value
   end
 
   @doc """

@@ -15,7 +15,7 @@ defmodule Oaskit.TestWeb.MetaController do
   tags ["shared1", "zzz"]
   parameter :shared1, in: :query
 
-  tags ["shared2", "zzz"]
+  tags [:shared2, "zzz"]
   parameter :shared2, in: :query, schema: %{pattern: "[0-9]+"}
 
   operation :after_metas,
@@ -44,6 +44,15 @@ defmodule Oaskit.TestWeb.MetaController do
 
   @spec overrides_param(term, term) :: no_return()
   def overrides_param(_conn, _) do
+    raise "should not be called"
+  end
+
+  operation :no_defs,
+    operation_id: "no_defs",
+    responses: dummy_responses()
+
+  @spec no_defs(term, term) :: no_return()
+  def no_defs(_conn, _) do
     raise "should not be called"
   end
 end

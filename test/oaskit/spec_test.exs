@@ -497,6 +497,8 @@ defmodule Oaskit.SpecTest do
                tags: ["shared1", "zzz", "shared2"]
              } =
                spec.paths["/generated/meta/overrides-param"].get
+
+      # operation not defining parameter nor tags should have both shared items
     end
   end
 end

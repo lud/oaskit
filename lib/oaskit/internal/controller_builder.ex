@@ -21,12 +21,21 @@ defmodule Oaskit.Internal.ControllerBuilder do
     {:ok, value}
   end
 
+  def notransform(value) do
+    value
+  end
+
   defp with_cast(builder, key, value, caster) do
     %__MODULE__{output: output} = builder
 
+    cast_value = cast!(builder, key, value, caster)
+    %{builder | output: Map.put(output, key, cast_value)}
+  end
+
+  defp cast!(builder, key, value, caster) do
     case cast(value, caster) do
       {:ok, cast_value} ->
-        %{builder | output: Map.put(output, key, cast_value)}
+        cast_value
 
       {:error, errmsg} when is_binary(errmsg) ->
         raise ArgumentError,
@@ -106,13 +115,25 @@ defmodule Oaskit.Internal.ControllerBuilder do
     end
   end
 
-  def take_default(builder, key, default, cast \\ &nocast/1) do
+  @doc """
+  Takes a value from the builder under a given key, casts it with the caster and
+  transform it with the transformer, and then adds it in the output data under
+  the same key.
+
+  If the key is not present in the builder, use the default value.
+
+  Default values are not cast, but they are transformed.
+  """
+  def take_default(builder, key, default, caster \\ &nocast/1, transform \\ &notransform/1) do
     %__MODULE__{input: input, output: output} = builder
 
-    case pop(input, key) do
-      {:ok, value, input} -> with_cast(%{builder | input: input}, key, value, cast)
-      :error -> %{builder | output: Map.put(output, key, default)}
-    end
+    {value, input} =
+      case pop(input, key) do
+        {:ok, value, input} -> {cast!(builder, key, value, caster), input}
+        :error -> {default, input}
+      end
+
+    %{builder | input: input, output: Map.put(output, key, transform.(value))}
   end
 
   def take_default_lazy(builder, key, generate, cast \\ &nocast/1)

@@ -38,6 +38,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/before-metas", MetaController, :before_metas
       get "/after-metas", MetaController, :after_metas
       get "/overrides-param", MetaController, :overrides_param
+      get "/no-defs", MetaController, :no_defs
     end
 
     scope "/body", Oaskit.TestWeb do
