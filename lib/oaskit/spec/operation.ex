@@ -114,7 +114,19 @@ defmodule Oaskit.Spec.Operation do
     |> rename_input(:operation_id, :operationId)
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)
-    |> take_default(:tags, nil, &merge_tags(&1, shared_tags))
+    |> take_default_lazy(
+      :tags,
+      fn ->
+        case shared_tags do
+          [] ->
+            nil
+
+          [_ | _] ->
+            shared_tags
+        end
+      end,
+      &merge_tags(&1, shared_tags)
+    )
     |> take_default(:parameters, nil, &cast_params(&1, opts))
     |> take_default(:description, nil)
     |> take_default(:callbacks, nil)
@@ -286,7 +298,14 @@ defmodule Oaskit.Spec.Operation do
           "operation macro expects :security to be a list of maps with scope lists as values, got: #{inspect(security)}"
   end
 
+  defp merge_tags(nil, _shared_tags) do
+    {:ok, nil}
+  end
+
   defp merge_tags(self_tags, shared_tags) do
-    {:ok, Enum.uniq(self_tags ++ shared_tags)}
+    case Enum.uniq(self_tags ++ shared_tags) do
+      [] -> {:ok, nil}
+      tags -> {:ok, tags}
+    end
   end
 end

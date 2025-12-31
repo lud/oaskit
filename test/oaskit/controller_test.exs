@@ -259,4 +259,73 @@ defmodule Oaskit.ControllerTest do
              } = Operation.from_controller!(spec)
     end
   end
+
+  describe "tags macro" do
+    test "shared tags are applied when operation omits tags key" do
+      # Shared tags should be applied even when `tags:` is not specified
+      # in the operation spec
+      spec = [
+        operation_id: :some_operation,
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+
+      assert %Operation{tags: ["users", "v1"]} = op
+    end
+
+    test "shared tags are merged with operation tags" do
+      spec = [
+        operation_id: :some_operation,
+        tags: ["slow"],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+
+      assert %Operation{tags: tags} = op
+      assert "slow" in tags
+      assert "users" in tags
+      assert "v1" in tags
+    end
+
+    test "operation tags take precedence over shared tags for duplicates" do
+      spec = [
+        operation_id: :some_operation,
+        tags: ["users", "custom"],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+
+      assert %Operation{tags: tags} = op
+      # Should contain unique tags only
+      assert length(Enum.filter(tags, &(&1 == "users"))) == 1
+    end
+
+    test "empty shared_tags with no operation tags results in nil" do
+      spec = [
+        operation_id: :some_operation,
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_tags: [])
+
+      # When no shared tags and no operation tags, tags should be nil
+      assert %Operation{tags: nil} = op
+    end
+
+    test "explicit nil tags overrides shared tags" do
+      spec = [
+        operation_id: :some_operation,
+        tags: nil,
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec, shared_tags: ["users", "v1"])
+
+      # Explicitly passing tags: nil should override shared tags
+      assert %Operation{tags: nil} = op
+    end
+  end
 end
