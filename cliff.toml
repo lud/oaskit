@@ -75,6 +75,7 @@ commit_parsers = [
   { message = "^chore: Update Elixir workflow", skip = true },
   { message = "^chore: Update library configuration", skip = true },
   { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+  { message = "^security", group = "<!-- 8 -->🛡️ Security" },
   { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
   { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
   { message = ".*", group = "<!-- 10 -->💼 Other" },
