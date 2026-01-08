@@ -11,8 +11,12 @@ defmodule Oaskit.TestWeb.Router do
     plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.DeclarativeApiSpec
   end
 
-  pipeline :api_security do
-    plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.SecurityApiSpec
+  pipeline :api_security_with_global do
+    plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.SecurityApiSpecWithGlobal
+  end
+
+  pipeline :api_security_no_global do
+    plug Oaskit.Plugs.SpecProvider, spec: Oaskit.TestWeb.SecurityApiSpecNoGlobal
   end
 
   pipeline :api_orval do
@@ -110,7 +114,18 @@ defmodule Oaskit.TestWeb.Router do
   end
 
   scope "/security", Oaskit.TestWeb do
-    pipe_through :api_security
+    pipe_through :api_security_with_global
+
+    post "/no-security", SecurityController, :no_security
+    post "/empty-security", SecurityController, :empty_security
+    post "/no-scopes", SecurityController, :no_scopes
+    post "/with-scopes", SecurityController, :with_scopes
+    post "/multi-scheme-security", SecurityController, :multi_scheme_security
+    post "/multi-choice-security", SecurityController, :multi_choice_security
+  end
+
+  scope "/security-no-global", Oaskit.TestWeb do
+    pipe_through :api_security_no_global
 
     post "/no-security", SecurityController, :no_security
     post "/empty-security", SecurityController, :empty_security

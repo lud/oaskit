@@ -3,6 +3,8 @@ defmodule Oaskit.Web.ParamTest do
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
+  setup :with_security_noop
+
   describe "no params" do
     test "path_params and query_params is always defined", %{conn: conn} do
       conn =

@@ -4,6 +4,8 @@ defmodule Oaskit.Web.BodyTest do
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
+  setup :with_security_noop
+
   @valid_payload %{
     "name" => "Monstera Deliciosa",
     "sunlight" => "bright_indirect"

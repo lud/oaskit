@@ -41,7 +41,8 @@ dump-declarative:
   mix openapi.dump Oaskit.TestWeb.DeclarativeApiSpec --pretty -o samples/decl-api.json
 
 dump-security:
-  mix openapi.dump Oaskit.TestWeb.SecurityApiSpec --pretty -o samples/security-api.json
+  mix openapi.dump Oaskit.TestWeb.SecurityApiSpecWithGlobal --pretty -o samples/security-api.json
+  mix openapi.dump Oaskit.TestWeb.SecurityApiSpecNoGlobal --pretty -o samples/security-no-global-api.json
 
 dump-orval:
   mix openapi.dump Oaskit.TestWeb.OrvalApiSpec --pretty -o samples/orval-api.json
@@ -51,7 +52,7 @@ test-orval: dump-orval
   cd test/support/orval && npm start
 
 docs: readmix
-  mix docs
+  mix docs --warnings-as-errors
 
 readmix:
   mix rdmx.update README.md

@@ -14,6 +14,7 @@ defmodule Oaskit.TestWeb.SecurityController do
   @common_response_schema true
 
   operation :no_security,
+    method: :post,
     operation_id: "noSecurity",
     request_body: {@common_request_schema, description: "common body"},
     responses: [ok: {@common_response_schema, description: "common response"}]

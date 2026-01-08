@@ -200,14 +200,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
       |> Keyword.put_new(:security, nil)
       |> tap(&validate_security_opt/1)
 
-    # {error_handler, opts} = Keyword.pop(opts, :error_handler, Oaskit.ErrorHandler.Default)
-    # error_handler = cast_error_handler(error_handler, opts)
-    # opts = [{:error_handler, error_handler} | opts]
-
-    # {security, opts} = Keyword.pop(opts, :security, nil)
-    # security = cast_security(security, opts)
-    # opts = [{:security, security} | opts]
-
     Map.new(opts)
   end
 
@@ -297,12 +289,18 @@ defmodule Oaskit.Plugs.ValidateRequest do
     end
   end
 
-  defp call_security(conn, nil, _operation_id, _opts) do
-    conn
-  end
+  defp call_security(conn, security, operation_id, opts)
+       when is_list(security)
+       when is_nil(security) do
+    # opts.security is the security plug given to this plug
 
-  defp call_security(conn, security, operation_id, opts) when is_list(security) do
     case opts.security do
+      # nil plug and nil security on the route, let it pass
+      nil when is_nil(security) ->
+        conn
+
+      # nil plug but route defines security, this should be handled by the user,
+      # we warn and halt
       nil ->
         warn_undef_security(conn, operation_id)
 
@@ -310,9 +308,11 @@ defmodule Oaskit.Plugs.ValidateRequest do
         |> Conn.send_resp(401, "unauthorized")
         |> Conn.halt()
 
+      # security is disabled
       false ->
         conn
 
+      # When a plug is defined, we always call it, even if security is nil.
       plug ->
         {plug_mod, plug_opts} =
           case plug do

@@ -4,6 +4,8 @@ defmodule Oaskit.Web.ExtensionsTest do
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
+  setup :with_security_noop
+
   describe "basic extensions" do
     test "encodable extensions are provided", %{conn: conn} do
       conn =

@@ -62,6 +62,14 @@ defmodule Oaskit.ConnCase do
     SecurityPlug.embed_mock(conn, fun)
   end
 
+  def with_security_noop(%{test: _, conn: %Plug.Conn{} = conn} = ctx) do
+    Map.put(ctx, :conn, with_security_noop(conn))
+  end
+
+  def with_security_noop(%Plug.Conn{} = conn) do
+    SecurityPlug.embed_mock(conn, fn conn, _ -> conn end)
+  end
+
   def check_security(conn) do
     case conn do
       %{state: :unset} ->

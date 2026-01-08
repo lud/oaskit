@@ -352,12 +352,6 @@ action.
 
 ## Operations Without Security
 
-The security plug is only called for operations that explicitly define the
-`:security` option or when the root-level security is defined.
-
-* Operations without this option will skip security validation entirely, unless
-  security requirements are defined at the root level of your OpenAPI
-  specification.
-* Operations that define an empty security requirement list to override
-  root-level security _will_ trigger the security mechanism and your plug will
-  receive an empty list in the `:security` option.
+If defined, the security plug is always called for all operations. If there is
+no global security to fallback to and the operation does not define a security
+option, your plug will receive `nil` as the `:security` option.

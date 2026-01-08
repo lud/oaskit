@@ -1,4 +1,4 @@
-defmodule Oaskit.TestWeb.SecurityApiSpec do
+defmodule Oaskit.TestWeb.SecurityApiSpecNoGlobal do
   alias Oaskit.Spec.Paths
   alias Oaskit.Spec.Server
   use Oaskit
@@ -14,7 +14,7 @@ defmodule Oaskit.TestWeb.SecurityApiSpec do
         Paths.from_router(Oaskit.TestWeb.Router,
           filter: fn route ->
             case route.path do
-              "/security" <> _ -> true
+              "/security-no-global/" <> _ -> true
               _ -> false
             end
           end
@@ -22,7 +22,6 @@ defmodule Oaskit.TestWeb.SecurityApiSpec do
       servers: [Server.from_config(:oaskit, Oaskit.TestWeb.Endpoint)],
       # This is the default global security scheme that applies to all
       # operations from this spec.
-      security: [%{"global" => ["some:global1", "some:global2"]}],
       components: %{
         securitySchemes: %{
           globalSec: %{

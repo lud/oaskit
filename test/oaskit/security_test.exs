@@ -47,36 +47,78 @@ defmodule Oaskit.SecurityTest do
     assert json_response(conn422, 422)
   end
 
-  describe "security plug delegation" do
+  describe "security plug delegation with global security" do
+    @base_url "/security"
     # Should use the globally defined security when security is not defined on
     # the operation
     test "/no-security", %{conn: conn} do
-      test_route(conn, ~p"/security/no-security", "noSecurity", @global_security)
+      test_route(conn, "#{@base_url}/no-security", "noSecurity", @global_security)
     end
 
     # empty list security is still given to the plug
     test "/empty-security", %{conn: conn} do
-      test_route(conn, ~p"/security/empty-security", "emptySecurity", [])
+      test_route(conn, "#{@base_url}/empty-security", "emptySecurity", [])
     end
 
     test "/no-scopes", %{conn: conn} do
-      test_route(conn, ~p"/security/no-scopes", "noScopes", [%{"someApiKey" => []}])
+      test_route(conn, "#{@base_url}/no-scopes", "noScopes", [%{"someApiKey" => []}])
     end
 
     test "/with-scopes", %{conn: conn} do
-      test_route(conn, ~p"/security/with-scopes", "withScopes", [
+      test_route(conn, "#{@base_url}/with-scopes", "withScopes", [
         %{"someApiKey" => ["some:scope1", "some:scope2"]}
       ])
     end
 
     test "/multi-scheme-security", %{conn: conn} do
-      test_route(conn, ~p"/security/multi-scheme-security", "multiSchemeSecurity", [
+      test_route(conn, "#{@base_url}/multi-scheme-security", "multiSchemeSecurity", [
         %{"someApiKey" => ["scope1", "scope2"], "someOauth" => ["so"]}
       ])
     end
 
     test "/multi-choice-security", %{conn: conn} do
-      test_route(conn, ~p"/security/multi-choice-security", "multiChoiceSecurity", [
+      test_route(conn, "#{@base_url}/multi-choice-security", "multiChoiceSecurity", [
+        %{"someApiKey" => ["scope1", "scope2"]},
+        %{"someOauth" => ["so"]}
+      ])
+    end
+  end
+
+  describe "security without global" do
+    @base_url "/security-no-global"
+
+    # This test is different. No global security is defined, but the used
+    # defined a security plug for validate request. In that case we will always
+    # call the plug.
+    #
+    # And so we expect to be given `nil`
+    test "/no-security", %{conn: conn} do
+      test_route(conn, "#{@base_url}/no-security", "noSecurity", nil)
+    end
+
+    # empty list security is still given to the plug
+    test "/empty-security", %{conn: conn} do
+      test_route(conn, "#{@base_url}/empty-security", "emptySecurity", [])
+    end
+
+    test "/no-scopes", %{conn: conn} do
+      test_route(conn, "#{@base_url}/no-scopes", "noScopes", [%{"someApiKey" => []}])
+    end
+
+    test "/with-scopes", %{conn: conn} do
+      test_route(conn, "#{@base_url}/with-scopes", "withScopes", [
+        %{"someApiKey" => ["some:scope1", "some:scope2"]}
+      ])
+    end
+
+    test "/multi-scheme-security", %{conn: conn} do
+      test_route(conn, "#{@base_url}/multi-scheme-security", "multiSchemeSecurity", [
+        %{"someApiKey" => ["scope1", "scope2"], "someOauth" => ["so"]}
+      ])
+    end
+
+    test "/multi-choice-security", %{conn: conn} do
+      test_route(conn, "#{@base_url}/multi-choice-security", "multiChoiceSecurity", [
         %{"someApiKey" => ["scope1", "scope2"]},
         %{"someOauth" => ["so"]}
       ])

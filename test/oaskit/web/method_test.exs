@@ -7,6 +7,8 @@ defmodule Oaskit.Web.MethodTest do
   # The lib should use the correct operation id as each one is given the
   # method to match with the `operation` macro.
 
+  setup :with_security_noop
+
   describe "matching method –" do
     Enum.each([:get, :put, :post, :delete, :options, :head, :patch, :trace], fn verb ->
       test verb, %{conn: conn} do

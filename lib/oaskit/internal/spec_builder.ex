@@ -131,8 +131,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   defp to_ops_map(ops_list) do
     Enum.reduce(ops_list, %{}, fn
       {op_id, _}, acc when is_map_key(acc, op_id) ->
-        raise ArgumentError,
-              "duplicate operation id #{inspect(op_id)} or operation missing the :method option"
+        raise ArgumentError, "duplicate operation id #{inspect(op_id)}"
 
       {op_id, op_spec}, acc ->
         Map.put(acc, op_id, op_spec)

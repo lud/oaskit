@@ -103,7 +103,8 @@ defmodule Oaskit.MixProject do
       "guides/external-specs.md",
       "guides/extensions.md",
       "guides/security.md",
-      "guides/limitations.md"
+      "guides/limitations.md",
+      "guides/dev-log/001.security-changes-0-10.md"
     ]
 
     case existing_guides -- defined_guides do
@@ -128,7 +129,8 @@ defmodule Oaskit.MixProject do
   defp groups_for_extras do
     [
       Setup: ~r{guides/(quickstart|external-specs|extensions|limitations)},
-      Security: ~r{guides/security}
+      Security: ~r{guides/security},
+      "Dev Log": ~r/guides\/dev-log\/.?/
     ]
   end
 

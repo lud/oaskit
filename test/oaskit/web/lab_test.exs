@@ -6,6 +6,8 @@ defmodule Oaskit.Web.LabTest do
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
+  setup :with_security_noop
+
   @valid_payload %{
     "name" => "Elixir of Vitality",
     "ingredients" => [

@@ -3,6 +3,8 @@ defmodule Oaskit.Web.ResponseTest do
   import Oaskit.Test
   use Oaskit.ConnCase, async: true
 
+  setup :with_security_noop
+
   describe "with generated api" do
     test "response without defined operation", %{conn: conn} do
       conn = get(conn, ~p"/generated/resp/fortune-200-no-operation")
