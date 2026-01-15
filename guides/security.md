@@ -200,16 +200,18 @@ plug Oaskit.Plugs.ValidateRequest,
 
 #### Extra options
 
-Besides the plug level options, when invoked, your plug will receive two extra
+Besides the plug level options, when invoked, your plug will receive some extra
 options:
 
 * The `:operation_id` from the operation to authorize.
 * The `:security` requirements from the operation to authorize, defined on the
   operation or inherited from the root-level security.
+* The `:extensions` which are all user defined properties that can be found in
+  an operation definition. This allows you to pass some custom options to the
+  plug, _per operation_.
 
 Because of this, the options for plugs passed as a `{module, options}` tuple
-must always be a keyword list, so the operation ID and the security requirements
-can be injected.
+must always be a keyword list, so these extra options can be injected.
 
 ## Disabling security
 

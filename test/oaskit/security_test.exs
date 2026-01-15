@@ -11,7 +11,13 @@ defmodule Oaskit.SecurityTest do
     |> halt()
   end
 
-  defp test_route(base_conn, route, expected_operation_id, expected_security) do
+  defp test_route(
+         base_conn,
+         route,
+         expected_operation_id,
+         expected_security,
+         callback \\ fn _, _ -> :ok end
+       ) do
     # should return 401 when security fails
 
     conn401 =
@@ -22,6 +28,7 @@ defmodule Oaskit.SecurityTest do
           assert expected_security == opts[:security]
           assert :given_custom_opt == opts[:custom_opt]
           assert Keyword.has_key?(opts, :error_handler)
+          callback.(conn, opts)
           unauthorized_response(conn)
       end)
       |> post(route, @invalid_body)
@@ -39,6 +46,7 @@ defmodule Oaskit.SecurityTest do
           assert expected_security == opts[:security]
           assert :given_custom_opt == opts[:custom_opt]
           assert Keyword.has_key?(opts, :error_handler)
+          callback.(conn, opts)
           conn
       end)
       |> post(route, @invalid_body)
@@ -122,6 +130,18 @@ defmodule Oaskit.SecurityTest do
         %{"someApiKey" => ["scope1", "scope2"]},
         %{"someOauth" => ["so"]}
       ])
+    end
+
+    test "/with-extensions", %{conn: conn} do
+      test_route(
+        conn,
+        ~p"/security/with-extensions",
+        "withExtensions",
+        [%{"someApiKey" => ["some:scope1", "some:scope2"]}],
+        fn _conn, opts ->
+          assert %{some_extension: :hello, "x-some-extension": "hello"} = opts[:extensions]
+        end
+      )
     end
   end
 end

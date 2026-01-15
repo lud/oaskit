@@ -42,9 +42,9 @@ defmodule Oaskit.Validation.RequestValidator do
     validate_request(req_data, Oaskit.build_spec!(spec_module), operation_id)
   end
 
-  def validate_request(%RequestData{} = req_data, {_, _} = built_spec, operation_id) do
-    case fetch_operation(built_spec, operation_id) do
-      {:ok, {operation, jsv_root}} ->
+  def validate_request(%RequestData{} = req_data, {op_map, jsv_root}, operation_id) do
+    case fetch_operation(op_map, operation_id) do
+      {:ok, operation} ->
         %{validation: validation, extensions: extensions} = operation
 
         private_accin = %{
@@ -63,9 +63,9 @@ defmodule Oaskit.Validation.RequestValidator do
     end
   end
 
-  defp fetch_operation({op_map, jsv_root}, operation_id) do
+  defp fetch_operation(op_map, operation_id) do
     case op_map do
-      %{^operation_id => operation} -> {:ok, {operation, jsv_root}}
+      %{^operation_id => operation} -> {:ok, operation}
       _ -> {:error, {:not_built, operation_id}}
     end
   end

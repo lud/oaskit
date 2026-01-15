@@ -72,4 +72,16 @@ defmodule Oaskit.TestWeb.SecurityController do
   def multi_choice_security(conn, _params) do
     json(conn, %{})
   end
+
+  operation :with_extensions,
+    operation_id: "withExtensions",
+    some_extension: :hello,
+    "x-some-extension": "hello",
+    security: [%{"someApiKey" => ["some:scope1", "some:scope2"]}],
+    request_body: {@common_request_schema, description: "common body"},
+    responses: [ok: {@common_response_schema, description: "common response"}]
+
+  def with_extensions(conn, _params) do
+    json(conn, %{})
+  end
 end
