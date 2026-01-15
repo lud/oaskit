@@ -45,7 +45,7 @@ defmodule Oaskit.MixProject do
       {:plug, ">= 1.16.0"},
       {:decimal, "~> 2.0", optional: true},
       {:texture, "~> 0.3"},
-      {:cli_mate, "~> 0.8.1"},
+      {:cli_mate, "~> 0.9"},
 
       # Test
       {:bandit, "~> 1.0", only: [:dev, :test]},
