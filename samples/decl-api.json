@@ -64,13 +64,13 @@
         ],
         "type": "object"
       },
-      "JSV:KeywordError": {
-        "title": "JSV:KeywordError",
+      "JSV.KeywordError": {
+        "title": "JSV.KeywordError",
         "description": "Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes",
         "properties": {
           "details": {
             "items": {
-              "$ref": "#/components/schemas/JSV:ValidationUnit"
+              "$ref": "#/components/schemas/JSV.ValidationUnit"
             },
             "type": "array"
           },
@@ -89,13 +89,13 @@
         ],
         "type": "object"
       },
-      "JSV:ValidationError": {
-        "title": "JSV:ValidationError",
+      "JSV.ValidationError": {
+        "title": "JSV.ValidationError",
         "description": "This represents a normalized `JSV.ValidationError` in a JSON-encodable way. It contains a list of error units.",
         "properties": {
           "details": {
             "items": {
-              "$ref": "#/components/schemas/JSV:ValidationUnit"
+              "$ref": "#/components/schemas/JSV.ValidationUnit"
             },
             "type": "array"
           },
@@ -108,13 +108,13 @@
         ],
         "type": "object"
       },
-      "JSV:ValidationUnit": {
-        "title": "JSV:ValidationUnit",
+      "JSV.ValidationUnit": {
+        "title": "JSV.ValidationUnit",
         "description": "Describes all errors found at given instanceLocation raised by the same sub-schema (same schemaLocation and evaluationPath). It may also represent a positive validation result, (when `valid` is `true`) needed when for instance multiple schemas under `oneOf` validates the input sucessfully.",
         "properties": {
           "errors": {
             "items": {
-              "$ref": "#/components/schemas/JSV:KeywordError"
+              "$ref": "#/components/schemas/JSV.KeywordError"
             },
             "type": "array"
           },
@@ -143,26 +143,8 @@
         "pattern": "[a-zA-Z0-9_-]",
         "type": "string"
       },
-      "Oaskit.TestWeb.Schemas.Alchemist": {
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "titles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "name",
-          "titles"
-        ],
-        "type": "object"
-      },
-      "Oaskit:BadRequestError": {
-        "title": "Oaskit:BadRequestError",
+      "Oaskit.BadRequestError": {
+        "title": "Oaskit.BadRequestError",
         "properties": {
           "kind": {
             "const": "bad_request"
@@ -176,7 +158,7 @@
                       "const": "invalid_parameter"
                     },
                     "validation_error": {
-                      "$ref": "#/components/schemas/JSV:ValidationError"
+                      "$ref": "#/components/schemas/JSV.ValidationError"
                     }
                   },
                   "required": [
@@ -227,17 +209,17 @@
         ],
         "type": "object"
       },
-      "Oaskit:Error": {
-        "title": "Oaskit:Error",
+      "Oaskit.Error": {
+        "title": "Oaskit.Error",
         "oneOf": [
           {
-            "$ref": "#/components/schemas/Oaskit:UnprocessableEntityError"
+            "$ref": "#/components/schemas/Oaskit.UnprocessableEntityError"
           },
           {
-            "$ref": "#/components/schemas/Oaskit:UnsupportedMediaTypeError"
+            "$ref": "#/components/schemas/Oaskit.UnsupportedMediaTypeError"
           },
           {
-            "$ref": "#/components/schemas/Oaskit:BadRequestError"
+            "$ref": "#/components/schemas/Oaskit.BadRequestError"
           }
         ],
         "properties": {
@@ -270,11 +252,11 @@
         ],
         "type": "object"
       },
-      "Oaskit:ErrorResponse": {
-        "title": "Oaskit:ErrorResponse",
+      "Oaskit.ErrorResponse": {
+        "title": "Oaskit.ErrorResponse",
         "properties": {
           "error": {
-            "$ref": "#/components/schemas/Oaskit:Error"
+            "$ref": "#/components/schemas/Oaskit.Error"
           }
         },
         "required": [
@@ -282,14 +264,32 @@
         ],
         "type": "object"
       },
-      "Oaskit:UnprocessableEntityError": {
-        "title": "Oaskit:UnprocessableEntityError",
+      "Oaskit.TestWeb.Schemas.Alchemist": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "titles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "titles"
+        ],
+        "type": "object"
+      },
+      "Oaskit.UnprocessableEntityError": {
+        "title": "Oaskit.UnprocessableEntityError",
         "properties": {
           "kind": {
             "const": "unprocessable_content"
           },
           "validation_error": {
-            "$ref": "#/components/schemas/JSV:ValidationError"
+            "$ref": "#/components/schemas/JSV.ValidationError"
           }
         },
         "required": [
@@ -297,8 +297,8 @@
         ],
         "type": "object"
       },
-      "Oaskit:UnsupportedMediaTypeError": {
-        "title": "Oaskit:UnsupportedMediaTypeError",
+      "Oaskit.UnsupportedMediaTypeError": {
+        "title": "Oaskit.UnsupportedMediaTypeError",
         "properties": {
           "kind": {
             "const": "unsupported_media_type"
@@ -361,7 +361,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Oaskit:ErrorResponse"
+              "$ref": "#/components/schemas/Oaskit.ErrorResponse"
             }
           }
         },

@@ -4,6 +4,141 @@
  * Oaskit Orval API
  * OpenAPI spec version: 0.0.0
  */
+/**
+ * Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes
+ */
+export interface JSVKeywordError {
+  details?: JSVValidationUnit[]
+  /** The keyword or internal operation that invalidated the data, like "type", or a combination like "if/else". Custom vocabularies can create their own kinds over the built-in ones. */
+  kind: string
+  /** An error message related to the invalidating keyword */
+  message: string
+}
+
+/**
+ * This represents a normalized `JSV.ValidationError` in a JSON-encodable way. It contains a list of error units.
+ */
+export interface JSVValidationError {
+  details?: JSVValidationUnit[]
+  valid: unknown
+}
+
+/**
+ * Describes all errors found at given instanceLocation raised by the same sub-schema (same schemaLocation and evaluationPath). It may also represent a positive validation result, (when `valid` is `true`) needed when for instance multiple schemas under `oneOf` validates the input sucessfully.
+ */
+export interface JSVValidationUnit {
+  errors?: JSVKeywordError[]
+  /** A JSON path pointing to the part of the schema that invalidated the data, but going through all indirections like $ref within the schema, starting from the root schema. */
+  evaluationPath?: string
+  /** A JSON path pointing to the invalid part in the input data. */
+  instanceLocation?: string
+  /** A JSON path pointing to the part of the schema that invalidated the data. */
+  schemaLocation?: string
+  valid: boolean
+}
+
+export type OaskitBadRequestErrorParametersErrorsItemOneOf = {
+  kind?: "invalid_parameter"
+  validation_error: JSVValidationError
+}
+
+export type OaskitBadRequestErrorParametersErrorsItemOneOfTwo = {
+  kind?: "missing_parameter"
+}
+
+export type OaskitBadRequestErrorParametersErrorsItemIn =
+  (typeof OaskitBadRequestErrorParametersErrorsItemIn)[keyof typeof OaskitBadRequestErrorParametersErrorsItemIn]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OaskitBadRequestErrorParametersErrorsItemIn = {
+  query: "query",
+  path: "path",
+  header: "header",
+} as const
+
+export type OaskitBadRequestErrorParametersErrorsItemKind =
+  (typeof OaskitBadRequestErrorParametersErrorsItemKind)[keyof typeof OaskitBadRequestErrorParametersErrorsItemKind]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OaskitBadRequestErrorParametersErrorsItemKind = {
+  invalid_parameter: "invalid_parameter",
+  missing_parameter: "missing_parameter",
+} as const
+
+export type OaskitBadRequestErrorParametersErrorsItem =
+  | (OaskitBadRequestErrorParametersErrorsItemOneOf & {
+      in: OaskitBadRequestErrorParametersErrorsItemIn
+      kind?: OaskitBadRequestErrorParametersErrorsItemKind
+      message: string
+      parameter: string
+    })
+  | (OaskitBadRequestErrorParametersErrorsItemOneOfTwo & {
+      in: OaskitBadRequestErrorParametersErrorsItemIn
+      kind?: OaskitBadRequestErrorParametersErrorsItemKind
+      message: string
+      parameter: string
+    })
+
+export interface OaskitBadRequestError {
+  kind?: "bad_request"
+  parameters_errors: OaskitBadRequestErrorParametersErrorsItem[]
+}
+
+export type OaskitErrorIn = (typeof OaskitErrorIn)[keyof typeof OaskitErrorIn]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OaskitErrorIn = {
+  body: "body",
+  parameters: "parameters",
+} as const
+
+export type OaskitErrorKind =
+  (typeof OaskitErrorKind)[keyof typeof OaskitErrorKind]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OaskitErrorKind = {
+  unprocessable_content: "unprocessable_content",
+  unsupported_media_type: "unsupported_media_type",
+  bad_request: "bad_request",
+} as const
+
+export type OaskitError =
+  | (OaskitUnprocessableEntityError & {
+      in: OaskitErrorIn
+      kind: OaskitErrorKind
+      message: string
+      /** The ID of the operation that could not be executed */
+      operation_id: string
+    })
+  | (OaskitUnsupportedMediaTypeError & {
+      in: OaskitErrorIn
+      kind: OaskitErrorKind
+      message: string
+      /** The ID of the operation that could not be executed */
+      operation_id: string
+    })
+  | (OaskitBadRequestError & {
+      in: OaskitErrorIn
+      kind: OaskitErrorKind
+      message: string
+      /** The ID of the operation that could not be executed */
+      operation_id: string
+    })
+
+export interface OaskitErrorResponse {
+  error: OaskitError
+}
+
+export interface OaskitUnprocessableEntityError {
+  kind?: "unprocessable_content"
+  validation_error: JSVValidationError
+}
+
+export interface OaskitUnsupportedMediaTypeError {
+  kind?: "unsupported_media_type"
+  media_type: string
+}
+
 export type UserBodySchemaRole =
   (typeof UserBodySchemaRole)[keyof typeof UserBodySchemaRole]
 

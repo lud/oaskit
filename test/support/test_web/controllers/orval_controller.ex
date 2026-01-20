@@ -9,7 +9,10 @@ defmodule Oaskit.TestWeb.OrvalController do
     parameters: [
       "simple_explode_integers[]": [in: :query, schema: array_of(integer())]
     ],
-    responses: [ok: {object(), []}]
+    responses: [
+      ok: {object(), []},
+      default: Oaskit.ErrorHandler.Default.error_response_schema()
+    ]
 
   def test_arrays(conn, _params) do
     json(conn, conn.private.oaskit)

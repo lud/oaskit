@@ -289,7 +289,7 @@ defmodule Oaskit.ErrorHandler.Default.UnprocessableEntityErrorSchema do
 
   defschema %{
     type: :object,
-    title: "Oaskit:UnprocessableEntityError",
+    title: "Oaskit.UnprocessableEntityError",
     properties: %{
       kind: %{const: "unprocessable_content"},
       validation_error: JSV.error_schema()
@@ -305,7 +305,7 @@ defmodule Oaskit.ErrorHandler.Default.UnsupportedMediaTypeErrorSchema do
 
   defschema %{
     type: :object,
-    title: "Oaskit:UnsupportedMediaTypeError",
+    title: "Oaskit.UnsupportedMediaTypeError",
     properties: %{
       kind: const("unsupported_media_type"),
       media_type: string()
@@ -321,7 +321,7 @@ defmodule Oaskit.ErrorHandler.Default.BadRequestErrorSchema do
 
   defschema %{
     type: :object,
-    title: "Oaskit:BadRequestError",
+    title: "Oaskit.BadRequestError",
     properties: %{
       kind: %{const: "bad_request"},
       parameters_errors:
@@ -361,7 +361,7 @@ defmodule Oaskit.ErrorHandler.Default.ErrorSchema do
 
   defschema %{
     type: :object,
-    title: "Oaskit:Error",
+    title: "Oaskit.Error",
     properties: %{
       in: enum(["body", "parameters"]),
       message: string(),
@@ -384,7 +384,7 @@ defmodule Oaskit.ErrorHandler.Default.ErrorResponseSchema do
 
   defschema %{
     type: :object,
-    title: "Oaskit:ErrorResponse",
+    title: "Oaskit.ErrorResponse",
     properties: %{
       error: Oaskit.ErrorHandler.Default.ErrorSchema
     },
