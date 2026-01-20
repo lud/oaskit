@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-01-20
+
+### 🚀 Features
+
+- Pass the :extensions options to the security plug
+
+### 🐛 Bug Fixes
+
+- Added validation constraints for security scheme objects
+
 ## [0.10.1] - 2026-01-15
 
 ### 🐛 Bug Fixes
