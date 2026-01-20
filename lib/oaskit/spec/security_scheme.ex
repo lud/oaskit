@@ -1,5 +1,6 @@
 defmodule Oaskit.Spec.SecurityScheme do
-  use Oaskit.Internal.SpecObject
+  use Oaskit.Internal.SpecObject,
+    link: "https://spec.openapis.org/oas/v3.1.1.html#security-scheme-object-0"
 
   defschema %{
     title: "SecurityScheme",
@@ -49,7 +50,14 @@ defmodule Oaskit.Spec.SecurityScheme do
           "The URL to discover OpenID Connect configuration. Required for openIdConnect."
       }
     },
-    required: [:type]
+    required: [:type],
+    oneOf: [
+      %{properties: %{type: %{const: "apiKey"}}, required: [:name, :in]},
+      %{properties: %{type: %{const: "http"}}, required: [:scheme]},
+      %{properties: %{type: %{const: "mutualTLS"}}, required: [:openIdConnectUrl]},
+      %{properties: %{type: %{const: "oauth2"}}, required: [:flows]},
+      %{properties: %{type: %{const: "openIdConnect"}}, required: [:openIdConnectUrl]}
+    ]
   }
 
   @impl true

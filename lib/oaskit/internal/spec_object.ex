@@ -4,14 +4,15 @@ defmodule Oaskit.Internal.SpecObject do
   # Setup for various protocols implemented by the Objects definition of the 3.1
   # specification.
 
-  defmacro __using__(_) do
-    quote do
+  defmacro __using__(opts) do
+    quote bind_quoted: binding() do
       import Oaskit.Internal.Normalizer
-      import unquote(__MODULE__)
+      import Oaskit.Internal.SpecObject
       use JSV.Schema
 
       @behaviour Oaskit.Internal.Normalizer
       @behaviour Access
+
       snake_object_name =
         __MODULE__
         |> Module.split()
@@ -25,14 +26,21 @@ defmodule Oaskit.Internal.SpecObject do
           char -> " " <> String.upcase(char)
         end)
 
-      object_fragment =
-        snake_object_name
-        |> String.replace("_", "-")
-        |> Kernel.<>("-object")
+      object_link =
+        case opts[:link] do
+          "https://spec.openapis.org/" <> _ = link ->
+            link
 
-      obect_link = "https://spec.openapis.org/oas/v3.1.1.html##{object_fragment}"
+          _ ->
+            object_fragment =
+              snake_object_name
+              |> String.replace("_", "-")
+              |> Kernel.<>("-object")
 
-      @moduledoc "Representation of the [#{object_name} Object](#{obect_link}) in OpenAPI Specification."
+            "https://spec.openapis.org/oas/v3.1.1.html##{object_fragment}"
+        end
+
+      @moduledoc "Representation of the [#{object_name} Object](#{object_link}) in OpenAPI Specification."
 
       @impl Access
       def fetch(t, key) do
