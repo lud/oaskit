@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2026-03-19
+
+### 🚀 Features
+
+- [**breaking**] Changed schema titles for all Oaskit errors, possibly impacting client generators
+
+### ⚙️ Miscellaneous Tasks
+
+- Updated license to Apache-2.0
+
 ## [0.11.0] - 2026-01-20
 
 ### 🚀 Features
