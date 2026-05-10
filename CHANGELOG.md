@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0] - 2026-05-10
+
+### 🚀 Features
+
+- Upgrade to JSV 0.19 new cast system
+
 ## [0.12.0] - 2026-03-19
 
 ### 🚀 Features
