@@ -47,7 +47,7 @@ defmodule Oaskit.SpecDumper do
 
   defp prune(spec) do
     JSV.Helpers.Traverse.prewalk(spec, fn
-      {:val, map} when is_map(map) -> Map.delete(map, "jsv-cast")
+      {:val, map} when is_map(map) -> Map.drop(map, ["jsv-cast", "x-jsv-cast"])
       other -> elem(other, 1)
     end)
   end

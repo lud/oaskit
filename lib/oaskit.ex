@@ -223,7 +223,8 @@ defmodule Oaskit do
                          default_meta: JSV.default_meta(),
                          formats: [
                            Oaskit.JsonSchema.Formats | JSV.default_format_validator_modules()
-                         ]
+                         ],
+                         atoms: true
                        ]
                      end)
 

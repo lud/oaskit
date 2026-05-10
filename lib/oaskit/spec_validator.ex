@@ -67,7 +67,7 @@ defmodule Oaskit.SpecValidator do
   `#{inspect(Oaskit.Spec.OpenAPI)}` JSON Schema.
   """
 
-  @openapi_schema JSV.build!(OpenAPI)
+  @openapi_schema JSV.build!(OpenAPI, atoms: true)
 
   @doc """
   Validates the given OpenAPI specification and returns an

@@ -126,7 +126,7 @@ defmodule Oaskit.SpecTest do
                },
                schemas: %{
                  "CreatePotionBody" => %{
-                   "jsv-cast" => ["Elixir.Oaskit.TestWeb.Schemas.CreatePotionBody", 0],
+                   "x-jsv-cast" => "Elixir.Oaskit.TestWeb.Schemas.CreatePotionBody",
                    "properties" => %{
                      "ingredients" => %{
                        "items" => %{
@@ -140,7 +140,7 @@ defmodule Oaskit.SpecTest do
                    "type" => "object"
                  },
                  "Ingredient" => %{
-                   "jsv-cast" => ["Elixir.Oaskit.TestWeb.Schemas.Ingredient", 0],
+                   "x-jsv-cast" => "Elixir.Oaskit.TestWeb.Schemas.Ingredient",
                    "properties" => %{
                      "name" => %{"type" => "string"},
                      "quantity" => %{"type" => "integer"},
@@ -153,7 +153,7 @@ defmodule Oaskit.SpecTest do
                    "type" => "object"
                  },
                  "Potion" => %{
-                   "jsv-cast" => ["Elixir.Oaskit.TestWeb.Schemas.Potion", 0],
+                   "x-jsv-cast" => "Elixir.Oaskit.TestWeb.Schemas.Potion",
                    "properties" => %{
                      "brewingTime" => %{"type" => "integer"},
                      "id" => %{"type" => "string"},

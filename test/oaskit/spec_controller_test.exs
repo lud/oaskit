@@ -90,6 +90,7 @@ defmodule Oaskit.SpecControllerTest do
       conn = get(conn, ~p"/generated/openapi.json")
 
       assert not String.contains?(conn.resp_body, "jsv-cast")
+      assert not String.contains?(conn.resp_body, "x-jsv-cast")
     end
 
     test "sets CORS header for cross-origin access", %{conn: conn} do

@@ -41,10 +41,10 @@ defmodule Oaskit.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.17"},
+      {:jsv, "~> 0.19"},
       {:plug, ">= 1.16.0"},
-      {:decimal, "~> 2.0", optional: true},
-      {:texture, "~> 0.3"},
+      {:decimal, "~> 2.0 or ~> 3.0", optional: true},
+      {:texture, "~> 1.0"},
       {:cli_mate, "~> 0.10"},
 
       # Test
@@ -56,7 +56,6 @@ defmodule Oaskit.MixProject do
       {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: [:dev, :test, :docs], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
