@@ -235,7 +235,7 @@ well as in the OpenAPI specification document.
 
 #### Module-based schemas
 
-A module-based schema is any module that exports a `schema/0` function returning
+A module-based schema is any module that exports a `json_schema/0` function returning
 a valid JSON schema.
 
 Oaskit uses [JSV](https://hex.pm/packages/jsv). Module-based schemas defined
