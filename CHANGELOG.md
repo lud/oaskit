@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.1] - 2026-05-29
+
+### 📚 Documentation
+
+- Fix docs for JSV module based schemas now expecting json_schema/0 (#98)
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix compilation warnings for Elixir 1.20
+
 ## [0.13.0] - 2026-05-10
 
 ### 🚀 Features
