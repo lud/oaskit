@@ -1,12 +1,14 @@
 defmodule Oaskit.TestWeb.Schemas.Alchemist do
   @moduledoc false
 
-  require(JSV).defschema(%{
+  use JSV.Schema
+
+  defschema %{
     type: :object,
     properties: %{
       name: %{type: :string},
       titles: %{type: :array, items: %{type: :string}}
     },
     required: [:name, :titles]
-  })
+  }
 end

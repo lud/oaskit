@@ -405,21 +405,25 @@ defmodule Oaskit.SpecTest do
       # This is a special case that actually happened when copy-pasting stuff.
 
       defmodule Child do
-        require(JSV).defschema(%{
+        use JSV.Schema
+
+        defschema %{
           type: :object,
           who: "child",
           title: "SameTitle",
           properties: %{foo: true}
-        })
+        }
       end
 
       defmodule Parent do
-        require(JSV).defschema(%{
+        use JSV.Schema
+
+        defschema %{
           type: :object,
           who: "parent",
           title: "SameTitle",
           properties: %{child: Child}
-        })
+        }
       end
 
       spec =

@@ -3,7 +3,6 @@ defmodule Oaskit.Plugs.ValidateRequest do
   alias Oaskit.Validation.RequestData
   alias Oaskit.Validation.RequestValidator
   alias Plug.Conn
-  require Logger
 
   @default_query_reader_opts [length: 1_000_000, validate_utf8: true]
 

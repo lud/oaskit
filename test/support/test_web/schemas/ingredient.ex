@@ -1,7 +1,9 @@
 defmodule Oaskit.TestWeb.Schemas.Ingredient do
   @moduledoc false
 
-  require(JSV).defschema(%{
+  use JSV.Schema
+
+  defschema %{
     "type" => "object",
     "properties" => %{
       name: %{"type" => "string"},
@@ -12,5 +14,5 @@ defmodule Oaskit.TestWeb.Schemas.Ingredient do
       }
     },
     "required" => [:name, :quantity, :unit]
-  })
+  }
 end

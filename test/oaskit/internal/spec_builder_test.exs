@@ -12,14 +12,16 @@ defmodule Oaskit.Internal.SpecBuilderTest do
   use ExUnit.Case, async: true
 
   defmodule BodySchema do
-    require(JSV).defschema(%{
+    use JSV.Schema
+
+    defschema %{
       type: :object,
       properties: %{
         some_required: %{type: :integer},
         some_optional: %{type: :string}
       },
       required: [:some_required]
-    })
+    }
   end
 
   @normal_sample_spec Normalizer.normalize!(%OpenAPI{

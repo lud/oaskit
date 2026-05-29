@@ -1,7 +1,9 @@
 defmodule Oaskit.TestWeb.Schemas.CreatePotionBody do
   @moduledoc false
 
-  require(JSV).defschema(%{
+  use JSV.Schema
+
+  defschema %{
     "type" => "object",
     "properties" => %{
       name: %{"type" => "string"},
@@ -11,5 +13,5 @@ defmodule Oaskit.TestWeb.Schemas.CreatePotionBody do
       }
     },
     "required" => [:name, :ingredients]
-  })
+  }
 end

@@ -349,7 +349,6 @@ defmodule Oaskit.Internal.SpecBuilder do
         %{schema: true} -> {:no_validation, jsv_ctx}
         %{schema: nil} -> {:no_validation, jsv_ctx}
         %{schema: _schema} -> build_schema_key(["schema" | rev_path], jsv_ctx)
-        _ -> {:no_validation, jsv_ctx}
       end
 
     built = %{
