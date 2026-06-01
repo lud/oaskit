@@ -53,11 +53,11 @@ defmodule Oaskit.MixProject do
 
       # Dev
       {:phoenix, ">= 1.7.0", only: [:dev, :test]},
-      {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
+      {:readmix, "~> 0.7", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: [:dev, :test, :docs], runtime: false},
+      {:ex_doc, "~> 0.40", only: [:dev, :test, :docs], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]
