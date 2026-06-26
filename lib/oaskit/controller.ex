@@ -33,7 +33,7 @@ defmodule Oaskit.Controller do
 
 
   It can also be useful to define a new `api_controller` function, to separate
-  controllers that define an HTTP API.
+  controllers that define an HTTP API from those that serve HTML pages.
 
   You would then use that function in your API controllers:
 
@@ -42,6 +42,10 @@ defmodule Oaskit.Controller do
 
         # ...
       end
+
+  The [API Controllers in Web module](guides/web-module.md) guide explains how the
+  `MyAppWeb` module dispatches `use MyAppWeb, :controller` and how to add such an
+  `api_controller` entry point.
   """
 
   defmacro __using__(opts) do

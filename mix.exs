@@ -99,6 +99,7 @@ defmodule Oaskit.MixProject do
       "CHANGELOG.md",
       "README.md",
       "guides/quickstart.md",
+      "guides/web-module.md",
       "guides/external-specs.md",
       "guides/extensions.md",
       "guides/security.md",
@@ -127,7 +128,7 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Setup: ~r{guides/(quickstart|external-specs|extensions|limitations)},
+      Setup: ~r{guides/(quickstart|web-module|external-specs|extensions|limitations)},
       Security: ~r{guides/security},
       "Dev Log": ~r/guides\/dev-log\/.?/
     ]

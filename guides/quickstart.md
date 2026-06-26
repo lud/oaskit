@@ -133,6 +133,13 @@ Oaskit validation enabled. See the documentation of
 `Oaskit.Plugs.ValidateRequest` to configure the plug globally for only a
 subset of your controllers.
 
+> #### Mixing HTML and API controllers {: .tip}
+>
+> Patching `controller/0` directly is the simplest setup, but it enables
+> validation on **every** controller, including those serving HTML pages. If
+> your application mixes regular controllers and API controllers, define a
+> dedicated `api_controller/0` function in your `MyAppWeb` module instead. See
+> the [API Controllers in Web module](web-module.md) guide to learn how.
 
 ## Defining Operations in Controllers
 
