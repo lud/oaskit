@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.2] - 2026-06-26
+
+### 📚 Documentation
+
+- Encourage users to use custom controller setup in web module
+- Show how to use @external_resource for imported specs
+
 ## [0.13.1] - 2026-05-29
 
 ### 📚 Documentation
