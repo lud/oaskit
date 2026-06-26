@@ -23,7 +23,8 @@ specification.
 Then read the spec from the external source and return it from the `spec/0`
 callback. It's better to read the external source at compile time if possible,
 to avoid unnecessary resource consumption. You can store the spec in an
-attribute during compilation.
+attribute during compilation. When the spec comes from a file, mark that file
+as an `@external_resource` so Mix recompiles the module when the file changes.
 
 Below is an example with JSON. Oaskit does not ship with a YAML parsing library,
 but you can of course bring your own. As the `c:Oaskit.spec/0` callback must
@@ -39,8 +40,10 @@ defmodule MyAppWeb.ExternalApiSpec do
   OpenAPI specification loaded from an external document.
   """
 
-  # Load from a JSON file
-  @api_spec "priv/openapi/my-api.json"
+  @api_spec_path "priv/openapi/my-api.json"
+  @external_resource @api_spec_path
+
+  @api_spec @api_spec_path
             |> File.read!()
             |> JSON.decode!()
 
