@@ -122,22 +122,13 @@ regular `controller/0` function but adds the two Oaskit pieces:
 * `plug Oaskit.Plugs.ValidateRequest` to validate incoming requests against the
   declared operations.
 
-To avoid duplicating the common setup, you can extract the shared parts into a
-private helper and reuse it from both functions:
+The two functions share a bit of common setup. You could factor that into a
+private helper, but a small amount of duplication keeps each entry point
+self-contained and easy to read, so we simply repeat the shared lines:
 
 <!-- rdmx :section name:api_controller_def format: true -->
 ```elixir
 defmodule MyAppWeb do
-  # The common setup shared by all controllers.
-  defp controller_base do
-    quote do
-      import Plug.Conn
-      use Gettext, backend: MyAppWeb.Gettext
-
-      unquote(verified_routes())
-    end
-  end
-
   # "Normal" controllers, serving HTML and other formats. No validation.
   def controller do
     quote do
@@ -145,7 +136,10 @@ defmodule MyAppWeb do
         formats: [:html, :json],
         layouts: [html: MyAppWeb.Layouts]
 
-      unquote(controller_base())
+      import Plug.Conn
+      use Gettext, backend: MyAppWeb.Gettext
+
+      unquote(verified_routes())
     end
   end
 
@@ -162,7 +156,10 @@ defmodule MyAppWeb do
       # after `use Phoenix.Controller`.
       plug Oaskit.Plugs.ValidateRequest
 
-      unquote(controller_base())
+      import Plug.Conn
+      use Gettext, backend: MyAppWeb.Gettext
+
+      unquote(verified_routes())
     end
   end
 
@@ -260,7 +257,10 @@ def api_controller do
     use Phoenix.Controller, formats: [:json]
     use Oaskit.Controller
     plug Oaskit.Plugs.ValidateRequest
-    unquote(controller_base())
+
+    import Plug.Conn
+    use Gettext, backend: MyAppWeb.Gettext
+    unquote(verified_routes())
   end
 end
 
@@ -269,7 +269,10 @@ def admin_api_controller do
     use Phoenix.Controller, formats: [:json]
     use Oaskit.Controller
     plug Oaskit.Plugs.ValidateRequest, error_handler: MyAppWeb.AdminErrorHandler
-    unquote(controller_base())
+
+    import Plug.Conn
+    use Gettext, backend: MyAppWeb.Gettext
+    unquote(verified_routes())
   end
 end
 ```
