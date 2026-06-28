@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-06-28
+
+### 🚀 Features
+
+- Support object type parameters
+- Validate response headers in Oaskit.Test.valid_response/3
+
+### 📚 Documentation
+
+- Simplify custom web module definition for API controllers
+
 ## [0.13.2] - 2026-06-26
 
 ### 📚 Documentation
