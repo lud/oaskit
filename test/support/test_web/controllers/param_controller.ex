@@ -224,4 +224,77 @@ defmodule Oaskit.TestWeb.ParamController do
   def header_param(conn, params) do
     Responder.reply(conn, params)
   end
+
+  # Headers carrying HTTP Structured Field values (RFC 8941). The schema type is
+  # always :string (the format applies to strings) and the format validator
+  # parses and casts the value, e.g. "?1" -> true for sf-boolean.
+  operation :header_sf_param,
+    operation_id: "parameter_header_sf",
+    parameters: [
+      "sf-string-param": [in: :header, schema: %{type: :string, format: "sf-string"}],
+      "sf-token-param": [in: :header, schema: %{type: :string, format: "sf-token"}],
+      "sf-integer-param": [in: :header, schema: %{type: :string, format: "sf-integer"}],
+      "sf-boolean-param": [in: :header, schema: %{type: :string, format: "sf-boolean"}],
+      "sf-decimal-param": [in: :header, schema: %{type: :string, format: "sf-decimal"}],
+      "sf-binary-param": [in: :header, schema: %{type: :string, format: "sf-binary"}]
+    ],
+    responses: dummy_responses_with_error()
+
+  def header_sf_param(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  # An RGB color, used to exercise object-valued parameter deserialization.
+  @rgb_object %{
+    type: :object,
+    properties: %{r: integer(), g: integer(), b: integer()}
+  }
+
+  # Object-valued parameters. Headers and non-exploded query objects arrive as a
+  # single raw string that Oaskit must split/pair into a map; deepObject query
+  # objects are already turned into a map by Phoenix, so only value casting is
+  # needed.
+  operation :object_types,
+    operation_id: "parameter_object_types",
+    parameters: [
+      # Header, style: simple (the only header style).
+      # explode false -> "r,100,g,200,b,150"
+      "header-object-explode-false": [in: :header, explode: false, schema: @rgb_object],
+      # explode true  -> "r=100,g=200,b=150"
+      "header-object-explode-true": [in: :header, explode: true, schema: @rgb_object],
+
+      # Query, style: form, explode false -> "...=r,100,g,200,b,150"
+      query__object__form__explode_false: [
+        in: :query,
+        style: :form,
+        explode: false,
+        schema: @rgb_object
+      ],
+
+      # Query, style: deepObject -> "...[r]=100&...[g]=200&...[b]=150"
+      # Phoenix parses the brackets into a nested map on its own.
+      query__object__deepObject: [
+        in: :query,
+        style: :deepObject,
+        explode: true,
+        schema: @rgb_object
+      ]
+    ],
+    responses: dummy_responses_with_error()
+
+  def object_types(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  # Object in a path segment, style: simple, explode false -> "r,100,g,200,b,150"
+  operation :object_path,
+    operation_id: "parameter_object_path",
+    parameters: [
+      color: [in: :path, schema: @rgb_object]
+    ],
+    responses: dummy_responses_with_error()
+
+  def object_path(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

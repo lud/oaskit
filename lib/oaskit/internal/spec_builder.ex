@@ -438,12 +438,37 @@ defmodule Oaskit.Internal.SpecBuilder do
             {:noprecast_schema_type, jsv_ctx}
         end
 
+      %{"type" => "object", "properties" => props} when is_map(props) ->
+        {prop_casters, jsv_ctx} = object_property_casters(props, ns, jsv_ctx)
+        {{:object, prop_casters}, jsv_ctx}
+
+      %{"type" => "object"} ->
+        # An object without declared scalar properties: we can still parse the
+        # raw value into a map, there is just nothing to cast.
+        {{:object, %{}}, jsv_ctx}
+
       %{"$ref" => _} ->
         summarize_parameter_schema_ref(schema, ns, jsv_ctx)
 
       _too_hard_for_best_effort ->
         {:noprecast_schema_type, jsv_ctx}
     end
+  end
+
+  defp object_property_casters(properties, ns, jsv_ctx) do
+    Enum.reduce(properties, {%{}, jsv_ctx}, fn {k, v}, {acc, jsv_ctx} ->
+      {sub_summary, jsv_ctx} = summarize_parameter_schema(v, ns, jsv_ctx)
+
+      case sub_summary do
+        type when type in [:integer, :number, :boolean] ->
+          {Map.put(acc, to_string(k), scalar_caster(type)), jsv_ctx}
+
+        # String properties need no cast. Arrays/objects/unknown cannot be
+        # expressed by these object serializations, so they are left as-is.
+        _other ->
+          {acc, jsv_ctx}
+      end
+    end)
   end
 
   # If we want to support fetching parameters from refs we need to do it the
@@ -481,125 +506,126 @@ defmodule Oaskit.Internal.SpecBuilder do
       summarize_parameter_schema(new_schema, new_ns, new_jsv_ctx)
   end
 
-  defp build_parameter_precast(parameter, schema_summary) do
-    # For now we will only handle explode and delimiters in query parameters
-    case parameter do
-      #
-      # Path parameters, supporting simple, non-exploded
+  # Builds the list of precast steps applied to a raw parameter value before JSON
+  # Schema validation. Each clause matches a single (parameter, summary)
+  # combination - or a group of them - and returns the full list of steps
+  # directly. Returns nil when nothing applies: the raw value is then passed
+  # as-is and the schema decides whether to accept it.
 
-      %{in: :path, explode: false, style: :simple} ->
-        # support precast in path with simple
-        build_precast_for_type([], schema_summary)
+  # -- Scalars. The value is a single string regardless of location/style/explode.
 
-      #
-      # Header parameters
-
-      %{in: :header, explode: _, style: :simple} ->
-        []
-        |> build_split_precast_for_type(schema_summary, ",")
-        |> build_precast_for_type(schema_summary)
-
-      #
-      # Other path parameters and any cookie parameter, precast is not
-      # supported
-
-      %{in: loc} when loc in [:path, :header, :cookie] ->
-        nil
-
-      #
-      # Query parameters, supporting simple styles
-
-      # - Query with explode: ignore delimiters as Phoenix will parse query
-      # parameters as strings
-
-      %{in: :query, explode: true, style: _} ->
-        # style does not matter when exploded into multiple param occurences.
-        build_precast_for_type([], schema_summary)
-
-      # - Non-exploded query parameters, support form,spaceDelimited,pipeDelimited
-
-      %{in: :query, explode: false, style: :form} ->
-        []
-        |> build_split_precast_for_type(schema_summary, ",")
-        |> build_precast_for_type(schema_summary)
-
-      %{in: :query, explode: false, style: :spaceDelimited} ->
-        []
-        |> build_split_precast_for_type(schema_summary, " ")
-        |> build_precast_for_type(schema_summary)
-
-      %{in: :query, explode: false, style: :pipeDelimited} ->
-        []
-        |> build_split_precast_for_type(schema_summary, "|")
-        |> build_precast_for_type(schema_summary)
-
-      #
-      # Other
-
-      _other ->
-        # In case of error, instead of failing we will let the users handle
-        # the parsing, so they can still make their code behave like the
-        # OpenAPI specification describes.
-        #
-        # Otherwise we would do this:
-        #
-        #     debug_opts =
-        #       parameter
-        #       |> Map.take([:in, :explode, :style])
-        #       |> Map.to_list()
-        #       |> inspect()
-        #
-        #     raise ArgumentError,
-        #           "unsupported combination of parameter options for parameter " <>
-        #             "#{inspect(parameter.name)}, got: #{debug_opts} " <>
-        #             "(using default values)"
-        nil
-    end
+  defp build_parameter_precast(_parameter, :integer) do
+    [&Cast.string_to_integer/1]
   end
 
-  defp build_split_precast_for_type(prev_casters, schema_summary, splitter)
-       when splitter in [",", " ", "|"] do
-    case schema_summary do
-      {:array, _} -> prev_casters ++ [{:split, splitter}]
-      _ -> prev_casters
-    end
+  defp build_parameter_precast(_parameter, :number) do
+    [&Cast.string_to_number/1]
   end
 
-  # When returing :noprecast, the prev_casters are discarded!
-  defp build_precast_for_type(prev_casters, :integer) do
-    prev_casters ++ [&Cast.string_to_integer/1]
+  defp build_parameter_precast(_parameter, :boolean) do
+    [&Cast.string_to_boolean/1]
   end
 
-  defp build_precast_for_type(prev_casters, :boolean) do
-    prev_casters ++ [&Cast.string_to_boolean/1]
+  defp build_parameter_precast(_parameter, :string) do
+    []
   end
 
-  defp build_precast_for_type(prev_casters, :number) do
-    prev_casters ++ [&Cast.string_to_number/1]
+  # -- Path and header. Only the `simple` style is valid here. For arrays
+  # `explode` does not change the serialization (always comma separated); for
+  # objects it does: "r,100,g,200" (false) vs "r=100,g=200" (true).
+
+  defp build_parameter_precast(%{in: loc, style: :simple}, {:array, type})
+       when loc in [:path, :header] do
+    [{:split, ","} | array_element_casts(type)]
   end
 
-  defp build_precast_for_type(prev_casters, :string) do
-    prev_casters
+  defp build_parameter_precast(%{in: loc, style: :simple, explode: false}, {:object, props})
+       when loc in [:path, :header] do
+    [{:object_flat, ","}, {:object_cast, props}]
   end
 
-  defp build_precast_for_type(prev_casters, {:array, :integer}) do
-    prev_casters ++ [{:array, &Cast.string_to_integer/1}]
+  defp build_parameter_precast(%{in: loc, style: :simple, explode: true}, {:object, props})
+       when loc in [:path, :header] do
+    [{:object_kv, ","}, {:object_cast, props}]
   end
 
-  defp build_precast_for_type(prev_casters, {:array, :boolean}) do
-    prev_casters ++ [{:array, &Cast.string_to_boolean/1}]
+  # -- Query, exploded. Phoenix already split repeated/bracketed params into
+  # lists (arrays) and nested maps (deepObject), so there is no string to split.
+
+  defp build_parameter_precast(%{in: :query, style: :deepObject}, {:object, props}) do
+    [{:object_cast, props}]
   end
 
-  defp build_precast_for_type(prev_casters, {:array, :number}) do
-    prev_casters ++ [{:array, &Cast.string_to_number/1}]
+  defp build_parameter_precast(%{in: :query, explode: true}, {:array, type}) do
+    array_element_casts(type)
   end
 
-  defp build_precast_for_type(prev_casters, {:array, :string}) do
-    prev_casters
+  # -- Query, non-exploded. The value is a single delimited string.
+
+  defp build_parameter_precast(%{in: :query, explode: false, style: :form}, {:array, type}) do
+    [{:split, ","} | array_element_casts(type)]
   end
 
-  defp build_precast_for_type(_prev_casters, :noprecast_schema_type) do
+  defp build_parameter_precast(%{in: :query, explode: false, style: :form}, {:object, props}) do
+    [{:object_flat, ","}, {:object_cast, props}]
+  end
+
+  defp build_parameter_precast(
+         %{in: :query, explode: false, style: :spaceDelimited},
+         {:array, type}
+       ) do
+    [{:split, " "} | array_element_casts(type)]
+  end
+
+  defp build_parameter_precast(
+         %{in: :query, explode: false, style: :pipeDelimited},
+         {:array, type}
+       ) do
+    [{:split, "|"} | array_element_casts(type)]
+  end
+
+  # -- Everything else: unsupported serialization (e.g. exploded form objects),
+  # :noprecast_schema_type, cookie, ... Let the user handle the raw value.
+
+  defp build_parameter_precast(parameter, _summary) do
+    # Uncomment to be alerted, when developing, about parameter combinations that
+    # are not pre-cast. This is expected for some valid combinations, so we
+    # return nil and let the user handle the raw value.
+    _ = parameter
+    # raise_unsupported_parameter(parameter)
     nil
+  end
+
+  @doc false
+  @spec raise_unsupported_parameter(term) :: no_return
+  def raise_unsupported_parameter(parameter) do
+    debug_opts =
+      parameter
+      |> Map.take([:in, :explode, :style])
+      |> Map.to_list()
+      |> inspect()
+
+    raise ArgumentError,
+          "unsupported combination of parameter options for parameter " <>
+            "#{inspect(parameter.name)}, got: #{debug_opts} " <>
+            "(using default values)"
+  end
+
+  defp array_element_casts(summary) do
+    case summary do
+      :integer -> [{:array, &Cast.string_to_integer/1}]
+      :number -> [{:array, &Cast.string_to_number/1}]
+      :boolean -> [{:array, &Cast.string_to_boolean/1}]
+      :string -> []
+    end
+  end
+
+  defp scalar_caster(summary) do
+    case summary do
+      :integer -> &Cast.string_to_integer/1
+      :number -> &Cast.string_to_number/1
+      :boolean -> &Cast.string_to_boolean/1
+    end
   end
 
   # -- Responses Validation ---------------------------------------------------
@@ -662,7 +688,6 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   # -- Security ---------------------------------------------------------------
 
-  # TODO global inherited security
   defp build_op_security(_rev_path, op, global_security) do
     case op.security do
       nil -> global_security

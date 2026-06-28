@@ -982,6 +982,175 @@ defmodule Oaskit.Web.ParamTest do
     end
   end
 
+  describe "structured field header parameters" do
+    test "valid sf-* header parameters are parsed and cast", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("sf-string-param", ~s("hello"))
+        |> put_req_header("sf-token-param", "abc123")
+        |> put_req_header("sf-integer-param", "123")
+        |> put_req_header("sf-boolean-param", "?1")
+        |> put_req_header("sf-decimal-param", "3.14")
+        |> put_req_header("sf-binary-param", ":SGVsbG8=:")
+        |> get_reply(~p"/generated/params/some-slug/header-sf-param", fn conn, _params ->
+          assert %{
+                   "sf-string-param": "hello",
+                   "sf-token-param": "abc123",
+                   "sf-integer-param": 123,
+                   "sf-boolean-param": true,
+                   "sf-decimal-param": 3.14,
+                   "sf-binary-param": "Hello"
+                 } = conn.private.oaskit.header_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "invalid sf-* header parameter is rejected", %{conn: conn} do
+      # "nope" is not a valid sf-boolean (must be ?0 or ?1)
+      conn =
+        put_req_header(conn, "sf-boolean-param", "nope")
+
+      conn = get(conn, ~p"/generated/params/some-slug/header-sf-param")
+
+      assert %{
+               "error" => %{
+                 "operation_id" => "parameter_header_sf",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "header",
+                     "parameter" => "sf-boolean-param"
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
+    end
+  end
+
+  describe "object parameters" do
+    # Each test exercises a single serialization combination so they can be
+    # worked on independently.
+
+    test "header object, simple style, explode false (r,100,g,200)", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("header-object-explode-false", "r,100,g,200,b,150")
+        |> get_reply(~p"/generated/params/some-slug/object-types", fn conn, _params ->
+          assert %{"header-object-explode-false": %{"r" => 100, "g" => 200, "b" => 150}} =
+                   conn.private.oaskit.header_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "header object, simple style, explode true (r=100,g=200)", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("header-object-explode-true", "r=10,g=20,b=30")
+        |> get_reply(~p"/generated/params/some-slug/object-types", fn conn, _params ->
+          assert %{"header-object-explode-true": %{"r" => 10, "g" => 20, "b" => 30}} =
+                   conn.private.oaskit.header_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "query object, form style, explode false (a single comma string)", %{conn: conn} do
+      query = "query__object__form__explode_false=r,100,g,200,b,150"
+
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/object-types" <> "?" <> query,
+          fn conn, params ->
+            # Phoenix leaves the comma-separated object as a raw string.
+            assert %{"query__object__form__explode_false" => "r,100,g,200,b,150"} = params
+
+            assert %{query__object__form__explode_false: %{"r" => 100, "g" => 200, "b" => 150}} =
+                     conn.private.oaskit.query_params
+
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "query object, deepObject style (Phoenix builds the nested map)", %{conn: conn} do
+      query =
+        [
+          "query__object__deepObject[r]=1",
+          "query__object__deepObject[g]=2",
+          "query__object__deepObject[b]=3"
+        ]
+        |> Enum.join("&")
+
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/object-types" <> "?" <> query,
+          fn conn, params ->
+            # Phoenix already turned the brackets into a nested map of strings.
+            assert %{"query__object__deepObject" => %{"r" => "1", "g" => "2", "b" => "3"}} =
+                     params
+
+            # Oaskit only casts the property values.
+            assert %{query__object__deepObject: %{"r" => 1, "g" => 2, "b" => 3}} =
+                     conn.private.oaskit.query_params
+
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "path object, simple style (r,100,g,200)", %{conn: conn} do
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/object-path/r,100,g,200,b,150",
+          fn conn, params ->
+            assert %{"color" => "r,100,g,200,b,150"} = params
+
+            assert %{color: %{"r" => 100, "g" => 200, "b" => 150}} =
+                     conn.private.oaskit.path_params
+
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "invalid object property type is rejected", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("header-object-explode-false", "r,notanint,g,200,b,150")
+        |> get(~p"/generated/params/some-slug/object-types")
+
+      assert %{
+               "error" => %{
+                 "operation_id" => "parameter_object_types",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "header",
+                     "parameter" => "header-object-explode-false"
+                   }
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
+    end
+  end
+
   describe "html error rendering" do
     @describetag [req_accept: "text/html"]
 

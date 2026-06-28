@@ -334,8 +334,52 @@ defmodule Oaskit.Validation.RequestValidator do
     {:ok, String.split(value, splitter)}
   end
 
-  defp apply_precast(_value, _) do
-    {:error, :ignored_error}
+  # Object serialized as a flat "key,value,key,value" string (explode false).
+  defp apply_precast(value, {:object_flat, splitter}) when is_binary(value) do
+    case String.split(value, splitter) do
+      parts when parts != [""] and rem(length(parts), 2) == 0 ->
+        {:ok, parts |> Enum.chunk_every(2) |> Map.new(fn [k, v] -> {k, v} end)}
+
+      _uneven_or_empty ->
+        {:error, :ignored_error}
+    end
+  end
+
+  # Object serialized as "key=value,key=value" pairs (explode true).
+  defp apply_precast(value, {:object_kv, splitter}) when is_binary(value) do
+    result =
+      Enum.reduce_while(String.split(value, splitter), %{}, fn part, acc ->
+        case String.split(part, "=", parts: 2) do
+          [k, v] -> {:cont, Map.put(acc, k, v)}
+          _no_equal -> {:halt, :error}
+        end
+      end)
+
+    case result do
+      :error -> {:error, :ignored_error}
+      map -> {:ok, map}
+    end
+  end
+
+  # Cast known scalar properties of an already-built object map. Unknown
+  # properties and non-castable values are left untouched for the schema to
+  # report.
+  defp apply_precast(value, {:object_cast, prop_casters}) when is_map(value) do
+    cast = Map.new(value, fn {k, v} -> apply_object_property_precast(k, v, prop_casters) end)
+
+    {:ok, cast}
+  end
+
+  defp apply_object_property_precast(k, v, prop_casters) when is_binary(v) do
+    with %{^k => caster} <- prop_casters, {:ok, cast_v} <- caster.(v) do
+      {k, cast_v}
+    else
+      _ -> {k, v}
+    end
+  end
+
+  defp apply_object_property_precast(k, v, _prop_casters) do
+    {k, v}
   end
 
   defp validate_with_schema(value, jsv_key, jsv_root)

@@ -1507,6 +1507,275 @@
         ]
       }
     },
+    "/generated/params/{slug}/header-sf-param": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_header_sf",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "sf-string-param",
+            "required": false,
+            "schema": {
+              "format": "sf-string",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "sf-token-param",
+            "required": false,
+            "schema": {
+              "format": "sf-token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "sf-integer-param",
+            "required": false,
+            "schema": {
+              "format": "sf-integer",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "sf-boolean-param",
+            "required": false,
+            "schema": {
+              "format": "sf-boolean",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "sf-decimal-param",
+            "required": false,
+            "schema": {
+              "format": "sf-decimal",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "sf-binary-param",
+            "required": false,
+            "schema": {
+              "format": "sf-binary",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/generated/params/{slug}/object-path/{color}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_object_path",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "color",
+            "required": true,
+            "schema": {
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/generated/params/{slug}/object-types": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_object_types",
+        "parameters": [
+          {
+            "explode": false,
+            "in": "header",
+            "name": "header-object-explode-false",
+            "required": false,
+            "schema": {
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          {
+            "explode": true,
+            "in": "header",
+            "name": "header-object-explode-true",
+            "required": false,
+            "schema": {
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "query__object__form__explode_false",
+            "required": false,
+            "schema": {
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "style": "form"
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "query__object__deepObject",
+            "required": false,
+            "schema": {
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "style": "deepObject"
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "/generated/params/{slug}/s/{shape}": {
       "get": {
         "responses": {

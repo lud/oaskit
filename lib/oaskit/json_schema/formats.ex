@@ -29,6 +29,15 @@ defmodule Oaskit.JsonSchema.Formats do
   # numbers as-is or as string
   @numeric_formats ["decimal", "decimal128", "int64", "uint64"]
 
+  # These are the six HTTP Structured Field formats defined by the OpenAPI Format
+  # Registry (https://spec.openapis.org/api/format.json), all of them RFC 8941
+  # *bare items*.
+  #
+  # RFC 8941 also defines `list` and `dictionary` top-level types, but the
+  # OpenAPI registry does NOT define `sf-list`/`sf-dict` formats, so we
+  # intentionally do not implement them. They would also not map cleanly to JSON
+  # Schema validation: the parsed values are tagged tuples (item value plus
+  # parameters), which cannot be described by a regular JSON schema.
   @sf_formats [
     "sf-binary",
     "sf-boolean",
@@ -82,14 +91,16 @@ defmodule Oaskit.JsonSchema.Formats do
 
   ### HTTP Structured fields formats
 
-  HTTP structured fields are generally used for headers. While this library does
-  not provide header validation yet, they are supported for OpenAPI
-  specification compliance.
+  HTTP structured fields are generally used for headers. These formats validate
+  and cast a string into the corresponding structured field value, so they can
+  be used on header parameter schemas (`in: :header`).
+
+  These are the structured field *bare items* defined by the OpenAPI Format
+  Registry. RFC 8941 lists and dictionaries are not part of the registry and are
+  not supported, see the comment on the format definitions in this module.
 
   #{md_list.(@sf_formats)}
   """
-
-  # TODO provide header validation
 
   def supported_formats do
     @all_formats
