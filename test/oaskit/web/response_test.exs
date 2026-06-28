@@ -110,4 +110,27 @@ defmodule Oaskit.Web.ResponseTest do
       assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
     end
   end
+
+  describe "response headers" do
+    test "valid response headers pass validation", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-valid-headers")
+      assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "a missing required header is rejected", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-missing-required-header")
+
+      assert_raise RuntimeError, ~r/x-fortune-id/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+    end
+
+    test "a header that does not match its schema is rejected", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-invalid-header")
+
+      assert_raise RuntimeError, ~r/x-fortune-count/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+    end
+  end
 end

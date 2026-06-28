@@ -5,6 +5,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   alias JSV.Ref
   alias JSV.RNS
   alias Oaskit.Spec.Components
+  alias Oaskit.Spec.Header
   alias Oaskit.Spec.Operation
   alias Oaskit.Spec.Parameter
   alias Oaskit.Spec.PathItem
@@ -637,7 +638,7 @@ defmodule Oaskit.Internal.SpecBuilder do
           deref(resp_or_ref, Response, [code_str, "responses" | rev_path], spec)
 
         code = cast_response_code(code_str)
-        {resp_validation, jsv_ctx} = build_response_validation(response, rev_path, jsv_ctx)
+        {resp_validation, jsv_ctx} = build_response_validation(response, rev_path, spec, jsv_ctx)
         {{code, resp_validation}, jsv_ctx}
       end)
 
@@ -652,11 +653,19 @@ defmodule Oaskit.Internal.SpecBuilder do
     String.to_integer(code)
   end
 
-  defp build_response_validation(%{content: nil}, _rev_path, jsv_ctx) do
+  # A response validation carries both the body content matchers and the header
+  # validations. Either part can be empty/:no_validation independently.
+  defp build_response_validation(response, rev_path, spec, jsv_ctx) do
+    {body, jsv_ctx} = build_response_body_validation(response, rev_path, jsv_ctx)
+    {headers, jsv_ctx} = build_response_headers_validations(response, rev_path, spec, jsv_ctx)
+    {%{body: body, headers: headers}, jsv_ctx}
+  end
+
+  defp build_response_body_validation(%{content: nil}, _rev_path, jsv_ctx) do
     {:no_validation, jsv_ctx}
   end
 
-  defp build_response_validation(response, rev_path, jsv_ctx) do
+  defp build_response_body_validation(response, rev_path, jsv_ctx) do
     {matchers, jsv_ctx} =
       response.content
       |> sorted_media_type_clauses()
@@ -684,6 +693,63 @@ defmodule Oaskit.Internal.SpecBuilder do
       end)
 
     {matchers, jsv_ctx}
+  end
+
+  defp build_response_headers_validations(%{headers: headers}, rev_path, spec, jsv_ctx)
+       when is_map(headers) do
+    headers
+    # The "Content-Type" response header is described by the response content,
+    # not by a header definition. OpenAPI mandates that such an entry be ignored.
+    |> Enum.reject(fn {name, _} -> String.downcase(name) == "content-type" end)
+    |> Enum.map_reduce(jsv_ctx, fn {name, header_or_ref}, jsv_ctx ->
+      {header, rev_path} = deref(header_or_ref, Header, [name, "headers" | rev_path], spec)
+      build_response_header_validation(name, header, rev_path, jsv_ctx)
+    end)
+  end
+
+  defp build_response_headers_validations(_response, _rev_path, _spec, jsv_ctx) do
+    {[], jsv_ctx}
+  end
+
+  defp build_response_header_validation(name, header, rev_path, jsv_ctx) do
+    # Response headers only support the `simple` style. We reuse the parameter
+    # precast machinery by presenting the header as a simple-style header
+    # parameter.
+    synthetic = %{
+      in: :header,
+      style: header.style || :simple,
+      explode: header.explode || false,
+      name: name
+    }
+
+    {summary, jsv_ctx} = summarize_parameter_schema(header.schema, :root, jsv_ctx)
+    precast = build_parameter_precast(synthetic, summary)
+
+    {schema_key, jsv_ctx} =
+      case header do
+        %{schema: true} -> {:no_validation, jsv_ctx}
+        %{schema: nil} -> {:no_validation, jsv_ctx}
+        %{schema: _schema} -> build_schema_key(["schema" | rev_path], jsv_ctx)
+      end
+
+    built = %{
+      # conn.resp_headers keys are lowercase, so we match on the downcased name.
+      name: String.downcase(name),
+      ext_name: name,
+      required: header_required(header),
+      precast: precast,
+      schema_key: schema_key
+    }
+
+    {built, jsv_ctx}
+  end
+
+  defp header_required(%{required: req}) when is_boolean(req) do
+    req
+  end
+
+  defp header_required(_header) do
+    false
   end
 
   # -- Security ---------------------------------------------------------------

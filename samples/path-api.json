@@ -2144,6 +2144,92 @@
         "operationId": "fortune_invalid"
       }
     },
+    "/generated/resp/fortune-200-invalid-header": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.FortuneCookie"
+                }
+              }
+            },
+            "description": "no description",
+            "headers": {
+              "content-type": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-count": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-id": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-fortune-tags": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "fortune_invalid_header"
+      }
+    },
+    "/generated/resp/fortune-200-missing-required-header": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.FortuneCookie"
+                }
+              }
+            },
+            "description": "no description",
+            "headers": {
+              "content-type": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-count": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-id": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-fortune-tags": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "fortune_missing_required_header"
+      }
+    },
     "/generated/resp/fortune-200-no-content-def": {
       "get": {
         "responses": {
@@ -2239,6 +2325,49 @@
           }
         },
         "operationId": "fortune_from_ref"
+      }
+    },
+    "/generated/resp/fortune-200-valid-headers": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.FortuneCookie"
+                }
+              }
+            },
+            "description": "no description",
+            "headers": {
+              "content-type": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-count": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-id": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-fortune-tags": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "fortune_valid_headers"
       }
     },
     "/generated/resp/fortune-500-bad-default-resp": {

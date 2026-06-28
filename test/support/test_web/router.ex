@@ -96,6 +96,9 @@ defmodule Oaskit.TestWeb.Router do
       get "/fortune-200-bad-content-type", ResponseController, :bad_content_type
       get "/fortune-500-default-resp", ResponseController, :default_resp
       get "/fortune-500-bad-default-resp", ResponseController, :invalid_default_resp
+      get "/fortune-200-valid-headers", ResponseController, :valid_headers
+      get "/fortune-200-missing-required-header", ResponseController, :missing_required_header
+      get "/fortune-200-invalid-header", ResponseController, :invalid_header
     end
 
     scope "/extensions", Oaskit.TestWeb do

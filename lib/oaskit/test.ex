@@ -55,6 +55,18 @@ defmodule Oaskit.Test do
         # behaviour of the app from an external point of view.
         body
 
+      {:error, {:response_headers_errors, header_errors}} ->
+        raise "invalid response headers returned by operation #{inspect(operation_id)} " <>
+                "with status #{inspect(status)}" <>
+                """
+
+                #{format_header_errors(header_errors)}
+
+                Response headers:
+
+                #{inspect(resp_data.resp_headers, pretty: true)}
+                """
+
       {:error, jsv_error} ->
         raise "invalid response returned by operation #{inspect(operation_id)} " <>
                 "with status #{inspect(status)} and content-type #{inspect(content_type)}" <>
@@ -67,6 +79,17 @@ defmodule Oaskit.Test do
                 #{inspect(body, pretty: true)}
                 """
     end
+  end
+
+  defp format_header_errors(header_errors) do
+    Enum.map_join(header_errors, "\n", fn
+      {:missing, name} ->
+        "missing required header #{inspect(name)}"
+
+      {:invalid, name, value, validation_error} ->
+        "header #{inspect(name)} with value #{inspect(value)} is invalid:\n" <>
+          Exception.message(validation_error)
+    end)
   end
 
   # Copy from phoenix to not depend on phoenix

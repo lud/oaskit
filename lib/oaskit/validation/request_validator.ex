@@ -285,6 +285,18 @@ defmodule Oaskit.Validation.RequestValidator do
   # * apply_precast: inner function to control where we stop, returns a result
   #   tuple so we know if we should return the new or previous value.
 
+  @doc false
+  # Shared with response validator
+  def cast_param_value(value, precast) do
+    precast_value(value, precast)
+  end
+
+  @doc false
+  # Shared with response validator
+  def validate_param_value(value, jsv_key, jsv_root) do
+    validate_with_schema(value, jsv_key, jsv_root)
+  end
+
   defp precast_value(value, precast)
 
   defp precast_value(value, nil) do

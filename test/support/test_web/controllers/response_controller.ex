@@ -108,4 +108,51 @@ defmodule Oaskit.TestWeb.ResponseController do
     category = Map.fetch!(body_params(conn), "category")
     json(conn, Enum.find(@fortunes, &(&1.category == category)))
   end
+
+  # Response headers definition shared by the operations below. The header values
+  # are always sent as strings; Oaskit casts them (simple style) before
+  # validation, just like request header parameters. The "content-type" entry
+  # must be ignored by the validator (OpenAPI mandates it), so its bogus integer
+  # schema should never trigger an error.
+  @fortune_headers %{
+    "x-fortune-id" => %{schema: %{type: :string}, required: true},
+    "x-fortune-count" => %{schema: %{type: :integer}},
+    "x-fortune-tags" => %{schema: %{type: :array, items: %{type: :integer}}},
+    "content-type" => %{schema: %{type: :integer}}
+  }
+
+  operation :valid_headers,
+    operation_id: "fortune_valid_headers",
+    responses: [ok: {FortuneCookie, headers: @fortune_headers}]
+
+  def valid_headers(conn, _) do
+    conn
+    |> put_resp_header("x-fortune-id", "abc")
+    |> put_resp_header("x-fortune-count", "5")
+    |> put_resp_header("x-fortune-tags", "1,2,3")
+    |> json(Enum.random(@fortunes))
+  end
+
+  operation :missing_required_header,
+    operation_id: "fortune_missing_required_header",
+    responses: [ok: {FortuneCookie, headers: @fortune_headers}]
+
+  def missing_required_header(conn, _) do
+    # The required "x-fortune-id" header is intentionally omitted.
+    conn
+    |> put_resp_header("x-fortune-count", "5")
+    |> json(Enum.random(@fortunes))
+  end
+
+  operation :invalid_header,
+    operation_id: "fortune_invalid_header",
+    responses: [ok: {FortuneCookie, headers: @fortune_headers}]
+
+  def invalid_header(conn, _) do
+    conn
+    |> put_resp_header("x-fortune-id", "abc")
+    # Not an integer: the schema for "x-fortune-count" must reject it.
+    |> put_resp_header("x-fortune-count", "not-an-int")
+    |> json(Enum.random(@fortunes))
+  end
 end
