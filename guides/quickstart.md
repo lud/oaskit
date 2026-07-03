@@ -9,7 +9,7 @@ First, add Oaskit to your dependencies in `mix.exs`:
 
 <!-- rdmx :app_dep vsn:$app_vsn -->
 ```elixir
-def deps do
+defp deps do
   [
     {:oaskit, "~> 0.14"},
   ]

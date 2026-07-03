@@ -54,7 +54,7 @@ defmodule Oaskit.Spec.SecurityScheme do
     oneOf: [
       %{properties: %{type: %{const: "apiKey"}}, required: [:name, :in]},
       %{properties: %{type: %{const: "http"}}, required: [:scheme]},
-      %{properties: %{type: %{const: "mutualTLS"}}, required: [:openIdConnectUrl]},
+      %{properties: %{type: %{const: "mutualTLS"}}},
       %{properties: %{type: %{const: "oauth2"}}, required: [:flows]},
       %{properties: %{type: %{const: "openIdConnect"}}, required: [:openIdConnectUrl]}
     ]
