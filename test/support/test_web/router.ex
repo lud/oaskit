@@ -54,6 +54,7 @@ defmodule Oaskit.TestWeb.Router do
       post "/ignored-action", BodyController, :ignored_action
       post "/wildcard", BodyController, :wildcard_media_type
       post "/boolean-schema-false", BodyController, :boolean_schema_false
+      post "/strict-body", BodyController, :strict_body
 
       # Manual tests
       post "/manual-form-handle", BodyController, :manual_form_handle

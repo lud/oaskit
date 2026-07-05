@@ -325,6 +325,26 @@ defmodule Oaskit.Web.BodyTest do
       assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
       assert body =~ ~r{<p>Invalid request for operation <code>body_handle_form_.+</code>.</p>}s
       assert body =~ "<h2>Invalid request body.</h2>"
+
+      # The field-level validation message is rendered in the <pre> block. The
+      # payload has an invalid `sunlight`, and enum quotes are HTML-escaped.
+      assert body =~ ~r{<pre>.*at: &quot;#/sunlight&quot;.*</pre>}s
+      assert body =~ "value must be one of the enum values: &quot;full_sun&quot;"
+    end
+
+    test "client-supplied property name is HTML-escaped in body errors", %{conn: conn} do
+      # The strict schema rejects unknown properties, so the attacker-controlled
+      # key ends up in the validation message (and its JSON pointer). It must be
+      # escaped, never rendered as markup.
+      key = ~S{</code></h2><script>alert(1)</script>}
+      conn = post(conn, ~p"/generated/body/strict-body", %{"name" => "ok", key => "x"})
+
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Content}s
+      assert body =~ "<h2>Invalid request body.</h2>"
+
+      refute body =~ "<script>alert(1)</script>"
+      assert body =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
     end
   end
 end

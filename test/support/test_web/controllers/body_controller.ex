@@ -105,4 +105,22 @@ defmodule Oaskit.TestWeb.BodyController do
   def boolean_schema_false(conn, params) do
     Responder.reply(conn, params)
   end
+
+  # A strict schema rejecting unknown properties. Used to verify that a
+  # client-supplied property name reaching the HTML error page is escaped.
+  @strict_schema %{
+    type: :object,
+    title: "StrictBodySchema",
+    properties: %{name: non_empty_string()},
+    required: [:name],
+    additionalProperties: false
+  }
+
+  operation :strict_body,
+    request_body: {@strict_schema, []},
+    responses: dummy_responses_with_error()
+
+  def strict_body(conn, params) do
+    Responder.reply(conn, params)
+  end
 end
