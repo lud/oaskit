@@ -641,6 +641,54 @@
         }
       }
     },
+    "/generated/body/strict-body": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "body_strict_body_2EFMV2A",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "StrictBodySchema",
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/generated/body/wildcard": {
       "post": {
         "responses": {
