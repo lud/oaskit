@@ -1185,7 +1185,8 @@ defmodule Oaskit.Web.ParamTest do
       # The validation message is HTML-escaped in the error page: any request
       # data reaching this page (quotes, client-supplied JSON pointer keys, raw
       # content-type) must not be rendered as markup.
-      assert body =~ ~S(value must be one of the enum values: &quot;dark&quot; or &quot;light&quot;)
+      assert body =~
+               ~S(value must be one of the enum values: &quot;dark&quot; or &quot;light&quot;)
     end
   end
 end

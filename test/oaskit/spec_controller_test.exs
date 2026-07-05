@@ -100,6 +100,23 @@ defmodule Oaskit.SpecControllerTest do
       assert conn.status == 200
       assert get_resp_header(conn, "access-control-allow-origin") == ["*"]
     end
+
+    test "serves Redoc pinned to an exact version with subresource integrity", %{conn: conn} do
+      conn = get(conn, ~p"/generated/redoc")
+
+      assert conn.status == 200
+      body = conn.resp_body
+
+      # The Redoc bundle must be pinned to a specific version (never "latest")
+      # and guarded with an SRI hash + crossorigin so a swapped CDN bundle
+      # cannot execute.
+      assert body =~
+               ~r{src="https://cdn\.redoc\.ly/redoc/v\d+\.\d+\.\d+/bundles/redoc\.standalone\.js"}
+
+      refute body =~ "redoc/latest/"
+      assert body =~ ~r{integrity="sha384-[A-Za-z0-9+/=]+"}
+      assert body =~ ~s{crossorigin="anonymous"}
+    end
   end
 
   describe "DeclarativeApiSpec integration" do

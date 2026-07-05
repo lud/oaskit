@@ -135,6 +135,17 @@ defmodule Oaskit.SpecController do
     end
   end
 
+  # Redoc is loaded from the CDN pinned to an exact version and guarded with a
+  # Subresource Integrity hash, so a compromised or swapped CDN bundle cannot
+  # execute in the browser. When bumping the version, recompute the hash from
+  # the exact bytes served at the pinned URL:
+  #
+  #     curl -s https://cdn.redoc.ly/redoc/vVERSION/bundles/redoc.standalone.js \
+  #       | openssl dgst -sha384 -binary | openssl base64 -A
+  @redoc_version "2.5.3"
+  @redoc_sri "sha384-xiEssMQFSpSfLbzRZCGfxxIM5QDb2DTrU6vyoZdp2sV1L6pmOMy6MpTtUoLbpC96"
+  @redoc_src "https://cdn.redoc.ly/redoc/v#{@redoc_version}/bundles/redoc.standalone.js"
+
   @redoc_ui """
   <!DOCTYPE html>
   <html>
@@ -146,7 +157,7 @@ defmodule Oaskit.SpecController do
     </head>
     <body>
       <div id="redoc-root"></div>
-      <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+      <script src="#{@redoc_src}" integrity="#{@redoc_sri}" crossorigin="anonymous"></script>
       <script>
       Redoc.init(<%= path %>,<%= config %>,document.getElementById("redoc-root"))
       </script>

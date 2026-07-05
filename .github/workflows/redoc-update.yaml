@@ -1,0 +1,52 @@
+name: Redoc Version Pin
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MIX_ENV: test
+  cache_vsn: "v1"
+
+jobs:
+  check_redoc:
+    name: "Check Redoc pin is up to date"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: erlef/setup-beam@v1
+        id: setup_beam
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
+
+      - name: Mix Dependencies
+        uses: lud/github-actions/mix-deps@v1
+        with:
+          elixir-version: ${{ steps.setup_beam.outputs.elixir-version }}
+          otp-version: ${{ steps.setup_beam.outputs.otp-version }}
+          cache-version: ${{ env.cache_vsn }}
+
+      # Fetches the latest Redoc release, refreshes the pinned version and SRI
+      # hash, then compiles and tests. Fails here if the new bundle breaks the
+      # build or tests.
+      - name: Update Redoc pin
+        run: ./tools/update-redoc.exs
+
+      # If the previous step changed the pinned version, a newer Redoc has been
+      # published and needs to be committed. Fail the workflow to signal it.
+      - name: Fail if Redoc is outdated
+        run: |
+          if ! git diff --quiet -- lib/oaskit/spec_controller.ex; then
+            echo "::error::Redoc pin is outdated. Run ./tools/update-redoc.exs and commit the result."
+            git --no-pager diff -- lib/oaskit/spec_controller.ex
+            exit 1
+          fi
+          echo "Redoc pin is up to date."
