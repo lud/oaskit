@@ -1188,5 +1188,34 @@ defmodule Oaskit.Web.ParamTest do
       assert body =~
                ~S(value must be one of the enum values: &quot;dark&quot; or &quot;light&quot;)
     end
+
+    test "missing required header parameter HTML", %{conn: conn} do
+      # The string-param header is required and no headers are sent.
+      conn = get(conn, ~p"/generated/params/some-slug/header-param")
+
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+
+      assert body =~
+               "<h2>Missing required parameter <code>string-param</code> in <code>header</code>.</h2>"
+    end
+
+    test "invalid header parameter HTML", %{conn: conn} do
+      # Provide the required header so only the integer-param error is reported.
+      conn =
+        conn
+        |> put_req_header("string-param", "ok")
+        |> put_req_header("integer-param", "not-an-integer")
+        |> get(~p"/generated/params/some-slug/header-param")
+
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+
+      assert body =~
+               "<h2>Invalid parameter <code>integer-param</code> in <code>header</code>.</h2>"
+
+      # The validation message is rendered in the error page.
+      assert body =~ "<pre>"
+    end
   end
 end
