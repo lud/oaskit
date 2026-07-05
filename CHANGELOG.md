@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1] - 2026-07-05
+
+### 🐛 Bug Fixes
+
+- Removed required openIdConnectUrl parameter for mutualTLS security scheme
+
+### 🧪 Testing
+
+- Cover HTML rendering of header validation errors
+- Cover HTML rendering and escaping of body validation errors
+- Guard against query-object-key XSS via a plain GET link
+
+### 🛡️ Security
+
+- Prevent XSS in default HTML error handler
+- Pin Redoc CDN bundle with subresource integrity
+
 ## [0.14.0] - 2026-06-28
 
 ### 🚀 Features
