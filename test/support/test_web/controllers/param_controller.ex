@@ -297,4 +297,25 @@ defmodule Oaskit.TestWeb.ParamController do
   def object_path(conn, params) do
     Responder.reply(conn, params)
   end
+
+  # A deepObject query parameter whose schema rejects unknown properties. Used
+  # to prove that a client can inject an object key through a plain GET link
+  # alone (no form, no custom Content-Type) and that the key is HTML-escaped in
+  # the error page.
+  @strict_rgb_object %{
+    type: :object,
+    additionalProperties: false,
+    properties: %{r: integer(), g: integer(), b: integer()}
+  }
+
+  operation :strict_object_query,
+    operation_id: "parameter_strict_object_query",
+    parameters: [
+      filter: [in: :query, style: :deepObject, explode: true, schema: @strict_rgb_object]
+    ],
+    responses: dummy_responses_with_error()
+
+  def strict_object_query(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

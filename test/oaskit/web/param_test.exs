@@ -1200,6 +1200,24 @@ defmodule Oaskit.Web.ParamTest do
                "<h2>Missing required parameter <code>string-param</code> in <code>header</code>.</h2>"
     end
 
+    test "client-supplied query object key is HTML-escaped (GET link vector)", %{conn: conn} do
+      # Highest-severity delivery: a plain top-level GET navigation (a browser
+      # sends `Accept: text/html` on its own), no form and no custom
+      # Content-Type. A deepObject query param carries an attacker-controlled
+      # key that the strict schema rejects, so the key reaches the error page.
+      raw_key = ~S{</code></h2><script>alert(1)</script>}
+      query = "filter[" <> URI.encode_www_form(raw_key) <> "]=x"
+
+      conn = get(conn, "/generated/params/some-slug/strict-object-query?" <> query)
+
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<h2>Invalid parameter <code>filter</code> in <code>query</code>\.</h2>}s
+
+      refute body =~ "<script>alert(1)</script>"
+      assert body =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
+    end
+
     test "invalid header parameter HTML", %{conn: conn} do
       # Provide the required header so only the integer-param error is reported.
       conn =
