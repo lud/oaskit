@@ -2046,6 +2046,66 @@
         ]
       }
     },
+    "/generated/params/{slug}/strict-object-query": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_strict_object_query",
+        "parameters": [
+          {
+            "explode": true,
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "b": {
+                  "type": "integer"
+                },
+                "g": {
+                  "type": "integer"
+                },
+                "r": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "style": "deepObject"
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "/generated/params/{slug}/t/{theme}": {
       "get": {
         "responses": {
