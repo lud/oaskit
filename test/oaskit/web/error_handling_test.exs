@@ -80,4 +80,35 @@ defmodule Oaskit.Web.ErroHandlingTest do
                valid_response(PathsApiSpec, conn, 400)
     end
   end
+
+  describe "html error escaping" do
+    alias Oaskit.ErrorHandler.Default
+    alias Oaskit.Errors.UnsupportedMediaTypeError
+    alias Plug.Conn
+
+    # The raw request content-type reaches the UnsupportedMediaTypeError when it
+    # cannot be parsed, and is rendered in the HTML error page. It must be
+    # HTML-escaped, otherwise a client can inject markup into the response.
+    test "request-controlled media type is escaped in HTML errors" do
+      payload = ~S{</code></h2><script>alert(1)</script>}
+
+      conn =
+        Plug.Test.conn(:post, "/")
+        |> Conn.put_req_header("accept", "text/html")
+        |> Conn.put_private(:oaskit, %{operation_id: "op"})
+
+      conn =
+        Default.handle_error(
+          conn,
+          %UnsupportedMediaTypeError{media_type: payload},
+          html_errors: true
+        )
+
+      body = conn.resp_body
+
+      assert conn.status == 415
+      refute body =~ "<script>alert(1)</script>"
+      assert body =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
+    end
+  end
 end

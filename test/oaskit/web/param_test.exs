@@ -1182,7 +1182,10 @@ defmodule Oaskit.Web.ParamTest do
 
       assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
       assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
-      assert body =~ ~S(value must be one of the enum values: "dark" or "light")
+      # The validation message is HTML-escaped in the error page: any request
+      # data reaching this page (quotes, client-supplied JSON pointer keys, raw
+      # content-type) must not be rendered as markup.
+      assert body =~ ~S(value must be one of the enum values: &quot;dark&quot; or &quot;light&quot;)
     end
   end
 end

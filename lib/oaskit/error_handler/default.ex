@@ -128,16 +128,26 @@ defmodule Oaskit.ErrorHandler.Default do
     """
     <!doctype html>
     <style>#{css()}</style>
-    <title>#{message}</title>
+    <title>#{esc(message)}</title>
 
-    <h1><span class="status">HTTP ERROR #{code}</span> #{message} </h1>
+    <h1><span class="status">HTTP ERROR #{code}</span> #{esc(message)} </h1>
 
-    <p>Invalid request for operation <code>#{operation_id}</code>.</p>
+    <p>Invalid request for operation <code>#{esc(operation_id)}</code>.</p>
 
     <ol>
     #{errors}
     </ol>
     """
+  end
+
+  # Escape any value that ends up in the HTML error page. Most interpolated
+  # values (parameter names, operation ids, validation messages) come from the
+  # spec, but some are derived from the request (the raw content-type in an
+  # unsupported media type error, JSON pointers built from client-supplied
+  # object keys in validation messages), so they must never be trusted as
+  # markup.
+  defp esc(value) do
+    value |> to_string() |> Plug.HTML.html_escape()
   end
 
   defp base_json_error(status, operation_id, overrides) do
@@ -236,7 +246,7 @@ defmodule Oaskit.ErrorHandler.Default do
     <li>
     <h2>Invalid request body.</h2>
 
-    <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
+    <pre>#{esc(String.trim_trailing(Exception.message(verr)))}</pre>
     </li>
     """
   end
@@ -244,9 +254,9 @@ defmodule Oaskit.ErrorHandler.Default do
   defp reason_to_html(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
     """
     <li>
-    <h2>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>.</h2>
+    <h2>Invalid parameter <code>#{esc(name)}</code> in <code>#{esc(loc)}</code>.</h2>
 
-    <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
+    <pre>#{esc(String.trim_trailing(Exception.message(verr)))}</pre>
     </li>
     """
   end
@@ -254,7 +264,7 @@ defmodule Oaskit.ErrorHandler.Default do
   defp reason_to_html(%MissingParameterError{in: loc, name: name}) do
     """
     <li>
-    <h2>Missing required parameter <code>#{name}</code> in <code>#{loc}</code>.</h2>
+    <h2>Missing required parameter <code>#{esc(name)}</code> in <code>#{esc(loc)}</code>.</h2>
     </li>
     """
   end
@@ -262,7 +272,7 @@ defmodule Oaskit.ErrorHandler.Default do
   defp reason_to_html(%UnsupportedMediaTypeError{media_type: media_type}) do
     """
     <li>
-    <h2>Validation for body of type <code>#{media_type}</code> is not supported.</h2>
+    <h2>Validation for body of type <code>#{esc(media_type)}</code> is not supported.</h2>
     </li>
     """
   end
