@@ -340,7 +340,7 @@ defmodule Oaskit.JsonSchema.Formats do
     case Texture.HttpStructuredField.parse_item(data) do
       {:ok, {^expected_type, value, _}} -> {:ok, value}
       {:ok, _} -> {:error, "invalid structured field type"}
-      {:error, {errmsg, _}} -> {:error, errmsg}
+      {:error, err} -> {:error, Exception.message(err)}
     end
   end
 end

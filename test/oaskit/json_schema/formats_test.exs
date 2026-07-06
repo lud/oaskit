@@ -368,8 +368,8 @@ defmodule Oaskit.JsonSchema.FormatsTest do
     # sf-integer - Structured fields integer (RFC8941)
     %{
       format: "sf-integer",
-      valid_inputs: ["123", "0", "-123", "999999999999999", "1000000000000000"],
-      invalid_inputs: ["12.34", "invalid"],
+      valid_inputs: ["123", "0", "-123", "999999999999999"],
+      invalid_inputs: ["12.34", "invalid", "1000000000000000"],
       ignored_inputs: [123, 12.34]
     },
 
