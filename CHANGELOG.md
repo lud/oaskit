@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.2] - 2026-07-06
+
+### 🐛 Bug Fixes
+
+- Handle new texture 1.2 http structured fields parse errors
+
 ## [0.14.1] - 2026-07-05
 
 ### 🐛 Bug Fixes
