@@ -1,4 +1,4 @@
-install:
+_mix_deps:
   mix deps.get
 
 run: css-min
@@ -17,11 +17,11 @@ lint:
 dialyzer:
   mix dialyzer
 
-_mix_format:
+format:
   mix format --migrate
 
-_mix_check:
-  mix check
+_libdev_check:
+  mix libdev.check
 
 _git_status:
   git status
@@ -58,5 +58,5 @@ readmix:
   mix rdmx.update README.md
   rg rdmx guides -l0 | xargs -0 -n 1 mix rdmx.update
 
-check: install _mix_format dump deps _mix_format dump _mix_check docs  _git_status
+check: _mix_deps format dump readmix _libdev_check _git_status
 
