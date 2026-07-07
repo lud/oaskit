@@ -18,15 +18,34 @@ defmodule Oaskit.TestWeb.OrvalController do
     json(conn, conn.private.oaskit)
   end
 
-  defschema UserBodySchema,
-            ~SD"""
-            Some body that needs to be respected by orval.
+  defmodule UserBodySchema do
+    @moduledoc false
+    use JSV.Schema
 
-            Foo Bar Foo!
-            """,
-            name: string(),
-            age: integer(),
-            role: string_enum_to_atom([:admin, :user, :visitor], default: :admin)
+    if Code.ensure_loaded?(JSON.Encoder) do
+      @derive JSON.Encoder
+    end
+
+    if Code.ensure_loaded?(Jason.Encoder) do
+      @derive Jason.Encoder
+    end
+
+    defschema %{
+      type: :object,
+      title: "UserBodySchema",
+      description: ~SD"""
+      Some body that needs to be respected by orval.
+
+      Foo Bar Foo!
+      """,
+      properties: %{
+        name: string(),
+        age: integer(),
+        role: string_enum_to_atom([:admin, :user, :visitor], default: :admin)
+      },
+      required: [:name, :age]
+    }
+  end
 
   operation :create_user,
     operation_id: "CreateUser",

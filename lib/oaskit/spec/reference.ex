@@ -1,7 +1,15 @@
 defmodule Oaskit.Spec.Reference do
   use JSV.Schema
 
+  @moduledoc """
+  Representation of the
+  [Reference Object](https://spec.openapis.org/oas/v3.1.1.html#reference-object)
+  in OpenAPI Specification.
+  """
+
   @derive {Inspect, optional: [:summary, :description]}
+
+  @doc "Returns the JSON schema for this specification entity."
   defschema %{
     title: "Reference",
     type: :object,

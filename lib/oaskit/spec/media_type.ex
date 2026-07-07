@@ -35,6 +35,7 @@ defmodule Oaskit.Spec.MediaType do
     |> collect()
   end
 
+  @doc false
   def from_controller!(%Reference{} = ref) do
     ref
   end

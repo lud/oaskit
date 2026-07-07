@@ -480,10 +480,12 @@ defmodule Oaskit.Controller do
   end
 
   if Code.ensure_loaded?(Phoenix) do
+    @doc false
     def runtime? do
       Phoenix.plug_init_mode() == :runtime
     end
   else
+    @doc false
     def runtime? do
       Process.get(__ENV__.function, false)
     end

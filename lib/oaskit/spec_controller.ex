@@ -89,6 +89,7 @@ defmodule Oaskit.SpecController do
     end
   end
 
+  @doc false
   def serve_spec(conn, opts) do
     conn = fetch_query_params(conn)
     module = fetch_spec!(conn, opts)

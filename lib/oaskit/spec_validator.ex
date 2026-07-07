@@ -4,6 +4,10 @@ defmodule Oaskit.SpecValidator do
   alias Oaskit.Validation.RequestValidator
 
   defmodule Error do
+    @moduledoc """
+    Error raised when an OpenAPI specification document fails validation
+    against the OpenAPI 3.1 meta schema.
+    """
     defexception [:jsv_err, :spec]
 
     def message(%{jsv_err: e, spec: spec}) do

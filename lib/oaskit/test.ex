@@ -93,6 +93,7 @@ defmodule Oaskit.Test do
   end
 
   # Copy from phoenix to not depend on phoenix
+  @doc false
   def phoenix_response(%Conn{state: :unset}, _status) do
     raise """
     expected connection to have a response but no response was set/sent.

@@ -3,6 +3,10 @@ defmodule Oaskit.Errors do
   @moduledoc false
 
   defmodule InvalidBodyError do
+    @moduledoc """
+    Error passed to `Oaskit.ErrorHandler` implementations when the request body
+    fails validation.
+    """
     @enforce_keys [:value, :validation_error]
     defexception value: nil, validation_error: nil
     @type t :: %__MODULE__{}
@@ -17,6 +21,10 @@ defmodule Oaskit.Errors do
   end
 
   defmodule InvalidParameterError do
+    @moduledoc """
+    Error passed to `Oaskit.ErrorHandler` implementations when a request
+    parameter fails validation.
+    """
     @enforce_keys [:name, :in, :value, :validation_error]
     defexception name: nil, in: nil, value: nil, validation_error: nil
     @type t :: %__MODULE__{}
@@ -31,6 +39,11 @@ defmodule Oaskit.Errors do
   end
 
   defmodule UnsupportedMediaTypeError do
+    @moduledoc """
+    Error passed to `Oaskit.ErrorHandler` implementations when the request
+    content-type does not match any media type defined in the operation request
+    body.
+    """
     @enforce_keys [:media_type]
     defexception media_type: nil, value: nil
     @type t :: %__MODULE__{}
@@ -41,6 +54,10 @@ defmodule Oaskit.Errors do
   end
 
   defmodule MissingParameterError do
+    @moduledoc """
+    Error passed to `Oaskit.ErrorHandler` implementations when a required
+    parameter is missing from the request.
+    """
     @enforce_keys [:name, :in]
     defexception name: nil, in: nil
     @type t :: %__MODULE__{}
@@ -51,6 +68,10 @@ defmodule Oaskit.Errors do
   end
 
   defmodule NormalizeError do
+    @moduledoc """
+    Error raised when an OpenAPI specification element cannot be normalized to
+    JSON-compatible data.
+    """
     defexception ctx: nil, reason: nil
     @type t :: %__MODULE__{}
 

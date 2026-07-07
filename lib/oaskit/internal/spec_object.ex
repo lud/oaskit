@@ -61,6 +61,9 @@ defmodule Oaskit.Internal.SpecObject do
 
       defoverridable Access
       defoverridable Oaskit.Internal.Normalizer
+
+      @doc "Returns the JSON schema for this specification entity."
+      def json_schema
     end
   end
 end

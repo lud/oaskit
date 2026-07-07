@@ -100,6 +100,7 @@ defmodule Oaskit.Spec.Operation do
     {pairs, ctx}
   end
 
+  @doc false
   def from_controller!(spec, opts \\ [])
 
   def from_controller!(%Reference{} = ref, _) do

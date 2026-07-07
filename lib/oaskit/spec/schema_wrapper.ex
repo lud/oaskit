@@ -10,6 +10,9 @@ defmodule Oaskit.Spec.SchemaWrapper do
     json_schema()
   end
 
+  @doc """
+  Returns a no-op JSON schema.
+  """
   def json_schema do
     %{
       title: "SchemaWrapper",

@@ -86,6 +86,7 @@ defmodule Oaskit.Spec.Parameter do
     |> collect()
   end
 
+  @doc false
   def from_controller!(_name, %Reference{} = ref) do
     ref
   end

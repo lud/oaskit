@@ -19,6 +19,10 @@ defmodule Oaskit.Validation.RequestData do
           req_headers: headers
         }
 
+  @doc """
+  Extracts the path params, query params, body params and request headers from
+  a parsed and fetched `Plug.Conn` into a `t:t/0` struct.
+  """
   @spec from_conn(Plug.Conn.t()) :: t
   def from_conn(%Plug.Conn{} = conn) do
     %{

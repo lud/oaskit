@@ -7,6 +7,15 @@ defmodule Oaskit.Validation.ResponseValidator do
   helper.
   """
 
+  @doc """
+  Validates the response body and headers against the response defined in the
+  spec module for the given operation and the response status.
+
+  Returns the validated body in an ok tuple, or an error tuple with a
+  `JSV.ValidationError` for an invalid body or a `:response_headers_errors`
+  tagged tuple for invalid headers. Raises if the operation does not define a
+  response for the response status.
+  """
   @spec validate_response(ResponseData.t(), module, binary) ::
           {:ok, term}
           | {:error, JSV.ValidationError.t()}

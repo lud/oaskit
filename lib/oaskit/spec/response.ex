@@ -42,6 +42,7 @@ defmodule Oaskit.Spec.Response do
     |> collect()
   end
 
+  @doc false
   def from_controller!(%Reference{} = ref) do
     ref
   end

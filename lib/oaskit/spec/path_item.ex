@@ -1,6 +1,7 @@
 defmodule Oaskit.Spec.PathItem do
   use Oaskit.Internal.SpecObject
 
+  @doc "Returns the list of HTTP verbs that can hold an operation in a path item."
   def verbs do
     [:get, :put, :post, :delete, :options, :head, :patch, :trace]
   end

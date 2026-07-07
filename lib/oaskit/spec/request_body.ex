@@ -31,6 +31,7 @@ defmodule Oaskit.Spec.RequestBody do
     {:ok, from_controller!(spec)}
   end
 
+  @doc false
   def from_controller!(%Reference{} = ref) do
     ref
   end
