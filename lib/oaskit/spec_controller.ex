@@ -143,8 +143,8 @@ defmodule Oaskit.SpecController do
   #
   #     curl -s https://cdn.redoc.ly/redoc/vVERSION/bundles/redoc.standalone.js \
   #       | openssl dgst -sha384 -binary | openssl base64 -A
-  @redoc_version "2.5.3"
-  @redoc_sri "sha384-xiEssMQFSpSfLbzRZCGfxxIM5QDb2DTrU6vyoZdp2sV1L6pmOMy6MpTtUoLbpC96"
+  @redoc_version "2.5.4"
+  @redoc_sri "sha384-w447zOpYfw/1Tv/5AK9NfHTlQIqE3RVR6KY62jCyy9zNDgO64cMwGGP1Fj0zJVf5"
   @redoc_src "https://cdn.redoc.ly/redoc/v#{@redoc_version}/bundles/redoc.standalone.js"
 
   @redoc_ui """
