@@ -99,6 +99,9 @@ defmodule Oaskit.Spec.Parameter do
     |> take_default(:schema, _boolean_schema = true, &ensure_schema/1)
     |> take_default(:explode, nil)
     |> take_default(:style, nil)
+    |> take_default(:description, nil)
+    |> take_default(:deprecated, nil)
+    |> take_default(:allowReserved, nil)
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
     |> take_default_lazy(:examples, fn ->
       case Access.fetch(spec, :example) do

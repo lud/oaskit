@@ -101,6 +101,13 @@ defmodule Oaskit.Controller do
   * `:required` - A boolean, defaults to `true` for `:path` params, `false`
     otherwise.
   * `:examples` - A list of examples.
+  * `:description` - An optional string to describe the parameter in the OpenAPI
+    spec. This describes the parameter itself; use the `:description` of the
+    given `:schema` to describe the accepted values.
+  * `:deprecated` - A boolean to mark the parameter as deprecated.
+  * `:allowReserved` - A boolean, only meaningful for `:query` parameters.
+    Documentation only; Oaskit never reads it when validating because query
+    strings are decoded by Plug before Oaskit sees them.
 
   Parameters are stored into `conn.private.oaskit.path_params` and
   `conn.private.oaskit.query_params`. They do not override the `params`

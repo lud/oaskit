@@ -328,6 +328,37 @@ defmodule Oaskit.ControllerTest do
       }
     ]
 
+    test "parameter descriptions and flags are kept" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [
+          page: [
+            in: :query,
+            description: "Which page of results to return.",
+            deprecated: true,
+            allowReserved: true,
+            schema: %{type: :integer, description: "A positive page number."}
+          ]
+        ],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      # The parameter description documents the parameter, the schema
+      # description documents the accepted values. Both are kept.
+      assert [
+               %Oaskit.Spec.Parameter{
+                 in: :query,
+                 name: "page",
+                 description: "Which page of results to return.",
+                 deprecated: true,
+                 allowReserved: true,
+                 schema: %{type: :integer, description: "A positive page number."}
+               }
+             ] = op.parameters
+    end
+
     test "shared parameters are applied when operation omits parameters key" do
       # Shared parameters should be applied even when `parameters:` is not specified
       # in the operation spec
