@@ -11,7 +11,7 @@ First, add Oaskit to your dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:oaskit, "~> 0.14"},
+    {:oaskit, "~> 0.15"},
   ]
 end
 ```
