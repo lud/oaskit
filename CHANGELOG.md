@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - 2026-09-25
+
+### 🚀 Features
+
+- [**breaking**] Drop intermediary JSON schema errors from JSON error responses (_lud_)
+
 ## [0.15.0] - 2026-09-22
 
 ### 🚀 Features
