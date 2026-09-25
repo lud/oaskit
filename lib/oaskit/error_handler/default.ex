@@ -102,10 +102,10 @@ defmodule Oaskit.ErrorHandler.Default do
   end
 
   defp json_opts(opts) do
-    case Keyword.fetch(opts, :pretty_errors) do
-      {:ok, true} -> [pretty: true]
-      _ -> []
-    end
+    [
+      pretty: Keyword.get(opts, :pretty_errors) == true,
+      min_error_level: Keyword.get(opts, :min_error_level, JSV.ErrorFormatter.level_cause())
+    ]
   end
 
   defp resp_content_type(format) do
@@ -116,7 +116,7 @@ defmodule Oaskit.ErrorHandler.Default do
   end
 
   defp format_reason({:json, json_opts}, reason, status, operation_id) do
-    payload = %{error: reason_to_json(reason, status, operation_id)}
+    payload = %{error: reason_to_json(reason, status, operation_id, json_opts)}
     json_encode(payload, json_opts)
   end
 
@@ -161,40 +161,41 @@ defmodule Oaskit.ErrorHandler.Default do
     )
   end
 
-  defp reason_to_json(%InvalidBodyError{} = e, status, operation_id) do
+  defp reason_to_json(%InvalidBodyError{} = e, status, operation_id, json_opts) do
     base_json_error(status, operation_id, %{
       "in" => "body",
-      "validation_error" => JSV.normalize_error(e.validation_error)
+      "validation_error" => normalize_error(e.validation_error, json_opts)
     })
   end
 
-  defp reason_to_json(%UnsupportedMediaTypeError{} = e, status, operation_id) do
+  defp reason_to_json(%UnsupportedMediaTypeError{} = e, status, operation_id, _json_opts) do
     base_json_error(status, operation_id, %{
       "in" => "body",
       "media_type" => e.media_type
     })
   end
 
-  defp reason_to_json({:parameters_errors, list}, status, operation_id) do
+  defp reason_to_json({:parameters_errors, list}, status, operation_id, json_opts) do
     base_json_error(status, operation_id, %{
       "in" => "parameters",
-      "parameters_errors" => list |> sort_errors() |> Enum.map(&parameter_error_to_json/1)
+      "parameters_errors" =>
+        list |> sort_errors() |> Enum.map(&parameter_error_to_json(&1, json_opts))
     })
   end
 
-  defp parameter_error_to_json(%InvalidParameterError{} = e) do
+  defp parameter_error_to_json(%InvalidParameterError{} = e, json_opts) do
     %{in: loc, name: name, validation_error: verr} = e
 
     %{
       "kind" => "invalid_parameter",
       "parameter" => name,
       "in" => loc,
-      "validation_error" => JSV.normalize_error(verr),
+      "validation_error" => normalize_error(verr, json_opts),
       "message" => "invalid parameter #{name} in #{loc}"
     }
   end
 
-  defp parameter_error_to_json(%MissingParameterError{} = e) do
+  defp parameter_error_to_json(%MissingParameterError{} = e, _json_opts) do
     %{in: loc, name: name} = e
 
     %{
@@ -203,6 +204,10 @@ defmodule Oaskit.ErrorHandler.Default do
       "in" => loc,
       "message" => Exception.message(e)
     }
+  end
+
+  defp normalize_error(verr, json_opts) do
+    JSV.normalize_error(verr, min_error_level: Keyword.fetch!(json_opts, :min_error_level))
   end
 
   defp status_to_message(status) when is_atom(status) do

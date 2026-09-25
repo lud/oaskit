@@ -103,6 +103,12 @@ defmodule Oaskit.Plugs.ValidateRequest do
   * `:pretty_errors` - A boolean to control pretty printing of JSON errors
     payload in error handlers. Defaults to `true` when `Mix.env() != :prod`,
     defaults to `false` otherwise.
+  * `:min_error_level` - An integer passed to `JSV.normalize_error/2` by the
+    default error handler to drop JSON schema errors below that level from JSON
+    error payloads. Defaults to `JSV.ErrorFormatter.level_cause/0`, which keeps
+    only the errors stating why the data was rejected. Use `0` to return all
+    errors, including intermediary ones. See the "Error levels" section in
+    `JSV.ErrorFormatter`.
   * `:html_errors` - A boolean to control whether the default error handler is
     allowed to return HTML errors when the request accepts HTML. This is useful
     to quickly read errors when opening an url directly from the browser.
@@ -195,6 +201,7 @@ defmodule Oaskit.Plugs.ValidateRequest do
         function_exported?(Mix, :env, 0) && Mix.env() != :prod
       end)
       |> Keyword.put_new(:html_errors, true)
+      |> Keyword.put_new(:min_error_level, JSV.ErrorFormatter.level_cause())
       |> Keyword.put_new(:error_handler, Oaskit.ErrorHandler.Default)
       |> Keyword.put_new(:security, nil)
       |> tap(&validate_security_opt/1)

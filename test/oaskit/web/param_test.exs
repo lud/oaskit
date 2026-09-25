@@ -605,17 +605,6 @@ defmodule Oaskit.Web.ParamTest do
                                }
                              ],
                              "valid" => false
-                           },
-                           %{
-                             "errors" => [
-                               %{
-                                 "kind" => "items",
-                                 "message" =>
-                                   "item at index " <>
-                                     <<_>> <> " does not validate the 'items' schema"
-                               }
-                             ],
-                             "valid" => false
                            }
                          ],
                          "valid" => false
@@ -835,8 +824,7 @@ defmodule Oaskit.Web.ParamTest do
                            "errors" => [
                              %{"kind" => "type", "message" => "value is not of type integer"}
                            ]
-                         },
-                         _array_error
+                         }
                        ],
                        "valid" => false
                      }
