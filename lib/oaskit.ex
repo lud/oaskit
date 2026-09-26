@@ -4,7 +4,10 @@ defmodule Oaskit do
   alias Oaskit.Internal.SpecBuilder
 
   @moduledoc """
-  The main API to work with OpenAPI specifications.
+  Oaskit is an OpenAPI 3.1 library for Elixir and Phoenix: spec generation,
+  request validation and casting, built on JSON Schema 2020-12.
+
+  This is the main API to work with OpenAPI specifications.
 
   This module can be used to define a specification module that will then be
   used in your Phoenix router and controllers.

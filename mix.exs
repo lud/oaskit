@@ -60,7 +60,8 @@ defmodule Oaskit.MixProject do
   end
 
   defp description do
-    "OpenAPI 3.1 validation, generation and utilities for for Elixir/Phoenix."
+    "Oaskit is an OpenAPI 3.1 library for Elixir and Phoenix: spec generation, " <>
+      "request validation and casting, built on JSON Schema 2020-12."
   end
 
   defp package do
@@ -68,7 +69,9 @@ defmodule Oaskit.MixProject do
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => @source_url,
-        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md"
+        "Changelog" => "#{@source_url}/blob/main/CHANGELOG.md",
+        "Quickstart" => "https://hexdocs.pm/oaskit/quickstart.html",
+        "JSV (JSON Schema validator)" => "https://hex.pm/packages/jsv"
       },
       files: ~w(lib priv .formatter.exs mix.exs README* LICENSE* CHANGELOG*)
     ]
