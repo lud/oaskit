@@ -63,7 +63,7 @@ defmodule Oaskit.Controller do
   @doc """
   Defines an OpenAPI operation for the given Phoenix action (the function listed
   in the router that will handle the conn) that can be validated automatically
-  with the `#{inspect(Oaskit.Plugs.ValidateRequest)}` plug automatically.
+  with the `#{inspect(Oaskit.Plugs.ValidateRequest)}` plug.
 
   This macro accepts the function name and a list of options that will define an
   `#{inspect(Operation)}`.
@@ -78,10 +78,12 @@ defmodule Oaskit.Controller do
     spec.
   * `:summary` - A short summary of what the operation does.
   * `:parameters` - A keyword list with parameter names as keys and parameter
-    definitions as values. Parameters are query params but also path params. See
+    definitions as values. Parameters can be path, query or header params. See
     below for more information.
-  * `:request_body` - A map of possible content types and responses definitions.
-    A schema module can be given directly to define a single
+  * `:request_body` - A keyword list with the `:content` and `:required`
+    options, or a shortcut: a schema module, or a `{schema, options}` tuple, for
+    a single `"application/json"` content type. See below for request body
+    formats.
   * `:responses` - A map or keyword list where keys are status codes (integers
     or atoms) and values are responses definitions. See below for responses
     formats.
@@ -91,12 +93,12 @@ defmodule Oaskit.Controller do
   ## Defining parameters
 
   Parameters are organized by their name and their `:in` option. Two parameters
-  with the same key can coexist if their `:in` option is different. The `:query`
-  and `:path` values for `:in` are currently supported.
+  with the same key can coexist if their `:in` option is different. The `:path`,
+  `:query` and `:header` values for `:in` are currently supported.
 
   Parameters support the following options:
 
-  * `:in` - Either `:path` or `:query`. Required.
+  * `:in` - One of `:path`, `:query` or `:header`. Required.
   * `:schema` - A JSON schema or Module name exporting a `json_schema/0` function.
   * `:required` - A boolean, defaults to `true` for `:path` params, `false`
     otherwise.
@@ -109,8 +111,10 @@ defmodule Oaskit.Controller do
     Documentation only; Oaskit never reads it when validating because query
     strings are decoded by Plug before Oaskit sees them.
 
-  Parameters are stored into `conn.private.oaskit.path_params` and
-  `conn.private.oaskit.query_params`. They do not override the `params`
+  Parameters are stored into `conn.private.oaskit.path_params`,
+  `conn.private.oaskit.query_params` and `conn.private.oaskit.header_params`,
+  and can be read with `path_param/3`, `query_param/3` and `header_param/3`.
+  They do not override the `params`
   argument passed to your phoenix action function. Those original `params` are
   still the ones as decoded by phoenix.
 
@@ -135,18 +139,21 @@ defmodule Oaskit.Controller do
 
   ## Defining the request body
 
-  Request bodies can be defined in two ways: Either by providing a mapping of
-  content-type to media type objects, or with a shortcut by providing only a
-  schema for an unique `"application/json"` content-type.
+  Request bodies can be defined in two ways: Either with a keyword list giving a
+  mapping of content-types to media type objects, or with a shortcut by
+  providing only a schema for a unique `"application/json"` content-type.
 
-  The body can be retrieved in `conn.oaskit.private.body_params`.
+  The body can be retrieved with `body_params/1`, or in
+  `conn.private.oaskit.body_params`.
 
-  Options supported with a generic definition, for each content type:
+  Options supported with the full definition:
 
-  * `:content` - A map of content-type to bodies definitions. Content-types
-    should be strings.
+  * `:content` - A map of content-types to media type objects. Content-types
+    must be strings. Media type objects are maps or keyword lists with a
+    required `:schema` key, and optionally `:examples`, a map of names to
+    example objects like `%{"alice" => %{value: %{name: "Alice"}}}`.
   * `:required` - A boolean. When `false`, the body can be missing and will not
-    be validated. In that case, `conn.oaskit.private.body_params` will be
+    be validated. In that case, `conn.private.oaskit.body_params` will be
     `nil`. The default value is `false`.
 
   When using the shortcut, a single atom or 2-tuple is expected.
@@ -156,10 +163,14 @@ defmodule Oaskit.Controller do
     export a `json_schema/0` function that returns a JSON schema.
   * When passing a tuple, the first element is a schema (boolean or module), but
     a direct JSON schema map (like `%{type: :object, ...}`) is also accepted.
-    The second tuple element is a list of options for the response body object.
+    The second tuple element is a list of options for the request body object,
+    like `:required`, but not `:content`.
+
+  A JSON schema map cannot be given alone, it must be wrapped in a tuple, as in
+  `{%{type: :object, ...}, []}`.
 
   **Important**, when using the shortcut, we chose to automatically define the
-  `:required` option of the media type object to `true`.
+  `:required` option of the request body object to `true`.
 
   ### Request body examples
 
@@ -171,7 +182,7 @@ defmodule Oaskit.Controller do
         # ...
 
       def create_user(conn, _params) do
-        case Users.create_user(conn.private.oaskit.body_params) do
+        case Users.create_user(body_params(conn)) do
           # ...
         end
       end
@@ -181,7 +192,7 @@ defmodule Oaskit.Controller do
       operation :create_user,
         operation_id: "CreateUser",
         request_body: [
-          content: %{"application/json" => %{schema: CreateUserPayload}},
+          content: %{"application/json" => %{schema: UserSchema}},
           required: true
         ],
         # ...
@@ -200,8 +211,8 @@ defmodule Oaskit.Controller do
       operation :create_user,
         request_body: [
           content: %{
-            "application/x-www-form-urlencoded" => %{schema: CreateUserPayload},
-            "application/json" => %{schema: CreateUserPayload},
+            "application/x-www-form-urlencoded" => %{schema: UserSchema},
+            "application/json" => %{schema: UserSchema},
             "*/*" => %{schema: %{type: :string}}
           }
         ]
@@ -213,7 +224,7 @@ defmodule Oaskit.Controller do
   * HTTP statuses can be given as integers (`200`, `404`, _etc._) or atoms
     supported by `#{inspect(Plug.Conn.Status)}` like `:ok`, `:not_found`, _etc_.
   * `:default` can be given instead of a status to define the default option
-    supported by the OpenAPI speficication. This is often used to define a
+    supported by the OpenAPI specification. This is often used to define a
     generic error response.
 
   Response objects accept the following options:
@@ -228,10 +239,11 @@ defmodule Oaskit.Controller do
   Finally, the response for each status can also be defined with a shortcut, by
   using a single schema that will be associated to the `"application/json"`
   content-type. The mandatory description can be provided when using the tuple
-  shortcut, or will otherwise being pulled from the schema `description`
-  keyword.
+  shortcut. Otherwise it is taken from the `description` keyword of a schema
+  map, and defaults to `"no description"` for schema modules and schemas
+  without a description.
 
-  ### Reponse examples
+  ### Response examples
 
   A first example using the atom statuses, and a shortcut for the full response
   definition:
@@ -246,14 +258,14 @@ defmodule Oaskit.Controller do
         operation_id: "ListUsers",
         responses: %{
           200 => [
-            description: UsersListPage.json_schema().description,
+            description: "no description",
             content: %{
               "application/json" => %{schema: UsersListPage}
             }
           ]
         }
 
-  The description can be overriden when using the shortcut:
+  The description can be overridden when using the shortcut:
 
       operation :list_users,
         operation_id: "ListUsers",
@@ -281,10 +293,62 @@ defmodule Oaskit.Controller do
 
   Of course, mixing all styles together is discouraged for readability.
 
+  ## Full example
+
+  An operation using the full definitions, with multiple content-types for the
+  request body and the responses:
+
+      operation :create_user,
+        operation_id: "CreateUser",
+        summary: "Creates a user",
+        tags: ["users"],
+        parameters: [
+          organization: [in: :path, schema: %{type: :string}],
+          "x-request-id": [in: :header, schema: %{type: :string, format: :uuid}]
+        ],
+        request_body: [
+          required: true,
+          content: %{
+            "application/json" => [
+              schema: UserSchema,
+              examples: %{
+                "alice" => %{value: %{name: "Alice", email: "alice@example.com"}}
+              }
+            ],
+            "application/x-www-form-urlencoded" => [schema: UserSchema]
+          }
+        ],
+        responses: [
+          created: [
+            description: "The created user",
+            headers: %{"location" => %{schema: %{type: :string}}},
+            content: %{
+              "application/json" => [schema: UserSchema],
+              "text/plain" => [schema: %{type: :string}]
+            }
+          ],
+          unprocessable_content: [
+            description: "Invalid user",
+            content: %{
+              "application/json" => [
+                schema: Oaskit.ErrorHandler.Default.error_response_schema()
+              ]
+            }
+          ]
+        ]
+
   ## Ignore operations
 
+  Pass `false` instead of the options to explicitly ignore an action. Requests
+  for that action are not validated, the action does not appear in the OpenAPI
+  specification, and `#{inspect(Oaskit.Plugs.ValidateRequest)}` does not log a
+  warning about a missing operation.
 
+      operation :legacy_import, false
 
+      def legacy_import(conn, params) do
+        # ...
+      end
   """
   @doc group: "Controller Macros"
   defmacro operation(action, spec)
@@ -721,7 +785,7 @@ defmodule Oaskit.Controller do
   @doc """
   Accepts a `Plug.Conn` struct, a parameter name (as atom) and a default value.
 
-  Returns the validated parameter from `conn.oaskit.private.path_params` if
+  Returns the validated parameter from `conn.private.oaskit.path_params` if
   found, or the default value.
   """
   def path_param(%Plug.Conn{} = conn, name, default \\ nil) do
@@ -734,7 +798,7 @@ defmodule Oaskit.Controller do
   @doc """
   Accepts a `Plug.Conn` struct, a parameter name (as atom) and a default value.
 
-  Returns the validated parameter from `conn.oaskit.private.query_params` if
+  Returns the validated parameter from `conn.private.oaskit.query_params` if
   found, or the default value.
   """
   def query_param(%Plug.Conn{} = conn, name, default \\ nil) do
@@ -747,7 +811,7 @@ defmodule Oaskit.Controller do
   @doc """
   Accepts a `Plug.Conn` struct, a parameter name (as atom) and a default value.
 
-  Returns the validated parameter from `conn.oaskit.private.header_params` if
+  Returns the validated parameter from `conn.private.oaskit.header_params` if
   found, or the default value.
   """
   def header_param(%Plug.Conn{} = conn, name, default \\ nil) do
