@@ -97,6 +97,20 @@ defmodule Oaskit.ControllerTest do
              Operation.from_controller!(shortcut_spec)
   end
 
+  test "a bare schema map as request body is rejected" do
+    spec = [
+      operation_id: :some_operation,
+      request_body: %{type: :object},
+      responses: [ok: true]
+    ]
+
+    assert_raise ArgumentError,
+                 ~r/invalid request body definition.*got: %\{type: :object\}/,
+                 fn ->
+                   Operation.from_controller!(spec)
+                 end
+  end
+
   describe "required body" do
     test "when using shortcut, body is required by default" do
       # spec with a direct schema is required

@@ -65,6 +65,12 @@ defmodule Oaskit.Spec.RequestBody do
     |> into()
   end
 
+  def from_controller!(other) do
+    raise ArgumentError,
+          "invalid request body definition, expected a schema module, a boolean schema, " <>
+            "a {schema, options} tuple or a keyword list with a :content key, got: #{inspect(other)}"
+  end
+
   defp cast_content(content) when is_map(content) when is_list(content) do
     content
     |> Enum.to_list()
