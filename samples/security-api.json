@@ -78,6 +78,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }
@@ -124,6 +125,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }
@@ -168,6 +170,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }
@@ -206,6 +209,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }
@@ -239,6 +243,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }
@@ -280,6 +285,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         },
         "x-some-extension": "hello"
@@ -322,6 +328,7 @@
               }
             }
           },
+          "description": "common body",
           "required": true
         }
       }

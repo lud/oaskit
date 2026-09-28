@@ -78,6 +78,25 @@ defmodule Oaskit.ControllerTest do
     end
   end
 
+  test "request body description is kept" do
+    spec = [
+      operation_id: :some_operation,
+      request_body: [
+        description: "The user to create",
+        content: %{"application/json" => [schema: SomeSchema]}
+      ],
+      responses: [ok: true]
+    ]
+
+    assert %Operation{requestBody: %RequestBody{description: "The user to create"}} =
+             Operation.from_controller!(spec)
+
+    shortcut_spec = Keyword.put(spec, :request_body, {SomeSchema, description: "From shortcut"})
+
+    assert %Operation{requestBody: %RequestBody{description: "From shortcut"}} =
+             Operation.from_controller!(shortcut_spec)
+  end
+
   describe "required body" do
     test "when using shortcut, body is required by default" do
       # spec with a direct schema is required

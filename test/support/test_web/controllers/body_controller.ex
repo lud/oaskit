@@ -38,6 +38,7 @@ defmodule Oaskit.TestWeb.BodyController do
     request_body: {PlantSchema, [required: false]},
     responses: [
       ok: true,
+      created: PlantSchema,
       default: Oaskit.ErrorHandler.Default.error_response_schema()
     ]
 
@@ -46,7 +47,10 @@ defmodule Oaskit.TestWeb.BodyController do
   end
 
   operation :handle_form,
-    request_body: [content: %{"application/x-www-form-urlencoded" => %{schema: PlantSchema}}],
+    request_body: [
+      description: "A plant submitted from an HTML form.",
+      content: %{"application/x-www-form-urlencoded" => %{schema: PlantSchema}}
+    ],
     responses: dummy_responses_with_error()
 
   def handle_form(conn, params) do

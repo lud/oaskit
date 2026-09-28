@@ -308,6 +308,7 @@
       },
       "PlantSchema": {
         "title": "PlantSchema",
+        "description": "A plant and the conditions it needs to grow.",
         "properties": {
           "name": {
             "minLength": 1,
@@ -444,6 +445,7 @@
               }
             }
           },
+          "description": "A plant submitted from an HTML form.",
           "required": false
         }
       }
@@ -616,6 +618,16 @@
               }
             },
             "description": "no description"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlantSchema"
+                }
+              }
+            },
+            "description": "A plant and the conditions it needs to grow."
           },
           "default": {
             "content": {
@@ -2404,6 +2416,7 @@
               }
             }
           },
+          "description": "fortune selection",
           "required": true
         }
       }

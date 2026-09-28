@@ -61,6 +61,7 @@ defmodule Oaskit.Spec.RequestBody do
     |> make(__MODULE__)
     |> take_required(:content, &cast_content/1)
     |> take_default(:required, false)
+    |> take_default(:description, nil)
     |> into()
   end
 

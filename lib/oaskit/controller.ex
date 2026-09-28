@@ -161,6 +161,8 @@ defmodule Oaskit.Controller do
   * `:required` - A boolean. When `false`, the body can be missing and will not
     be validated. In that case, `conn.private.oaskit.body_params` will be
     `nil`. The default value is `false`.
+  * `:description` - An optional string to describe the request body in the
+    OpenAPI spec.
 
   When using the shortcut, a single atom or 2-tuple is expected.
 

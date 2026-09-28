@@ -7,6 +7,7 @@ defmodule Oaskit.TestWeb.Schemas.PlantSchema do
   defschema %{
     type: :object,
     title: "PlantSchema",
+    description: "A plant and the conditions it needs to grow.",
     properties: %{
       name: non_empty_string(),
       sunlight: string_enum_to_atom([:full_sun, :partial_sun, :bright_indirect, :darnkness]),
