@@ -152,8 +152,8 @@ end
 ```
 <!-- rdmx /:section -->
 
-An **inline schema** is plain Elixir data, given directly or with the
-`{schema, options}` form.
+An **inline schema** is a plain Elixir map. For request bodies and responses,
+wrap it in a `{schema, options}` tuple.
 
 <!-- rdmx :section name:controller_operations format: true -->
 ```elixir
