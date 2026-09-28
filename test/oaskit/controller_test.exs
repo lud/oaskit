@@ -429,6 +429,47 @@ defmodule Oaskit.ControllerTest do
       }
     ]
 
+    test "parameters can be defined with a map" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [
+          page: %{in: :query, schema: %{type: :integer}, example: 1},
+          organization: %{in: :path, schema: %{type: :string}}
+        ],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert [
+               %Oaskit.Spec.Parameter{
+                 in: :query,
+                 name: "page",
+                 required: false,
+                 schema: %{type: :integer},
+                 examples: %{"default" => %{value: 1}}
+               },
+               %Oaskit.Spec.Parameter{
+                 in: :path,
+                 name: "organization",
+                 required: true,
+                 schema: %{type: :string}
+               }
+             ] = op.parameters
+    end
+
+    test "invalid parameter definitions are rejected" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [page: :query],
+        responses: [ok: true]
+      ]
+
+      assert_raise ArgumentError, ~r/invalid definition for parameter :page.*got: :query/, fn ->
+        Operation.from_controller!(spec)
+      end
+    end
+
     test "parameter descriptions and flags are kept" do
       spec = [
         operation_id: :some_operation,

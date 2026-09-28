@@ -91,7 +91,7 @@ defmodule Oaskit.Spec.Parameter do
     ref
   end
 
-  def from_controller!(name, spec) when is_atom(name) and is_list(spec) do
+  def from_controller!(name, spec) when is_atom(name) and (is_list(spec) or is_map(spec)) do
     spec
     |> make(__MODULE__)
     |> put(:name, to_string(name))
@@ -105,6 +105,12 @@ defmodule Oaskit.Spec.Parameter do
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
     |> take_examples(spec)
     |> into()
+  end
+
+  def from_controller!(name, spec) do
+    raise ArgumentError,
+          "invalid definition for parameter #{inspect(name)}, expected an atom name " <>
+            "with a keyword list or a map, got: #{inspect(spec)}"
   end
 
   defp validate_location(loc) do

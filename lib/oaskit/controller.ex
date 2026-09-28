@@ -96,7 +96,8 @@ defmodule Oaskit.Controller do
   with the same key can coexist if their `:in` option is different. The `:path`,
   `:query` and `:header` values for `:in` are currently supported.
 
-  Parameters support the following options:
+  Parameter definitions are keyword lists or maps, supporting the following
+  options:
 
   * `:in` - One of `:path`, `:query` or `:header`. Required.
   * `:schema` - A JSON schema or Module name exporting a `json_schema/0` function.
