@@ -57,11 +57,7 @@ defmodule Oaskit.Spec.Response do
       when is_boolean(schema) do
     spec =
       Keyword.put_new_lazy(spec, :description, fn ->
-        case schema do
-          %{description: d} when is_binary(d) -> d
-          %{"description" => d} when is_binary(d) -> d
-          _ -> "no description"
-        end
+        schema_description(schema) || "no description"
       end)
 
     case Keyword.fetch(spec, :content) do

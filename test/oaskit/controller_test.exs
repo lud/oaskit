@@ -9,6 +9,11 @@ defmodule Oaskit.ControllerTest do
     defschema(props(a: integer()))
   end
 
+  defmodule DescribedSchema do
+    use JSV.Schema
+    defschema(%{type: :object, description: "from module", properties: %{a: %{type: :integer}}})
+  end
+
   test "define with inline request body schema" do
     spec = [
       operation_id: :some_operation,
@@ -209,6 +214,35 @@ defmodule Oaskit.ControllerTest do
                  }
                }
              } = op
+    end
+
+    test "description is taken from a schema module only if not provided" do
+      spec = [
+        operation_id: :some_operation,
+        responses: %{
+          200 => DescribedSchema,
+          201 => {DescribedSchema, description: "from opts"},
+          202 => SomeSchema
+        }
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert %Oaskit.Spec.Operation{
+               responses: %{
+                 200 => %Oaskit.Spec.Response{description: "from module"},
+                 201 => %Oaskit.Spec.Response{description: "from opts"},
+                 202 => %Oaskit.Spec.Response{description: "no description"}
+               }
+             } = op
+    end
+
+    test "an invalid schema module is rejected by the media type" do
+      spec = [operation_id: :some_operation, responses: [ok: NotASchemaModule]]
+
+      assert_raise ArgumentError, ~r/:invalid_schema, NotASchemaModule/, fn ->
+        Operation.from_controller!(spec)
+      end
     end
 
     test "spec with provided content" do

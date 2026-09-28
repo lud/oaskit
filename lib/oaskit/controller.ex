@@ -245,8 +245,8 @@ defmodule Oaskit.Controller do
   Finally, the response for each status can also be defined with a shortcut, by
   using a single schema that will be associated to the `"application/json"`
   content-type. The mandatory description can be provided when using the tuple
-  shortcut. Otherwise it is taken from the `description` keyword of a schema
-  map, and defaults to `"no description"` for schema modules and schemas
+  shortcut. Otherwise it is taken from the `description` keyword of the schema,
+  given as a map or as a module, and defaults to `"no description"` for schemas
   without a description.
 
   ### Response examples
@@ -264,7 +264,7 @@ defmodule Oaskit.Controller do
         operation_id: "ListUsers",
         responses: %{
           200 => [
-            description: "no description",
+            description: UsersListPage.json_schema().description,
             content: %{
               "application/json" => %{schema: UsersListPage}
             }

@@ -3,6 +3,8 @@ defmodule Oaskit.Internal.ControllerBuilder do
   # macro.
   @moduledoc false
 
+  alias JSV.Schema
+
   @undef :__undef__
 
   defstruct [:target, :input, :output]
@@ -151,10 +153,30 @@ defmodule Oaskit.Internal.ControllerBuilder do
   end
 
   def ensure_schema(schema) when is_atom(schema) do
-    case JSV.Schema.schema_module?(schema) do
+    case Schema.schema_module?(schema) do
       true -> {:ok, schema}
       false -> {:error, {:invalid_schema, schema}}
     end
+  end
+
+  def schema_description(schema) when is_map(schema) do
+    case schema do
+      %{description: d} when is_binary(d) -> d
+      %{"description" => d} when is_binary(d) -> d
+      _ -> nil
+    end
+  end
+
+  def schema_description(schema) when is_atom(schema) and not is_boolean(schema) do
+    if Schema.schema_module?(schema) do
+      schema_description(schema.json_schema())
+    else
+      nil
+    end
+  end
+
+  def schema_description(_schema) do
+    nil
   end
 
   def take_examples(builder, spec) do
