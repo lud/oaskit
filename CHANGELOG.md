@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.1] - 2026-09-28
+
+### 🐛 Bug Fixes
+
+- Fix transforming single example into examples map (_lud_)
+- Correctly take default request/response descriptions from schema modules as documented (_lud_)
+- Keep description on request bodies (_lud_)
+- Raise explicit error for invalid request body definitions (_lud_)
+- Accept maps as parameter definitions (_lud_)
+
+### 🚜 Refactor
+
+- Share media type content casting between request bodies and responses (_lud_)
+
+### 📚 Documentation
+
+- Fix operation/2 docs and README inline schema wording (#153) (_Ludovic Dem_)
+- Set JSON content type in guide tests, mention HTML errors in README (_lud_)
+
+### ⚙️ Miscellaneous Tasks
+
+- Various typo fixes (_lud_)
+
 ## [0.16.0] - 2026-09-25
 
 ### 🚀 Features
