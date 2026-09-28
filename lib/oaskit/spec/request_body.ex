@@ -72,31 +72,15 @@ defmodule Oaskit.Spec.RequestBody do
   end
 
   defp cast_content(content) when is_map(content) when is_list(content) do
-    content
-    |> Enum.to_list()
-    |> tap(fn
-      [] -> raise ArgumentError, ":content cannot by empty"
-      _ -> :ok
-    end)
-    |> Enum.reduce_while({:ok, %{}}, fn
-      {mime_type, _media_spec}, _ when not is_binary(mime_type) ->
-        {:halt, {:error, "media mime types must be strings, got: #{inspect(mime_type)}"}}
-
-      {mime_type, media_spec}, {:ok, acc} ->
-        case Plug.Conn.Utils.media_type(mime_type) do
-          {:ok, _, _, _} ->
-            media = MediaType.from_controller!(media_spec)
-            {:cont, {:ok, Map.put(acc, mime_type, media)}}
-
-          :error ->
-            {:halt, {:error, "cannot parse media type #{inspect(mime_type)}"}}
-        end
-    end)
+    case Enum.to_list(content) do
+      [] -> raise ArgumentError, ":content cannot be empty"
+      list -> MediaType.from_controller_content(list)
+    end
   end
 
   defp cast_content(content) do
     raise ArgumentError,
-          "invalid :content given in request body definition, expected map or keyword list,got: #{inspect(content)}"
+          "invalid :content given in request body definition, expected map or keyword list, got: #{inspect(content)}"
   end
 
   @impl true
