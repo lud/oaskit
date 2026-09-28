@@ -204,10 +204,12 @@ end
 ```
 <!-- rdmx /:section -->
 
-Invalid requests are rejected with a JSON response describing the errors: `400`
-for invalid parameters, `422` for an invalid body and `415` for an unsupported
-content type. Errors can be rendered your own way with the `:error_handler`
-option of `Oaskit.Plugs.ValidateRequest`.
+Invalid requests are rejected with a response describing the errors: `400` for
+invalid parameters, `422` for an invalid body and `415` for an unsupported
+content type. Errors are rendered as JSON, or as an HTML page when the `Accept`
+header contains `html` (disable this with the `html_errors: false` option). They
+can be rendered your own way with the `:error_handler` option of
+`Oaskit.Plugs.ValidateRequest`.
 
 ### Testing responses
 

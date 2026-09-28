@@ -255,7 +255,10 @@ defmodule MyAppWeb.UserControllerTest do
       email: "john@example.com"
     }
 
-    conn = post(conn, ~p"/api/users", user_params)
+    conn =
+      conn
+      |> put_req_header("content-type", "application/json")
+      |> post(~p"/api/users", user_params)
 
     # Validate against specification and get the JSON data
     assert %{
@@ -273,7 +276,10 @@ defmodule MyAppWeb.UserControllerTest do
       email: "invalid-email"
     }
 
-    conn = post(conn, ~p"/api/users", invalid_params)
+    conn =
+      conn
+      |> put_req_header("content-type", "application/json")
+      |> post(~p"/api/users", invalid_params)
 
     # You can use `valid_response` if you define a response schema for the
     # errors. See `Oaskit.ErrorHandler.Default.error_response_schema/0`.

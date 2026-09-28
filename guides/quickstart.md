@@ -327,7 +327,10 @@ defmodule MyAppWeb.UserControllerTest do
       age: 25
     }
 
-    conn = post(conn, ~p"/api/users", user_params)
+    conn =
+      conn
+      |> put_req_header("content-type", "application/json")
+      |> post(~p"/api/users", user_params)
 
     # Validate the response against your OpenAPI specification. It returns
     # decoded data for JSON content-types.
@@ -346,7 +349,10 @@ defmodule MyAppWeb.UserControllerTest do
       age: 15
     }
 
-    conn = post(conn, ~p"/api/users", invalid_params)
+    conn =
+      conn
+      |> put_req_header("content-type", "application/json")
+      |> post(~p"/api/users", invalid_params)
 
     # You can use `valid_response` if you define a response schema for the
     # errors. See `Oaskit.ErrorHandler.Default.error_response_schema/0`.
