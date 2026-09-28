@@ -52,7 +52,7 @@ defmodule Mix.Tasks.Openapi.Dump do
 
   defp handle_validation_error(verr) do
     CLI.warn("""
-    Some errors were found when validating the OpenAPI speficication:
+    Some errors were found when validating the OpenAPI specification:
 
     #{Exception.format_banner(:error, verr)}
     """)

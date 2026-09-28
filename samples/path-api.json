@@ -322,7 +322,7 @@
               "full_sun",
               "partial_sun",
               "bright_indirect",
-              "darnkness"
+              "darkness"
             ],
             "type": "string"
           }
@@ -490,7 +490,7 @@
                       "full_sun",
                       "partial_sun",
                       "bright_indirect",
-                      "darnkness"
+                      "darkness"
                     ],
                     "type": "string"
                   }

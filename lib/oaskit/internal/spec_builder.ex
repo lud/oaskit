@@ -278,7 +278,7 @@ defmodule Oaskit.Internal.SpecBuilder do
         deref(p_or_ref, Parameter, [{:index, index}, "parameters" | rev_path], spec)
       end)
 
-    # We need to keep only pathitem parameters that are not overriden by the
+    # We need to keep only pathitem parameters that are not overridden by the
     # operation.
     defined_by_op =
       Map.new(parameters_wrev, fn {%{name: name, in: loc}, _} -> {{name, loc}, true} end)

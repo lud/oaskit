@@ -11,7 +11,7 @@ defmodule Oaskit.TestWeb.BodyController do
     title: "InlinePlantSchema",
     properties: %{
       name: non_empty_string(),
-      sunlight: string_enum_to_atom([:full_sun, :partial_sun, :bright_indirect, :darnkness])
+      sunlight: string_enum_to_atom([:full_sun, :partial_sun, :bright_indirect, :darkness])
     },
     required: [:name, :sunlight]
   }
