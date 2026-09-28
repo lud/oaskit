@@ -44,12 +44,7 @@ defmodule Oaskit.Spec.MediaType do
     spec
     |> make(__MODULE__)
     |> take_required(:schema, &ensure_schema/1)
-    |> take_default_lazy(:examples, fn ->
-      case Access.fetch(spec, :example) do
-        {:ok, example} -> %{"default" => example}
-        :error -> nil
-      end
-    end)
+    |> take_examples(spec)
     |> into()
   end
 end

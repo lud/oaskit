@@ -102,7 +102,11 @@ defmodule Oaskit.Controller do
   * `:schema` - A JSON schema or Module name exporting a `json_schema/0` function.
   * `:required` - A boolean, defaults to `true` for `:path` params, `false`
     otherwise.
-  * `:examples` - A list of examples.
+  * `:examples` - A map of names to example objects, like
+    `%{"first_page" => %{value: 1}}`.
+  * `:example` - A single example value, a shortcut for
+    `examples: %{"default" => %{value: value}}`. Ignored when `:examples` is
+    given.
   * `:description` - An optional string to describe the parameter in the OpenAPI
     spec. This describes the parameter itself; use the `:description` of the
     given `:schema` to describe the accepted values.
@@ -151,7 +155,9 @@ defmodule Oaskit.Controller do
   * `:content` - A map of content-types to media type objects. Content-types
     must be strings. Media type objects are maps or keyword lists with a
     required `:schema` key, and optionally `:examples`, a map of names to
-    example objects like `%{"alice" => %{value: %{name: "Alice"}}}`.
+    example objects like `%{"alice" => %{value: %{name: "Alice"}}}`. A single
+    `:example` value can be given instead, it is a shortcut for
+    `examples: %{"default" => %{value: value}}`.
   * `:required` - A boolean. When `false`, the body can be missing and will not
     be validated. In that case, `conn.private.oaskit.body_params` will be
     `nil`. The default value is `false`.

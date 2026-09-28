@@ -39,6 +39,40 @@ defmodule Oaskit.ControllerTest do
            } = op
   end
 
+  test "a single media type example is wrapped in an example object" do
+    spec = [
+      operation_id: :some_operation,
+      request_body: [
+        content: %{"application/json" => [schema: %{type: :string}, example: "hello"]}
+      ],
+      responses: [ok: true]
+    ]
+
+    op = Operation.from_controller!(spec)
+
+    assert %Operation{
+             requestBody: %RequestBody{
+               content: %{
+                 "application/json" => %MediaType{examples: %{"default" => %{value: "hello"}}}
+               }
+             }
+           } = op
+  end
+
+  test "media type examples given as a list are rejected" do
+    spec = [
+      operation_id: :some_operation,
+      request_body: [
+        content: %{"application/json" => [schema: %{type: :string}, examples: ["hello"]]}
+      ],
+      responses: [ok: true]
+    ]
+
+    assert_raise ArgumentError, ~r/examples must be a map of names to example objects/, fn ->
+      Operation.from_controller!(spec)
+    end
+  end
+
   describe "required body" do
     test "when using shortcut, body is required by default" do
       # spec with a direct schema is required
@@ -357,6 +391,30 @@ defmodule Oaskit.ControllerTest do
                  schema: %{type: :integer, description: "A positive page number."}
                }
              ] = op.parameters
+    end
+
+    test "a single parameter example is wrapped in an example object" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [page: [in: :query, schema: %{type: :integer}, example: 3]],
+        responses: [ok: true]
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert [%Oaskit.Spec.Parameter{examples: %{"default" => %{value: 3}}}] = op.parameters
+    end
+
+    test "parameter examples given as a list are rejected" do
+      spec = [
+        operation_id: :some_operation,
+        parameters: [page: [in: :query, schema: %{type: :integer}, examples: [1, 2]]],
+        responses: [ok: true]
+      ]
+
+      assert_raise ArgumentError, ~r/examples must be a map of names to example objects/, fn ->
+        Operation.from_controller!(spec)
+      end
     end
 
     test "shared parameters are applied when operation omits parameters key" do

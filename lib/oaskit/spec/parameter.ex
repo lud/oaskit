@@ -103,12 +103,7 @@ defmodule Oaskit.Spec.Parameter do
     |> take_default(:deprecated, nil)
     |> take_default(:allowReserved, nil)
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
-    |> take_default_lazy(:examples, fn ->
-      case Access.fetch(spec, :example) do
-        {:ok, example} -> [example]
-        :error -> nil
-      end
-    end)
+    |> take_examples(spec)
     |> into()
   end
 

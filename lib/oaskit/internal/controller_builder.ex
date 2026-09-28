@@ -157,6 +157,28 @@ defmodule Oaskit.Internal.ControllerBuilder do
     end
   end
 
+  def take_examples(builder, spec) do
+    take_default_lazy(
+      builder,
+      :examples,
+      fn ->
+        case Access.fetch(spec, :example) do
+          {:ok, example} -> %{"default" => %{value: example}}
+          :error -> nil
+        end
+      end,
+      {&ensure_examples/1, "examples must be a map of names to example objects"}
+    )
+  end
+
+  defp ensure_examples(examples) when is_map(examples) do
+    {:ok, examples}
+  end
+
+  defp ensure_examples(_examples) do
+    {:error, :not_a_map}
+  end
+
   def collect_leftovers(builder, key) do
     exts =
       case builder.input do
