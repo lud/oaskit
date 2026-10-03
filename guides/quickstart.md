@@ -2,6 +2,10 @@
 
 Welcome to Oaskit! This guide will walk you through setting up and using Oaskit to validate HTTP requests in your Phoenix application based on OpenAPI 3.1 specifications.
 
+> #### Migrating from OpenApiSpex? {: .info}
+>
+> An agent skill can migrate your application for you. See
+> [Migrating from OpenApiSpex](migrate-from-openapispex.md).
 
 ## Installation
 

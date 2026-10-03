@@ -87,8 +87,17 @@ defmodule Oaskit.MixProject do
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules(),
       groups_for_modules: groups_for_modules(),
-      nest_modules_by_prefix: [Oaskit.Spec]
+      nest_modules_by_prefix: [Oaskit.Spec],
+      before_closing_body_tag: &before_closing_body_tag/1
     ]
+  end
+
+  defp before_closing_body_tag(:html) do
+    File.read!("guides/assets/migration-prompt.html")
+  end
+
+  defp before_closing_body_tag(_) do
+    ""
   end
 
   def doc_extras do
@@ -103,6 +112,7 @@ defmodule Oaskit.MixProject do
       "guides/extensions.md",
       "guides/security.md",
       "guides/limitations.md",
+      "guides/migrate-from-openapispex.md",
       "guides/dev-log/001.security-changes-0-10.md"
     ]
 
@@ -127,7 +137,8 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_extras do
     [
-      Setup: ~r{guides/(quickstart|web-module|external-specs|extensions|limitations)},
+      Setup:
+        ~r{guides/(quickstart|web-module|external-specs|extensions|limitations|migrate-from-openapispex)},
       Security: ~r{guides/security},
       "Dev Log": ~r/guides\/dev-log\/.?/
     ]

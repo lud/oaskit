@@ -1,0 +1,23 @@
+<style>
+  .oaskit-decision label { display: block; margin: 0.5em 0; }
+  .oaskit-decision input { margin-right: 0.4em; }
+  pre code.prompt { white-space: pre-wrap; }
+</style>
+<script>
+  window.addEventListener("exdoc:loaded", () => {
+    const code = document.querySelector("pre code.prompt")
+    const inputs = document.querySelectorAll(".oaskit-decision input[type=radio]")
+    if (!code || inputs.length === 0) return
+
+    const intro = code.textContent.slice(0, code.textContent.indexOf("\n- ") + 1)
+
+    for (const input of inputs) input.addEventListener("change", render)
+
+    function render() {
+      const checked = document.querySelectorAll(".oaskit-decision input[type=radio]:checked")
+      code.textContent = intro + [...checked].map((input) => `- ${input.dataset.prompt}`).join("\n")
+    }
+
+    render()
+  })
+</script>
