@@ -152,6 +152,26 @@ defmodule Oaskit.Web.BodyTest do
 
       assert "ok" = response(conn, 200)
     end
+
+    test "a _json form field is not unwrapped", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/form", URI.encode_query(_json: "123"))
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Content",
+                 "in" => "body",
+                 "validation_error" => %{
+                   "valid" => false,
+                   "details" => [
+                     %{
+                       "instanceLocation" => "#",
+                       "errors" => [%{"kind" => "required"}]
+                     }
+                   ]
+                 }
+               }
+             } = valid_response(PathsApiSpec, conn, 422)
+    end
   end
 
   describe "undefined operation" do
@@ -260,6 +280,28 @@ defmodule Oaskit.Web.BodyTest do
       assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
     end
 
+    test "explicit JSON null is validated, not treated as an absent body", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/module-single-no-required", "null")
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Content",
+                 "in" => "body",
+                 "validation_error" => %{
+                   "valid" => false,
+                   "details" => [
+                     %{
+                       "instanceLocation" => "#",
+                       "errors" => [
+                         %{"kind" => "type", "message" => "value is not of type object"}
+                       ]
+                     }
+                   ]
+                 }
+               }
+             } = valid_response(PathsApiSpec, conn, 422)
+    end
+
     test "invalid body still returns an error", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn = post(conn, ~p"/generated/body/module-single-no-required", @invalid_payload)
@@ -272,6 +314,99 @@ defmodule Oaskit.Web.BodyTest do
                  "validation_error" => %{"valid" => false}
                }
              } = valid_response(PathsApiSpec, conn, 422)
+    end
+  end
+
+  describe "array body" do
+    test "valid body", %{conn: conn} do
+      payload = JSON.encode!([@valid_payload, %{"name" => "Fern", "sunlight" => "darkness"}])
+
+      conn =
+        post_reply(conn, ~p"/generated/body/array-body", payload, fn conn, _params ->
+          import Oaskit.Controller
+
+          assert [
+                   %PlantSchema{name: "Monstera Deliciosa", sunlight: :bright_indirect},
+                   %PlantSchema{name: "Fern", sunlight: :darkness}
+                 ] = body_params(conn)
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "empty array", %{conn: conn} do
+      conn =
+        post_reply(conn, ~p"/generated/body/array-body", "[]", fn conn, _params ->
+          import Oaskit.Controller
+          assert [] == body_params(conn)
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "invalid item", %{conn: conn} do
+      payload = JSON.encode!([@valid_payload, @invalid_payload])
+      conn = post(conn, ~p"/generated/body/array-body", payload)
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Content",
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false} = validation_error
+               }
+             } = valid_response(PathsApiSpec, conn, 422)
+
+      assert JSON.encode!(validation_error) =~ "#/1/sunlight"
+    end
+  end
+
+  describe "array body with +json media type" do
+    @describetag req_content_type: "application/vnd.api+json"
+
+    test "valid body", %{conn: conn} do
+      payload = JSON.encode!([@valid_payload])
+
+      conn =
+        post_reply(conn, ~p"/generated/body/json-suffix-array-body", payload, fn conn, _params ->
+          import Oaskit.Controller
+
+          assert [%PlantSchema{name: "Monstera Deliciosa", sunlight: :bright_indirect}] =
+                   body_params(conn)
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+  end
+
+  describe "scalar body" do
+    test "valid body", %{conn: conn} do
+      conn =
+        post_reply(conn, ~p"/generated/body/scalar-body", "123", fn conn, _params ->
+          import Oaskit.Controller
+          assert 123 == body_params(conn)
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "invalid body", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/scalar-body", "0")
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Content",
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false} = validation_error
+               }
+             } = valid_response(PathsApiSpec, conn, 422)
+
+      assert JSON.encode!(validation_error) =~ "minimum"
     end
   end
 

@@ -55,6 +55,9 @@ defmodule Oaskit.TestWeb.Router do
       post "/wildcard", BodyController, :wildcard_media_type
       post "/boolean-schema-false", BodyController, :boolean_schema_false
       post "/strict-body", BodyController, :strict_body
+      post "/array-body", BodyController, :array_body
+      post "/json-suffix-array-body", BodyController, :json_suffix_array_body
+      post "/scalar-body", BodyController, :scalar_body
 
       # Manual tests
       post "/manual-form-handle", BodyController, :manual_form_handle

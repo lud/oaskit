@@ -180,6 +180,7 @@ defmodule Oaskit.Validation.RequestValidator do
 
   defp validate_body(req_data, body, _required?, media_matchers, jsv_root) do
     {primary, secondary} = fetch_content_type(req_data)
+    body = unwrap_json_body(body, {primary, secondary})
 
     with {:ok, {_, jsv_key}} <- match_media_type(media_matchers, {primary, secondary}),
          :ok <- ensure_fetched_body!(body),
@@ -192,6 +193,24 @@ defmodule Oaskit.Validation.RequestValidator do
       {:error, :media_type_match} ->
         {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}}
     end
+  end
+
+  # Plug.Parsers.JSON wraps non-map JSON documents under a "_json" key.
+  defp unwrap_json_body(%{"_json" => value} = body, {"application", secondary})
+       when map_size(body) == 1 do
+    if json_subtype?(secondary) do
+      value
+    else
+      body
+    end
+  end
+
+  defp unwrap_json_body(body, _content_type) do
+    body
+  end
+
+  defp json_subtype?(secondary) do
+    secondary == "json" or String.ends_with?(secondary, "+json")
   end
 
   defp fetch_content_type(%RequestData{} = req_data) do

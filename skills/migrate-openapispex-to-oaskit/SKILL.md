@@ -74,8 +74,11 @@ These facts hold for oaskit 0.17 and jsv 0.26. Plan for them:
   (`MyApp.Schemas.User`).
   OpenApiSpex named it after the last module segment (`User`). Add `title:`
   where component names matter (client generators use them).
-- Oaskit does not unwrap Plug's `"_json"` key. JSON bodies that are arrays
-  need a plug before the validation plug (`references/controllers.md`).
+- For JSON bodies that are not objects (arrays, scalars), `body_params(conn)`
+  returns the cast value and `conn.body_params` keeps Plug's `"_json"`
+  wrapper with the original values. Actions reading cast values from
+  `conn.body_params["_json"]` (OpenApiSpex `replace_params: true`) move to
+  `body_params(conn)` (`references/controllers.md`).
 - The same controller action routed twice (`resources` creates PUT and PATCH
   for `:update`) makes Oaskit raise `duplicate operation id` when it builds
   the operations (at boot with the warmup of phase 5, or on the first

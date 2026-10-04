@@ -127,4 +127,33 @@ defmodule Oaskit.TestWeb.BodyController do
   def strict_body(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :array_body,
+    request_body: {%{type: :array, items: PlantSchema}, []},
+    responses: dummy_responses_with_error()
+
+  def array_body(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :json_suffix_array_body,
+    request_body: [
+      required: true,
+      content: %{
+        "application/vnd.api+json" => %{schema: %{type: :array, items: PlantSchema}}
+      }
+    ],
+    responses: dummy_responses_with_error()
+
+  def json_suffix_array_body(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :scalar_body,
+    request_body: {%{type: :integer, minimum: 1}, []},
+    responses: dummy_responses_with_error()
+
+  def scalar_body(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

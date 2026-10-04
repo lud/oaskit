@@ -228,45 +228,17 @@ paths: Paths.from_router(MyAppWeb.Router, filter: &String.starts_with?(&1.path, 
 
 ## JSON array request bodies
 
-`Plug.Parsers.JSON` puts non-object JSON bodies (arrays, scalars) under a
-`"_json"` key: `conn.body_params == %{"_json" => [...]}`. OpenApiSpex
-unwrapped it. Oaskit validates `conn.body_params` as is, so an array schema
-fails on the top-level body value (instance location `#`: "value is not of
-type array"). Unwrap before validation:
+`Plug.Parsers.JSON` puts non-object JSON bodies (arrays, scalars, `null`)
+under a `"_json"` key: `conn.body_params == %{"_json" => [...]}`. Like
+OpenApiSpex, Oaskit validates the value under that key when the request
+content type is JSON (`application/json` or `application/*+json`), so array
+and scalar request bodies are declared like any other body.
 
-```elixir
-defmodule MyAppWeb.Plugs.UnwrapJsonBody do
-  @moduledoc """
-  Plug.Parsers.JSON wraps non-object JSON bodies under a "_json" key.
-  Oaskit validates conn.body_params as is, so array bodies are unwrapped
-  before Oaskit.Plugs.ValidateRequest.
-  """
-  @behaviour Plug
-
-  @impl true
-  def init(opts), do: opts
-
-  @impl true
-  def call(%{body_params: %{"_json" => body} = body_params} = conn, _opts)
-      when map_size(body_params) == 1 do
-    %{conn | body_params: body}
-  end
-
-  def call(conn, _opts), do: conn
-end
-```
-
-In the controller, before the validation plug, limited to the actions that
-take an array:
-
-```elixir
-plug MyAppWeb.Plugs.UnwrapJsonBody when action in [:bulk_update]
-plug Oaskit.Plugs.ValidateRequest, error_handler: MyAppWeb.ApiErrorHandler
-```
-
-After `MyAppWeb.Plugs.UnwrapJsonBody`, `conn.body_params` is the list
-itself. Change the actions that read `conn.body_params["_json"]` (or use `Oaskit.Controller.body_params(conn)`
-for the cast value). Note that `Plug.Conn`'s typespec declares `body_params` as a map.
+`Oaskit.Controller.body_params(conn)` returns the cast value (the list
+itself). `conn.body_params` keeps the `"_json"` wrapper with the original
+values. With `replace_params: true`, OpenApiSpex put the cast list back
+under `"_json"`: move actions reading `conn.body_params["_json"]` as cast
+values to `body_params(conn)` (see "Phoenix params vs cast values").
 
 ## Operation IDs
 

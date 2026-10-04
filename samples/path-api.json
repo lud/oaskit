@@ -377,6 +377,46 @@
     }
   },
   "paths": {
+    "/generated/body/array-body": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "body_array_body_2EFMV2A",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/PlantSchema"
+                },
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/generated/body/boolean-schema-false": {
       "post": {
         "responses": {
@@ -500,6 +540,46 @@
                   "sunlight"
                 ],
                 "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/generated/body/json-suffix-array-body": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "body_json_suffix_array_body_2EFMV2A",
+        "requestBody": {
+          "content": {
+            "application/vnd.api+json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/PlantSchema"
+                },
+                "type": "array"
               }
             }
           },
@@ -650,6 +730,44 @@
             }
           },
           "required": false
+        }
+      }
+    },
+    "/generated/body/scalar-body": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "body_scalar_body_2EFMV2A",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          },
+          "required": true
         }
       }
     },

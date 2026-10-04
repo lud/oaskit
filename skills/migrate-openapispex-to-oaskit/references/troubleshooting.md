@@ -50,7 +50,6 @@ A component named after a full module name is a schema module without title.
 |---|---|---|
 | `Plug.Conn.AlreadySentError` in actions, after a validation error | The error handler does not call `Plug.Conn.halt/1` | Halt in `handle_error/3` (`errors.md`) |
 | 401 on every request to some endpoints, with a warning about security | Operations declare `security:` and the validation plug has no `:security` option | `security: false`, or a security plug (`controllers.md`) |
-| Valid JSON arrays rejected with a type error on the top-level body value (instance location `#`) | Plug's `"_json"` wrapper | `MyAppWeb.Plugs.UnwrapJsonBody` (`controllers.md`, "JSON array request bodies") |
 | 400 `value is not of type integer or null` on a valid query parameter | Type union in a parameter schema: Oaskit does not cast the string | Remove `:null` (`controllers.md`, "Parameters") |
 | 400 `missing parameter X in path` on a route that has the parameter under another name | OpenApiSpex `name:` option: Oaskit uses the key | Rename the key (`controllers.md`, "Parameters") |
 | An empty JSON body (`{}`) reaches the action without validation | The request body is `required: false` | Keep `required: true` (the default of the Oaskit shortcut `request_body: User`, see `controllers.md`, "Request bodies: the shortcut makes them required") |
