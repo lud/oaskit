@@ -42,7 +42,7 @@ defmodule Oaskit.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.23 and >= 0.23.1"},
+      {:jsv, "~> 0.26"},
       {:plug, ">= 1.16.0"},
       {:decimal, "~> 2.0 or ~> 3.0", optional: true},
       {:texture, "~> 1.2 or ~> 2.0"},

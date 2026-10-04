@@ -5,6 +5,11 @@
  * OpenAPI spec version: 0.0.0
  */
 /**
+ * Data about the error in a machine-readable form, like the missing properties for "required". The keys depend on the error kind.
+ */
+export type JSVKeywordErrorCtx = { [key: string]: unknown }
+
+/**
  * Describes all errors found at given instanceLocation raised by the same sub-schema (same schemaLocation and evaluationPath). It may also represent a positive validation result, (when `valid` is `true`) needed when for instance multiple schemas under `oneOf` validates the input sucessfully.
  */
 export interface JSVValidationUnit {
@@ -22,6 +27,8 @@ export interface JSVValidationUnit {
  * Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes
  */
 export interface JSVKeywordError {
+  /** Data about the error in a machine-readable form, like the missing properties for "required". The keys depend on the error kind. */
+  ctx?: JSVKeywordErrorCtx
   details?: JSVValidationUnit[]
   /** The keyword or internal operation that invalidated the data, like "type", or a combination like "if/else". Custom vocabularies can create their own kinds over the built-in ones. */
   kind: string

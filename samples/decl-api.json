@@ -68,6 +68,10 @@
         "title": "JSV.KeywordError",
         "description": "Represents an returned by a single keyword like `type` or `required`, or a combination of keywords like `if` and `else`. Such annotations can contain nested error units, for instance `oneOf` may contain errors units for all subschemas when no subschema listed in `oneOf` did match the input value. The list of possible values includes",
         "properties": {
+          "ctx": {
+            "description": "Data about the error in a machine-readable form, like the missing properties for \"required\". The keys depend on the error kind.",
+            "type": "object"
+          },
           "details": {
             "items": {
               "$ref": "#/components/schemas/JSV.ValidationUnit"
