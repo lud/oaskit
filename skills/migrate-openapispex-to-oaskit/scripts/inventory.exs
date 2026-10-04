@@ -24,7 +24,7 @@ defmodule Inventory do
   # are common property names so they are not listed.
   @schema_keywords ~w(properties items allOf oneOf anyOf nullable additionalProperties)a
 
-  # JSV default formats + Oaskit.JsonSchema.Formats, as of oaskit 0.17 / jsv 0.25.
+  # JSV default formats + Oaskit.JsonSchema.Formats, as of oaskit 0.17 / jsv 0.26.
   # Newer versions may know more formats: check the changelogs.
   @known_formats ~w(date date-time duration email hostname ipv4 ipv6 iri iri-reference
     json-pointer regex relative-json-pointer time unknown uri uri-reference uri-template uuid

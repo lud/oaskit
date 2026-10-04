@@ -81,8 +81,9 @@ Options 2 and 3 need to turn JSV errors into OpenApiSpex-like entries. The
 examples use Elixir's `JSON` module (Elixir 1.18+): use the project's JSON
 library instead (`Jason`, set in `:json_library`) if it uses one. The
 three modules below (`MyAppWeb.LegacyApiErrors`, `MyAppWeb.BridgeErrorHandler`,
-`MyAppWeb.LegacyErrorHandler`) were tested with oaskit 0.17 / jsv 0.25 (check the changelogs for newer versions). Rename
-them and adapt the rendered keys to your former format.
+`MyAppWeb.LegacyErrorHandler`) were tested with oaskit 0.17 / jsv 0.26 (check the changelogs for newer versions). Rename
+them and adapt the rendered keys to your former format. They need jsv 0.26 or
+later, for the `ctx` key of normalized errors.
 
 ## Translating JSV errors into OpenApiSpex-like entries
 
@@ -92,10 +93,9 @@ them and adapt the rendered keys to your former format.
 (all handled below):
 
 - JSV reports `required` and `additionalProperties` on the **parent** object
-  (`"#/items/0"`), with the property names only in the message (`property
-  'sku' is required`). OpenApiSpex reported one error per property, with the
-  property in the path. The names are not available as data (JSV issue #144),
-  so they are parsed from the message.
+  (`"#/items/0"`), with the property names in `ctx` (`ctx: %{missing:
+  ["sku"]}`, `ctx: %{property: "extra"}`). OpenApiSpex reported one error per
+  property, with the property in the path.
 - JSV reports every failing keyword of a value (`type` and `enum`).
   OpenApiSpex stopped at the first one.
 - OpenApiSpex checked the required properties of an object before casting
@@ -195,14 +195,14 @@ defmodule MyAppWeb.LegacyApiErrors do
     end)
   end
 
-  # JSV reports `required` and `additionalProperties` on the parent object,
-  # with the property names only in the message. OpenApiSpex reported one
-  # error per property, with the property in the path.
-  defp entries(path, %{kind: kind, message: message}, _value)
-       when kind in [:required, :additionalProperties] do
-    ~r/'([^']+)'/
-    |> Regex.scan(message, capture: :all_but_first)
-    |> Enum.map(fn [prop] -> %{path: path ++ [prop], code: code(kind), message: message} end)
+  # JSV reports `required` and `additionalProperties` on the parent object.
+  # OpenApiSpex reported one error per property, with the property in the path.
+  defp entries(path, %{kind: :required, message: message, ctx: %{missing: missing}}, _value) do
+    Enum.map(missing, &%{path: path ++ [&1], code: code(:required), message: message})
+  end
+
+  defp entries(path, %{kind: :additionalProperties, message: message, ctx: %{property: property}}, _value) do
+    [%{path: path ++ [property], code: code(:additionalProperties), message: message}]
   end
 
   # JSV errors do not carry the invalid value.

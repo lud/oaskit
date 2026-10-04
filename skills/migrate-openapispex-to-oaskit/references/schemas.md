@@ -74,8 +74,8 @@ when the first three are broken:
   so removing the key never changed the output.
 - `required` keys become `@enforce_keys` of the struct: code building the
   struct literally (`%MyApp.Schemas.User{}`) must give them.
-- No default `title`. Oaskit uses the title as the component name, and falls
-  back to the full module name. OpenApiSpex defaulted to the last module
+- The map is used as written: no `title` is added. Oaskit uses the title as
+  the component name, and falls back to the full module name. OpenApiSpex defaulted to the last module
   segment. Add `title:` to keep component names.
 - Struct keys are the `properties` keys. Valid data is cast to the struct and
   undeclared keys are dropped (set the `@additional_properties :field_name`
@@ -388,8 +388,8 @@ was effectively accepted before (e.g. `%{type: :object}`).
   (`INFO` lines list them).
 - Untitled OpenApiSpex schema modules had the last module segment as
   title, so `MyApp.Pipeline.List` and `MyApp.Stage.List` collided as `List`.
-  Once untitled JSV struct modules are named after the full module name
-  they no longer collide, but adding `title: "List"` to both (to keep
+  Untitled JSV schema modules are named after the full module name and do
+  not collide, but adding `title: "List"` to both (to keep
   component names) brings the collision back.
 - Duplicates only matter inside one OpenAPI document. The inventory lists
   titles shared across the whole project (untitled modules counted with

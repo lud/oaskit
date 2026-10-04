@@ -166,6 +166,10 @@ defmodule Oaskit.Plugs.ValidateRequest do
   be ready to accept all error reasons that this plug can generate. Such reasons
   are described in the `t:Oaskit.ErrorHandler.reason/0` type.
 
+  Error handlers must send a response and halt the conn with `Plug.Conn.halt/1`.
+  This plug returns the conn from the handler as is, and the halt is what stops
+  Phoenix from calling the controller action.
+
   The 3rd argment passed to the `c:Oaskit.ErrorHandler.handle_error/3` depends
   on the `:error_handler` function. When defined as a module, that argument
   contains the options passed to the plug.

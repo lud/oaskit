@@ -7,7 +7,7 @@ description: Step-by-step migration of a Phoenix application from OpenApiSpex (o
 
 Use the **latest oaskit release** and the **latest jsv release that oaskit
 accepts** (phase 1). This skill was last checked against oaskit 0.17 and jsv
-0.25: if the installed versions are newer, read their changelogs
+0.26: if the installed versions are newer, read their changelogs
 (`references/links.md`) for changes to the facts below. The guide is written from a real
 migration of a large app (≈270 schema modules, ≈120 operations, ≈400 schema
 assertions in tests) and lists what was mechanical and what needed decisions.
@@ -63,14 +63,15 @@ uses the names below, and qualifies every function with its module.
 
 ## Facts to know before starting
 
-These facts hold for oaskit 0.17 and jsv 0.25. Plan for them:
+These facts hold for oaskit 0.17 and jsv 0.26. Plan for them:
 
 - The error handler's `handle_error/3` callback **must call
-  `Plug.Conn.halt/1`**. `Oaskit.Plugs.ValidateRequest` does not halt after
-  calling `handle_error/3`. (OpenApiSpex's validation plug halted after the
-  `:render_error` plug.)
-- `JSV.defschema/1` with a **map** argument sets no `title`. Oaskit then names
-  the component after the full module name (`MyApp.Schemas.User`).
+  `Plug.Conn.halt/1`**, as documented in `Oaskit.ErrorHandler`. (OpenApiSpex's
+  validation plug halted after the `:render_error` plug, so ported renderers
+  usually lack the call.)
+- `JSV.defschema/1` with a **map** argument uses the map as written and adds
+  no `title`. Oaskit names the component after the full module name
+  (`MyApp.Schemas.User`).
   OpenApiSpex named it after the last module segment (`User`). Add `title:`
   where component names matter (client generators use them).
 - Oaskit does not unwrap Plug's `"_json"` key. JSON bodies that are arrays
@@ -187,8 +188,8 @@ inventory report read, decisions written in the migration notes.
    ```
 
 4. Replace `">= 0.0.0"` following the project's convention for
-   requirements: `"~> MAJOR.MINOR"` of that version (e.g. `{:jsv, "~> 0.25"}`
-   for 0.25.0), or, if the other dependencies are pinned (`== 1.2.3`), pin
+   requirements: `"~> MAJOR.MINOR"` of that version (e.g. `{:jsv, "~> 0.26"}`
+   for 0.26.0), or, if the other dependencies are pinned (`== 1.2.3`), pin
    jsv and oaskit to the fetched versions (`grep '"oaskit"' mix.lock`) the
    same way. Then run `mix deps.get` again.
 
