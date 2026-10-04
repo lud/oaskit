@@ -20,7 +20,8 @@ defmodule Oaskit.SpecCacheWarmup do
 
   If your specification reads the runtime configuration of your endpoint, for
   instance with `MyAppWeb.Endpoint.url()`, add the child after the endpoint.
-  Requests received during the build wait for it to complete.
+  The endpoint then accepts requests before the specification is built, and
+  these requests wait for the build to complete.
 
   ### Options
 

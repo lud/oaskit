@@ -79,6 +79,32 @@ end
 - Several spec modules (public API, internal API…) work the same way, one
   spec provider plug per pipeline.
 
+## Building the spec at boot
+
+Oaskit builds the operations and JSV roots of a spec module on the first
+validated request, then caches them. Build them at boot instead, so that
+duplicate operationIds and unknown formats stop the app from starting. Call
+`Oaskit.warmup_spec_cache/2` for each spec module at the top of the `start/2`
+callback of the application:
+
+```elixir
+def start(_type, _args) do
+  :ok = Oaskit.warmup_spec_cache(MyAppWeb.ApiSpec)
+
+  children = [
+    # ...
+  ]
+
+  # ...
+end
+```
+
+`Server.from_config/2` and `Paths.from_router/2` read the configuration and
+the compiled router, so this works before the supervisor starts. When `spec/0`
+calls a process of the application (a repo, a GenServer), add
+`{Oaskit.SpecCacheWarmup, spec: MyAppWeb.ApiSpec}` to the children instead,
+after that process and before the endpoint.
+
 ## Router
 
 | OpenApiSpex | Oaskit |

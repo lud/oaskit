@@ -6,7 +6,7 @@ description: Step-by-step migration of a Phoenix application from OpenApiSpex (o
 # Migrate a Phoenix app from OpenApiSpex to Oaskit
 
 Use the **latest oaskit release** and the **latest jsv release that oaskit
-accepts** (phase 1). This skill was last checked against oaskit 0.16 and jsv
+accepts** (phase 1). This skill was last checked against oaskit 0.17 and jsv
 0.25: if the installed versions are newer, read their changelogs
 (`references/links.md`) for changes to the facts below. The guide is written from a real
 migration of a large app (≈270 schema modules, ≈120 operations, ≈400 schema
@@ -63,7 +63,7 @@ uses the names below, and qualifies every function with its module.
 
 ## Facts to know before starting
 
-These facts hold for oaskit 0.16 and jsv 0.25. Plan for them:
+These facts hold for oaskit 0.17 and jsv 0.25. Plan for them:
 
 - The error handler's `handle_error/3` callback **must call
   `Plug.Conn.halt/1`**. `Oaskit.Plugs.ValidateRequest` does not halt after
@@ -77,8 +77,8 @@ These facts hold for oaskit 0.16 and jsv 0.25. Plan for them:
   need a plug before the validation plug (`references/controllers.md`).
 - The same controller action routed twice (`resources` creates PUT and PATCH
   for `:update`) makes Oaskit raise `duplicate operation id` when it builds
-  the operations (on the first validated request, not in `mix
-  openapi.dump`).
+  the operations (at boot with the warmup of phase 5, or on the first
+  validated request, not in `mix openapi.dump`).
 - An operation that declares `security:` gets a **401** from
   `Oaskit.Plugs.ValidateRequest` unless the plug has a `:security` option
   (a security plug, or `false`).
@@ -172,7 +172,7 @@ inventory report read, decisions written in the migration notes.
 ## Phase 1: dependencies
 
 1. Find the latest oaskit release: `mix hex.info oaskit | grep Config:`
-   prints it (e.g. `Config: {:oaskit, "~> 0.16.1"}`).
+   prints it (e.g. `Config: {:oaskit, "~> 0.17.0"}`).
 2. In `mix.exs`, replace `{:open_api_spex, "~> 3.x"}` with that oaskit
    requirement, and with `{:jsv, ">= 0.0.0"}` for now. Declare `:jsv`
    explicitly: the app will call `JSV` directly (`defschema`,
@@ -256,7 +256,8 @@ left in a schema silently makes `null` invalid.
 
 Follow `references/spec-and-router.md`: spec modules, spec provider plugs,
 routes serving the OpenAPI document, the `:filter` option of
-`Oaskit.Spec.Paths.from_router/2`, mix aliases.
+`Oaskit.Spec.Paths.from_router/2`, mix aliases, and the build of the spec
+modules at boot (`Oaskit.warmup_spec_cache/2`).
 
 ## Phase 6: controllers and the error handler
 
@@ -284,19 +285,20 @@ spec module (operations and JSV roots), as the validation plug does on the
 first validated request:
 
 ```sh
-mix run --no-start -e 'for m <- [MyAppWeb.ApiSpec], do: Oaskit.build_spec!(m, cache: false, responses: true)'
+mix run --no-start -e 'for m <- [MyAppWeb.ApiSpec], do: Oaskit.warmup_spec_cache(m, responses: true)'
 ```
 
 List every spec module (the inventory report prints this command with all
 of them). This is the check for duplicate operationIds
 and unknown formats. `mix openapi.dump` is not: it only writes the OpenAPI
 document and validates it against the OpenAPI 3.1 meta-schema.
-(`Oaskit.build_spec!/2` is undocumented as of Oaskit 0.16. `responses: true`
-also builds the response schemas used by `Oaskit.Test.valid_response/3`.)
+(`responses: true` also builds the response schemas used by
+`Oaskit.Test.valid_response/3`.)
 
 ## Phase 8: tests
 
-1. Add the valid_response helper to `ConnCase` (`references/testing.md`).
+1. Add the valid_response helper to `ConnCase`, and build the response
+   schemas in `test/test_helper.exs` (`references/testing.md`).
 2. Run `scripts/rewrite_tests.exs`, with `--wrapper NAME` for each test
    helper wrapping `assert_schema` listed by the inventory report
    (`references/testing.md`, "Helpers wrapping assert_schema"):

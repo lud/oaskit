@@ -81,7 +81,7 @@ Options 2 and 3 need to turn JSV errors into OpenApiSpex-like entries. The
 examples use Elixir's `JSON` module (Elixir 1.18+): use the project's JSON
 library instead (`Jason`, set in `:json_library`) if it uses one. The
 three modules below (`MyAppWeb.LegacyApiErrors`, `MyAppWeb.BridgeErrorHandler`,
-`MyAppWeb.LegacyErrorHandler`) were tested with oaskit 0.16 / jsv 0.25 (check the changelogs for newer versions). Rename
+`MyAppWeb.LegacyErrorHandler`) were tested with oaskit 0.17 / jsv 0.25 (check the changelogs for newer versions). Rename
 them and adapt the rendered keys to your former format.
 
 ## Translating JSV errors into OpenApiSpex-like entries

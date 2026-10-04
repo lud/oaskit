@@ -94,7 +94,7 @@ If your specification depends on processes started by your application, for
 instance if it loads schemas from the database, add `Oaskit.SpecCacheWarmup` to
 your children instead. The build runs when the supervisor starts that child, so
 place it after the processes your specification depends on, and before your
-endpoint:
+endpoint, so the first requests find the specification already built:
 
 ```elixir
 children = [
@@ -103,9 +103,6 @@ children = [
   MyAppWeb.Endpoint
 ]
 ```
-
-If your specification reads the runtime configuration of your endpoint, for
-instance with `MyAppWeb.Endpoint.url()`, place the child after the endpoint.
 
 
 ## Setting Up Router Pipelines

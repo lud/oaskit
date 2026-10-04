@@ -913,7 +913,7 @@ defmodule Inventory do
 
       Phase 7 gate (after the migration of the spec modules):
 
-          mix run --no-start -e 'for m <- [#{list}], do: Oaskit.build_spec!(m, cache: false, responses: true)'
+          mix run --no-start -e 'for m <- [#{list}], do: Oaskit.warmup_spec_cache(m, responses: true)'
 
       Phase 9, new OpenAPI documents:
 
