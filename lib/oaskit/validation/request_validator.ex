@@ -333,10 +333,10 @@ defmodule Oaskit.Validation.RequestValidator do
     value
   end
 
-  defp precast_array([h | t], fun, acc) do
-    case fun.(h) do
-      {:ok, new_h} -> precast_array(t, fun, [new_h | acc])
-      {:error, _} -> precast_array(t, fun, [h | acc])
+  defp precast_array([h | t], caster, acc) do
+    case run_caster(h, caster) do
+      {:ok, new_h} -> precast_array(t, caster, [new_h | acc])
+      {:error, _} -> precast_array(t, caster, [h | acc])
     end
   end
 
@@ -345,17 +345,18 @@ defmodule Oaskit.Validation.RequestValidator do
   end
 
   defp apply_precast(value, fun) when is_function(fun, 1) do
-    case fun.(value) do
-      {:ok, value} -> {:ok, value}
-      {:error, _} = err -> err
-    end
+    run_caster(value, fun)
   end
 
-  defp apply_precast(values, {:array, fun}) when is_list(values) and is_function(fun, 1) do
-    {:ok, precast_array(values, fun, [])}
+  defp apply_precast(value, {:union, _} = caster) do
+    run_caster(value, caster)
   end
 
-  defp apply_precast(_values, {:array, fun}) when is_function(fun, 1) do
+  defp apply_precast(values, {:array, caster}) when is_list(values) do
+    {:ok, precast_array(values, caster, [])}
+  end
+
+  defp apply_precast(_values, {:array, _caster}) do
     {:error, :ignored_error}
   end
 
@@ -402,7 +403,7 @@ defmodule Oaskit.Validation.RequestValidator do
   end
 
   defp apply_object_property_precast(k, v, prop_casters) when is_binary(v) do
-    with %{^k => caster} <- prop_casters, {:ok, cast_v} <- caster.(v) do
+    with %{^k => caster} <- prop_casters, {:ok, cast_v} <- run_caster(v, caster) do
       {k, cast_v}
     else
       _ -> {k, v}
@@ -411,6 +412,28 @@ defmodule Oaskit.Validation.RequestValidator do
 
   defp apply_object_property_precast(k, v, _prop_casters) do
     {k, v}
+  end
+
+  defp run_caster(value, fun) when is_function(fun, 1) do
+    case fun.(value) do
+      {:ok, value} -> {:ok, value}
+      {:error, _} = err -> err
+    end
+  end
+
+  defp run_caster(value, {:union, casters}) do
+    run_union_casters(value, casters)
+  end
+
+  defp run_union_casters(value, [caster | casters]) do
+    case run_caster(value, caster) do
+      {:ok, _} = ok -> ok
+      {:error, _} -> run_union_casters(value, casters)
+    end
+  end
+
+  defp run_union_casters(_value, []) do
+    {:error, :all_casts_failed}
   end
 
   defp validate_with_schema(value, jsv_key, jsv_root)

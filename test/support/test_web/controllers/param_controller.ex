@@ -225,6 +225,42 @@ defmodule Oaskit.TestWeb.ParamController do
     Responder.reply(conn, params)
   end
 
+  operation :union_types,
+    operation_id: "parameter_union_types",
+    parameters: [
+      count: [in: :path, schema: %{type: [:integer, :null]}],
+      nullable_integer: [in: :query, schema: %{type: [:integer, :null]}],
+      integer_or_string: [in: :query, schema: %{type: [:string, :integer]}],
+      number_or_integer: [in: :query, schema: %{type: [:number, :integer]}],
+      string_boolean_or_number: [in: :query, schema: %{type: [:string, :boolean, :number]}],
+      nullable_integers: [
+        in: :query,
+        explode: false,
+        schema: %{type: :array, items: %{type: [:integer, :null]}}
+      ],
+      "header-integer-or-string": [in: :header, schema: %{type: [:integer, :string]}],
+      number_or_boolean: [in: :query, schema: %{type: [:boolean, :number]}],
+      union_object: [
+        in: :query,
+        style: :deepObject,
+        explode: true,
+        schema: %{
+          type: :object,
+          properties: %{n: %{type: [:integer, :null]}, v: %{type: [:boolean, :string]}}
+        }
+      ],
+      "header-nullable-integer": [in: :header, schema: %{type: [:integer, :null]}],
+      "header-union-list": [
+        in: :header,
+        schema: %{type: :array, items: %{type: [:integer, :string]}}
+      ]
+    ],
+    responses: dummy_responses_with_error()
+
+  def union_types(conn, params) do
+    Responder.reply(conn, params)
+  end
+
   # Headers carrying HTTP Structured Field values (RFC 8941). The schema type is
   # always :string (the format applies to strings) and the format validator
   # parses and casts the value, e.g. "?1" -> true for sf-boolean.

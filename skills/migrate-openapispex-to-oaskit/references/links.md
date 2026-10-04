@@ -14,7 +14,7 @@ of each index):
 | Oaskit setup, spec module, controllers, tests | https://oaskit.hexdocs.pm/quickstart.md |
 | `api_controller/0` in the web module | https://oaskit.hexdocs.pm/web-module.md |
 | Security plugs (`:security` option) | https://oaskit.hexdocs.pm/security.md |
-| Query/path parameter limitations (arrays, styles) | https://oaskit.hexdocs.pm/limitations.md |
+| Query/path parameter limitations (casts, type unions, arrays, styles) | https://oaskit.hexdocs.pm/limitations.md |
 | `operation/2`, `use_operation/3`, `body_params/1`… | https://oaskit.hexdocs.pm/Oaskit.Controller.md |
 | Validation plug options | https://oaskit.hexdocs.pm/Oaskit.Plugs.ValidateRequest.md |
 | Error handler behaviour | https://oaskit.hexdocs.pm/Oaskit.ErrorHandler.md |

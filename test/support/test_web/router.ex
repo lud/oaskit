@@ -83,6 +83,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/boolean-schema-false", ParamController, :boolean_schema_false
       get "/header-param", ParamController, :header_param
       get "/header-sf-param", ParamController, :header_sf_param
+      get "/union-types/:count", ParamController, :union_types
       get "/object-types", ParamController, :object_types
       get "/object-path/:color", ParamController, :object_path
       get "/strict-object-query", ParamController, :strict_object_query
@@ -104,6 +105,7 @@ defmodule Oaskit.TestWeb.Router do
       get "/fortune-200-valid-headers", ResponseController, :valid_headers
       get "/fortune-200-missing-required-header", ResponseController, :missing_required_header
       get "/fortune-200-invalid-header", ResponseController, :invalid_header
+      get "/fortune-200-invalid-union-header", ResponseController, :invalid_union_header
     end
 
     scope "/extensions", Oaskit.TestWeb do

@@ -1,4 +1,5 @@
 defmodule Oaskit.Internal.SpecBuilderTest do
+  alias ExUnit.CaptureLog
   alias Oaskit.Internal.Normalizer
   alias Oaskit.Internal.SpecBuilder
   alias Oaskit.Spec.MediaType
@@ -178,6 +179,108 @@ defmodule Oaskit.Internal.SpecBuilderTest do
         assert Keyword.has_key?(validations, :responses)
         validations[:responses]
       end)
+    end
+  end
+
+  describe "parameters that can never match" do
+    defp build_with_parameters(parameters) do
+      %OpenAPI{
+        openapi: "some version",
+        info: %{title: "some title", version: "some vsn"},
+        paths: %{
+          "/items/{a}/{b}": %{
+            get: %Operation{
+              operationId: "list_items",
+              parameters: parameters,
+              responses: %{ok: %{description: "some response"}}
+            }
+          }
+        }
+      }
+      |> Normalizer.normalize!()
+      |> SpecBuilder.build_operations(%{responses: false, jsv_opts: Oaskit.default_jsv_opts()})
+    end
+
+    test "a warning is logged when the schema type accepts no string and has no cast" do
+      log =
+        CaptureLog.capture_log(fn ->
+          build_with_parameters([
+            %Parameter{name: :a, in: :path, schema: %{type: [:array, :object]}},
+            %Parameter{name: :b, in: :path, schema: %{type: :object}},
+            %Parameter{name: :"x-null", in: :header, schema: %{type: :null}},
+            %Parameter{
+              name: :"x-list",
+              in: :header,
+              schema: %{type: :array, items: %{anyOf: [%{type: :integer}]}}
+            }
+          ])
+        end)
+
+      assert log =~
+               ~s|parameter "a" in path (#/paths/~1items~1%7Ba%7D~1%7Bb%7D/get/parameters/0) | <>
+                 ~s|will reject every value: its schema type ["array", "object"] does not accept a string|
+
+      assert log =~ ~s(parameter "x-null" in header)
+      assert log =~ ~s(parameter "x-list" in header)
+      refute log =~ ~s(parameter "b")
+    end
+
+    test "a warning is logged for response headers" do
+      log =
+        CaptureLog.capture_log(fn ->
+          %OpenAPI{
+            openapi: "some version",
+            info: %{title: "some title", version: "some vsn"},
+            paths: %{
+              "/items": %{
+                get: %Operation{
+                  operationId: "list_items",
+                  responses: %{
+                    "200" => %{
+                      description: "some response",
+                      headers: %{
+                        "x-bad" => %{schema: %{type: [:array, :object]}},
+                        "x-good" => %{schema: %{type: [:integer, :null]}}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          |> Normalizer.normalize!()
+          |> SpecBuilder.build_operations(%{
+            responses: true,
+            jsv_opts: Oaskit.default_jsv_opts()
+          })
+        end)
+
+      assert log =~
+               ~s|response header "x-bad" (#/paths/~1items/get/responses/200/headers/x-bad) | <>
+                 ~s|will reject every value|
+
+      refute log =~ "x-good"
+    end
+
+    test "no warning when the value is cast or accepted as a raw value" do
+      log =
+        CaptureLog.capture_log(fn ->
+          build_with_parameters([
+            %Parameter{name: :a, in: :path, schema: %{type: [:integer, :object]}},
+            %Parameter{name: :b, in: :path, schema: %{type: [:boolean, :string]}},
+            %Parameter{name: :q1, in: :query, schema: %{type: [:object, :array]}},
+            %Parameter{
+              name: :q2,
+              in: :query,
+              schema: %{type: :array, items: %{anyOf: [%{type: :integer}]}}
+            },
+            %Parameter{name: :"x-name", in: :header, schema: %{type: [:string, :null]}},
+            %Parameter{name: :"x-count", in: :header, schema: %{type: [:integer, :null]}},
+            %Parameter{name: :"x-any", in: :header, schema: %{anyOf: [%{type: :integer}]}}
+          ])
+        end)
+
+      assert "" == log
     end
   end
 

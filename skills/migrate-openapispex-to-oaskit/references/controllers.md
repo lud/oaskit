@@ -15,7 +15,6 @@ defined in `SKILL.md`, "Names used in this skill".
 | `parameters: [id: [in: :path, schema: %Schema{type: :string}, description: ..., required: true]]` | same keyword syntax, schema as a schema map | yes (the schema part) |
 | parameter without `in:` | `in: :query` (OpenApiSpex's default, required by Oaskit) | yes (`INFO`) |
 | `id: [in: :path, name: :run_id, ...]` | `run_id: [in: :path, ...]` (Oaskit names the parameter after the key and ignores `name:`) | yes (`INFO`) |
-| parameter schema with `nullable: true` | `nullable` removed, see "Parameters" | yes (`INFO`) |
 | `parameters: helper(...)`, `responses: helper(...)` | see "Parameters" and "Responses built by a function" | `REPORT` |
 | response `{"Description", "application/json", User}` | `{User, description: "Description"}` | yes |
 | response `{"Description", "text/plain", nil}` | `[description: "Description"]` | yes |
@@ -43,25 +42,17 @@ Oaskit shortcut" in this skill):
 `rewrite_lib.exs` converts the parameters written literally in the
 `parameters:` option (keyword list or map). For parameters built by a
 function (`parameters: Utils.query_params(page: :integer)`, `[id: ...] ++
-Pagination.params()`), it removes `nullable` from the `%OpenApiSpex.Schema{}`
-structs found in the arguments of the call and renames the keys after their
-`name:` (`id: [name: :run_id]` → `run_id: [...]`). Anywhere in the code, it
-also removes `nullable` from the schema of a keyword list that has both `in:`
-and `schema:` (a parameter the function builds). Check the rest of the
-function by hand with the rules below: a missing `in:`, a `name:` computed
-from something else than the key, parameters written another way.
+Pagination.params()`), it renames the keys found in the arguments of the
+call after their `name:` (`id: [name: :run_id]` → `run_id: [...]`). Check
+the rest of the function by hand with the rules below: a missing `in:`, a
+`name:` computed from something else than the key, parameters written
+another way.
 
 - `in:` is required by Oaskit (compile error `key :in is required when
   building Oaskit.Spec.Parameter`). OpenApiSpex defaulted to `:query`.
 - Oaskit uses the key as the parameter name. An OpenApiSpex `name:` option
   that differs from the key declared a parameter that the route does not
   have: requests fail with `missing parameter id in path`.
-- No `nullable` in parameter schemas. A path, query or header value is a
-  string, never `null`. Oaskit casts the strings of parameters with a
-  single-type schema (`type: :integer` → `?page=1` becomes `1`), not of a
-  type union: `type: [:integer, :null]` rejects `?page=1` with `value is not
-  of type integer or null`. An optional parameter is written `required:
-  false` (the default for query and header parameters).
 
 ## Responses built by a function
 

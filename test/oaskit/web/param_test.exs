@@ -970,6 +970,92 @@ defmodule Oaskit.Web.ParamTest do
     end
   end
 
+  describe "type union parameters" do
+    test "values are cast to the first matching type of the union", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("header-integer-or-string", "7")
+        |> put_req_header("header-nullable-integer", "8")
+        |> put_req_header("header-union-list", "1,a,2")
+        |> get_reply(
+          ~p"/generated/params/some-slug/union-types/12?nullable_integer=1&integer_or_string=2&number_or_integer=3&string_boolean_or_number=true&nullable_integers=4,5&number_or_boolean=true&union_object[n]=6&union_object[v]=false",
+          fn conn, _params ->
+            assert %{
+                     count: 12,
+                     slug: "some-slug"
+                   } == conn.private.oaskit.path_params
+
+            assert %{
+                     nullable_integer: 1,
+                     integer_or_string: 2,
+                     number_or_integer: 3,
+                     string_boolean_or_number: true,
+                     nullable_integers: [4, 5],
+                     number_or_boolean: true,
+                     union_object: %{"n" => 6, "v" => false}
+                   } == conn.private.oaskit.query_params
+
+            assert %{
+                     "header-integer-or-string": 7,
+                     "header-nullable-integer": 8,
+                     "header-union-list": [1, "a", 2]
+                   } == conn.private.oaskit.header_params
+
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "values are kept as strings or cast to later types of the union", %{conn: conn} do
+      conn =
+        conn
+        |> put_req_header("header-integer-or-string", "hello")
+        |> get_reply(
+          ~p"/generated/params/some-slug/union-types/12?integer_or_string=hello&number_or_integer=3.5&string_boolean_or_number=hello&number_or_boolean=1.5&union_object[v]=yes",
+          fn conn, _params ->
+            assert %{
+                     integer_or_string: "hello",
+                     number_or_integer: 3.5,
+                     string_boolean_or_number: "hello",
+                     number_or_boolean: 1.5,
+                     union_object: %{"v" => "yes"}
+                   } == conn.private.oaskit.query_params
+
+            assert %{"header-integer-or-string": "hello"} == conn.private.oaskit.header_params
+
+            json(conn, %{data: "ok"})
+          end
+        )
+
+      assert %{"data" => "ok"} = valid_response(PathsApiSpec, conn, 200)
+    end
+
+    test "values that match no type of the union are rejected", %{conn: conn} do
+      conn =
+        get(
+          conn,
+          ~p"/generated/params/some-slug/union-types/abc?nullable_integer=abc&number_or_integer=abc&nullable_integers=1,abc&number_or_boolean=abc&union_object[n]=abc"
+        )
+
+      assert %{
+               "error" => %{
+                 "operation_id" => "parameter_union_types",
+                 "in" => "parameters",
+                 "parameters_errors" => [
+                   %{"in" => "path", "parameter" => "count"},
+                   %{"in" => "query", "parameter" => "nullable_integer"},
+                   %{"in" => "query", "parameter" => "nullable_integers"},
+                   %{"in" => "query", "parameter" => "number_or_boolean"},
+                   %{"in" => "query", "parameter" => "number_or_integer"},
+                   %{"in" => "query", "parameter" => "union_object"}
+                 ]
+               }
+             } = valid_response(PathsApiSpec, conn, 400)
+    end
+  end
+
   describe "structured field header parameters" do
     test "valid sf-* header parameters are parsed and cast", %{conn: conn} do
       conn =

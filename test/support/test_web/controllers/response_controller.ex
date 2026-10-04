@@ -118,6 +118,7 @@ defmodule Oaskit.TestWeb.ResponseController do
     "x-fortune-id" => %{schema: %{type: :string}, required: true},
     "x-fortune-count" => %{schema: %{type: :integer}},
     "x-fortune-tags" => %{schema: %{type: :array, items: %{type: :integer}}},
+    "x-fortune-score" => %{schema: %{type: [:number, :null]}},
     "content-type" => %{schema: %{type: :integer}}
   }
 
@@ -130,6 +131,18 @@ defmodule Oaskit.TestWeb.ResponseController do
     |> put_resp_header("x-fortune-id", "abc")
     |> put_resp_header("x-fortune-count", "5")
     |> put_resp_header("x-fortune-tags", "1,2,3")
+    |> put_resp_header("x-fortune-score", "4.5")
+    |> json(Enum.random(@fortunes))
+  end
+
+  operation :invalid_union_header,
+    operation_id: "fortune_invalid_union_header",
+    responses: [ok: {FortuneCookie, headers: @fortune_headers}]
+
+  def invalid_union_header(conn, _) do
+    conn
+    |> put_resp_header("x-fortune-id", "abc")
+    |> put_resp_header("x-fortune-score", "high")
     |> json(Enum.random(@fortunes))
   end
 

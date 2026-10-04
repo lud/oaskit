@@ -2348,6 +2348,186 @@
         ]
       }
     },
+    "/generated/params/{slug}/union-types/{count}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "_dummy_schema": true
+                }
+              }
+            },
+            "description": "no description"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.ErrorResponse"
+                }
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "parameter_union_types",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "count",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "nullable_integer",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "integer_or_string",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "number_or_integer",
+            "required": false,
+            "schema": {
+              "type": [
+                "number",
+                "integer"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "string_boolean_or_number",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "boolean",
+                "number"
+              ]
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "nullable_integers",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "header",
+            "name": "header-integer-or-string",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "number_or_boolean",
+            "required": false,
+            "schema": {
+              "type": [
+                "boolean",
+                "number"
+              ]
+            }
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "union_object",
+            "required": false,
+            "schema": {
+              "properties": {
+                "n": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "v": {
+                  "type": [
+                    "boolean",
+                    "string"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "style": "deepObject"
+          },
+          {
+            "in": "header",
+            "name": "header-nullable-integer",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "in": "header",
+            "name": "header-union-list",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": [
+                  "integer",
+                  "string"
+                ]
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "[a-z-]+",
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "/generated/resp/fortune-200-bad-content-type": {
       "get": {
         "responses": {
@@ -2411,6 +2591,14 @@
                   "type": "string"
                 }
               },
+              "x-fortune-score": {
+                "schema": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
               "x-fortune-tags": {
                 "schema": {
                   "items": {
@@ -2423,6 +2611,57 @@
           }
         },
         "operationId": "fortune_invalid_header"
+      }
+    },
+    "/generated/resp/fortune-200-invalid-union-header": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Oaskit.TestWeb.Schemas.FortuneCookie"
+                }
+              }
+            },
+            "description": "no description",
+            "headers": {
+              "content-type": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-count": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "x-fortune-id": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-fortune-score": {
+                "schema": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "x-fortune-tags": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "fortune_invalid_union_header"
       }
     },
     "/generated/resp/fortune-200-missing-required-header": {
@@ -2452,6 +2691,14 @@
                 "required": true,
                 "schema": {
                   "type": "string"
+                }
+              },
+              "x-fortune-score": {
+                "schema": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 }
               },
               "x-fortune-tags": {
@@ -2593,6 +2840,14 @@
                 "required": true,
                 "schema": {
                   "type": "string"
+                }
+              },
+              "x-fortune-score": {
+                "schema": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 }
               },
               "x-fortune-tags": {

@@ -132,5 +132,13 @@ defmodule Oaskit.Web.ResponseTest do
         valid_response(PathsApiSpec, conn, 200)
       end
     end
+
+    test "a header that matches no type of its union is rejected", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-invalid-union-header")
+
+      assert_raise RuntimeError, ~r/x-fortune-score/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+    end
   end
 end

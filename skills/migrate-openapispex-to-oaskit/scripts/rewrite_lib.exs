@@ -345,11 +345,9 @@ defmodule Rewrite do
           {:parameters, {k, v}} ->
             case keyword_pairs(v) do
               nil ->
-                report(m, "operation parameters built by a function call: in its arguments, nullable removed " <>
-                  "from the schemas and keys renamed after name:. Check that function by hand: Oaskit names " <>
-                  "parameters after their key (a name: different from the key is ignored), and nullable is " <>
-                  "only removed where the function writes in: and schema: in the same list " <>
-                  "(references/controllers.md, \"Parameters\")")
+                report(m, "operation parameters built by a function call: in its arguments, keys renamed " <>
+                  "after name:. Check that function by hand: Oaskit names parameters after their key " <>
+                  "(a name: different from the key is ignored) (references/controllers.md, \"Parameters\")")
 
                 {k, v |> drop_nullable_deep(m) |> rename_parameters_deep(m)}
 
@@ -500,9 +498,7 @@ defmodule Rewrite do
         false
 
       _ ->
-        info(m, "nullable removed from a parameter schema: a path, query or header value is a string, never " <>
-          "null, and Oaskit only casts parameter strings for single-type schemas (type: [:integer, :null] " <>
-          "would reject ?page=1)")
+        info(m, "nullable removed from a parameter schema: a path, query or header value is never null")
 
         true
     end

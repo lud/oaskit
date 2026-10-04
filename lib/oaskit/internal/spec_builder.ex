@@ -12,6 +12,7 @@ defmodule Oaskit.Internal.SpecBuilder do
   alias Oaskit.Spec.Reference
   alias Oaskit.Spec.RequestBody
   alias Oaskit.Spec.Response
+  require Logger
 
   @moduledoc false
 
@@ -328,7 +329,17 @@ defmodule Oaskit.Internal.SpecBuilder do
     # we still carry the context: since we will resolve some references, when
     # calling the JSV built it will benefit from its cache of references.
     {schema_summary, jsv_ctx} = summarize_parameter_schema(parameter.schema, :root, jsv_ctx)
+
     precast = build_parameter_precast(parameter, schema_summary)
+
+    :ok =
+      warn_uncastable_value(
+        "parameter #{inspect(parameter.name)} in #{parameter.in}",
+        parameter.in,
+        parameter.schema,
+        precast,
+        rev_path
+      )
 
     # We will strip the brackets from the name if present, as phoenix casts
     # `?a[]=1&a[]=2` as `%{"a"=>[1,2]}` and not `%{"a[]"=>[1,2]}`.
@@ -391,6 +402,7 @@ defmodule Oaskit.Internal.SpecBuilder do
     case p_in do
       :path -> true
       :query -> false
+      :header -> false
     end
   end
 
@@ -418,24 +430,15 @@ defmodule Oaskit.Internal.SpecBuilder do
       %{"type" => "string"} ->
         {:string, jsv_ctx}
 
-      %{"type" => "array", "items" => %{"type" => "integer"}} ->
-        {{:array, :integer}, jsv_ctx}
-
-      %{"type" => "array", "items" => %{"type" => "boolean"}} ->
-        {{:array, :boolean}, jsv_ctx}
-
-      %{"type" => "array", "items" => %{"type" => "number"}} ->
-        {{:array, :number}, jsv_ctx}
-
-      %{"type" => "array", "items" => %{"type" => "string"}} ->
-        {{:array, :string}, jsv_ctx}
-
-      %{"type" => "array", "items" => %{"$ref" => _} = item_ref} ->
-        case summarize_parameter_schema_ref(item_ref, ns, jsv_ctx) do
+      %{"type" => "array", "items" => items} ->
+        case summarize_parameter_schema(items, ns, jsv_ctx) do
           {type, jsv_ctx} when type in [:integer, :boolean, :number, :string] ->
             {{:array, type}, jsv_ctx}
 
-          _ ->
+          {{:union, _} = union, jsv_ctx} ->
+            {{:array, union}, jsv_ctx}
+
+          {_, jsv_ctx} ->
             {:noprecast_schema_type, jsv_ctx}
         end
 
@@ -448,11 +451,42 @@ defmodule Oaskit.Internal.SpecBuilder do
         # raw value into a map, there is just nothing to cast.
         {{:object, %{}}, jsv_ctx}
 
+      %{"type" => types} when is_list(types) ->
+        summarize_type_union(schema, types, ns, jsv_ctx)
+
       %{"$ref" => _} ->
         summarize_parameter_schema_ref(schema, ns, jsv_ctx)
 
       _too_hard_for_best_effort ->
         {:noprecast_schema_type, jsv_ctx}
+    end
+  end
+
+  @union_cast_order [
+    {"integer", :integer},
+    {"number", :number},
+    {"boolean", :boolean},
+    {"string", :string}
+  ]
+
+  # A parameter value is never null, so the "null" type of a union is ignored.
+  # Other types without a cast are validated from the raw value.
+  defp summarize_type_union(schema, types, ns, jsv_ctx) do
+    case types -- ["null"] do
+      [single] ->
+        summarize_parameter_schema(Map.put(schema, "type", single), ns, jsv_ctx)
+
+      types ->
+        castable =
+          for {type, summary} <- @union_cast_order, type in types do
+            summary
+          end
+
+        case castable do
+          [] -> {:noprecast_schema_type, jsv_ctx}
+          [single] -> {single, jsv_ctx}
+          members -> {{:union, members}, jsv_ctx}
+        end
     end
   end
 
@@ -463,6 +497,9 @@ defmodule Oaskit.Internal.SpecBuilder do
       case sub_summary do
         type when type in [:integer, :number, :boolean] ->
           {Map.put(acc, to_string(k), scalar_caster(type)), jsv_ctx}
+
+        {:union, _} = union ->
+          {Map.put(acc, to_string(k), scalar_caster(union)), jsv_ctx}
 
         # String properties need no cast. Arrays/objects/unknown cannot be
         # expressed by these object serializations, so they are left as-is.
@@ -529,6 +566,10 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   defp build_parameter_precast(_parameter, :string) do
     []
+  end
+
+  defp build_parameter_precast(_parameter, {:union, _} = union) do
+    [scalar_caster(union)]
   end
 
   # -- Path and header. Only the `simple` style is valid here. For arrays
@@ -614,19 +655,59 @@ defmodule Oaskit.Internal.SpecBuilder do
 
   defp array_element_casts(summary) do
     case summary do
-      :integer -> [{:array, &Cast.string_to_integer/1}]
-      :number -> [{:array, &Cast.string_to_number/1}]
-      :boolean -> [{:array, &Cast.string_to_boolean/1}]
       :string -> []
+      _ -> [{:array, scalar_caster(summary)}]
     end
   end
 
+  # The casters of a union are tried in order. A string member needs no cast:
+  # when no caster succeeds the raw string is kept.
   defp scalar_caster(summary) do
     case summary do
-      :integer -> &Cast.string_to_integer/1
-      :number -> &Cast.string_to_number/1
-      :boolean -> &Cast.string_to_boolean/1
+      :integer ->
+        &Cast.string_to_integer/1
+
+      :number ->
+        &Cast.string_to_number/1
+
+      :boolean ->
+        &Cast.string_to_boolean/1
+
+      {:union, types} ->
+        {:union,
+         for(type <- types, type != :string) do
+           scalar_caster(type)
+         end}
     end
+  end
+
+  # A path or header value is always a string, and a query value is a string, a
+  # list or a map. A schema whose type accepts none of those can only match
+  # after a precast.
+  defp warn_uncastable_value(subject, p_in, %{"type" => type}, nil, rev_path) do
+    types = List.wrap(type)
+
+    raw_types =
+      case p_in do
+        :query -> ["string", "array", "object"]
+        _ -> ["string"]
+      end
+
+    case Enum.any?(types, &(&1 in raw_types)) do
+      true ->
+        :ok
+
+      false ->
+        Logger.warning(
+          "#{subject} (#{rev_path_to_ref(rev_path, [])}) will reject every value: " <>
+            "its schema type #{inspect(type)} does not accept a string and " <>
+            "Oaskit cannot cast the raw value to that type"
+        )
+    end
+  end
+
+  defp warn_uncastable_value(_subject, _p_in, _schema, _precast, _rev_path) do
+    :ok
   end
 
   # -- Responses Validation ---------------------------------------------------
@@ -724,6 +805,15 @@ defmodule Oaskit.Internal.SpecBuilder do
 
     {summary, jsv_ctx} = summarize_parameter_schema(header.schema, :root, jsv_ctx)
     precast = build_parameter_precast(synthetic, summary)
+
+    :ok =
+      warn_uncastable_value(
+        "response header #{inspect(name)}",
+        :header,
+        header.schema,
+        precast,
+        rev_path
+      )
 
     {schema_key, jsv_ctx} =
       case header do

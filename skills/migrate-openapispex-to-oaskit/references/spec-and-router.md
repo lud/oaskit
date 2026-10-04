@@ -169,8 +169,8 @@ should expect, and explain, are:
 - Server URL: trailing `/`, and defaults for the parts missing from the
   endpoint config (see `Oaskit.Spec.Server.from_config/2` above).
   OpenApiSpex also wrote an empty `"variables": {}`.
-- With `spec_diff.sh --deep`: parameter schemas without `nullable` (see
-  `controllers.md`, "Parameters"). `--deep` ignores empty `required` lists:
+- With `spec_diff.sh --deep`: parameter schemas without `nullable`, removed
+  by `rewrite_lib.exs`. `--deep` ignores empty `required` lists:
   OpenApiSpex dropped them from the document, Oaskit keeps what the schema
   map declares (`required: []` after `%{base | required: []}`).
 - `requestBody.required` set to `true` on the request bodies that were
