@@ -49,7 +49,7 @@ The full [documentation](https://hexdocs.pm/oaskit/) is available on hexdocs:
 ```elixir
 defp deps do
   [
-    {:oaskit, "~> 0.16"},
+    {:oaskit, "~> 0.17"},
   ]
 end
 ```

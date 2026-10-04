@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0] - 2026-10-04
+
+This release brings a migration path for OpenApiSpex users.
+
+Oaskit now provides an agent skill that migrates a Phoenix application from
+OpenApiSpex to Oaskit. Scripts rewrite the schemas, controllers and tests, and
+the agent handles the remaining cases. See the
+[Migrating from OpenApiSpex](https://hexdocs.pm/oaskit/migrate-from-openapispex.html)
+guide to install it and choose what your API clients keep.
+
+Oaskit also supports more of what OpenApiSpex applications rely on:
+
+- JSON request bodies that are not objects, such as arrays, are validated.
+- Parameters whose schema type is a union, such as `[:integer, :null]`, are
+  cast.
+- `Oaskit.warmup_spec_cache/2` and `Oaskit.SpecCacheWarmup` build the spec
+  at boot. Concurrent first requests now wait for a single build.
+
+JSV 0.26 adds context data to normalized errors, so error handlers can render
+the former OpenApiSpex error format without parsing messages. Oaskit now
+requires JSV 0.26.
+
+Breaking: parameters with a type union including `string` no longer pass
+numeric or boolean strings unchanged. With `[:integer, :string]`, `"007"` is
+cast to `7`.
+
+
+### 🚀 Features
+
+- Serialize spec builds and add Oaskit.warmup_spec_cache/2 (_lud_)
+- [**breaking**] Cast parameter values for type unions (_lud_)
+
+### 🐛 Bug Fixes
+
+- Validate non-object JSON request bodies wrapped by Plug (_lud_)
+
+### 📚 Documentation
+
+- Provide a migration skill for OpenAPI 3.0 users (_lud_)
+- Documentation changes around new JSV error ctx values (_lud_)
+
 ## [0.16.1] - 2026-09-28
 
 ### 🐛 Bug Fixes
