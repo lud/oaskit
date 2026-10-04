@@ -31,6 +31,16 @@ end
 `ConnCase` usually has `import MyAppWeb.ConnCase` in its `using` block, which
 makes the helper available in tests. Otherwise import it there.
 
+Oaskit builds the response schemas of a spec module on the first call of the
+valid_response helper, and the tests that call it meanwhile wait for that
+build while holding their database connection. Build them before the suite
+starts, in `test/test_helper.exs` after `ExUnit.start()`, with one line per
+spec module:
+
+```elixir
+:ok = Oaskit.warmup_spec_cache(MyAppWeb.ApiSpec, responses: true)
+```
+
 ## Rewriting assert_schema/3
 
 OpenApiSpex tests usually look like:
@@ -156,27 +166,12 @@ document. Fix the document rather than the test.
 
 ## Slow or flaky suites
 
-The suite is slower after the switch: responses are validated too, and Oaskit
-builds the operations and JSV roots of each spec module on the first
-validated request. Concurrent tests can all start that build at the same
-time, twice per spec module (for requests, and with `responses: true` for the
-valid_response helper), then cache it (`:persistent_term`) for the rest of the
-run.
+The suite is slower after the switch: responses are validated too.
 
 `DBConnection.ConnectionError ... queue_timeout` in the sandbox checkout,
 in different tests on each run, means tests wait too long for a database
-connection. Before debugging anything else:
-
-1. raise the queue timeouts of the repo in `config/test.exs`, for example
-   `queue_target: 5000, queue_interval: 20000`;
-2. build every spec module once in `test/test_helper.exs`:
-
-   ```elixir
-   for spec <- [MyAppWeb.ApiSpec] do
-     Oaskit.build_spec!(spec)
-     Oaskit.build_spec!(spec, responses: true)
-   end
-   ```
+connection. Check that `test/test_helper.exs` builds every spec module
+(see "The valid_response helper") before debugging anything else.
 
 If tests still fail intermittently with random seeds, run the same seeds on
 the code before the migration before blaming the migration.

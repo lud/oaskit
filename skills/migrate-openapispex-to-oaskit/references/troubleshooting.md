@@ -22,11 +22,11 @@ Symptoms seen during real migrations, grouped by phase. Names are defined in
 | `undefined function schema/1` | `import OpenApiSpex` replaced by `use JSV.Schema`, with a `schema(...)` call left as is (reported: its argument is not a map literal) | `defschema ...` or `def json_schema` (`schemas.md`, "Schemas built by a function") |
 | Warnings that `schema/0` of a JSV struct module is deprecated | Code still calls `schema/0`, which `defschema` defines as a deprecated alias of `json_schema/0` | `Module.json_schema()`, or `Module` where a schema is expected |
 
-## Building the operations (first validated request, `Oaskit.build_spec!/2`)
+## Building the operations (boot, first validated request, `Oaskit.warmup_spec_cache/2`)
 
-These errors are raised when Oaskit builds the operations and JSV roots: on
-the first validated request, or with the `Oaskit.build_spec!/2` check of the
-phase 7 gate in `SKILL.md`. `mix openapi.dump` does not build them and
+These errors are raised when Oaskit builds the operations and JSV roots: at
+boot with the warmup of phase 5, on the first validated request, or with the
+`Oaskit.warmup_spec_cache/2` check of the phase 7 gate in `SKILL.md`. `mix openapi.dump` does not build them and
 succeeds anyway.
 
 `JSV.BuildError` messages locate the schema by component name

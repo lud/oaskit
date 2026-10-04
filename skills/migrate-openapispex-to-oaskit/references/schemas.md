@@ -285,8 +285,9 @@ Rewrite by hand with the rules above.
 ## Formats
 
 JSV validates formats with the roots Oaskit builds, and **raises on unknown
-formats when Oaskit builds the operations** (first validated request, or the
-`Oaskit.build_spec!/2` check of the phase 7 gate in `SKILL.md`), not at
+formats when Oaskit builds the operations** (at boot, on the first validated
+request, or with the `Oaskit.warmup_spec_cache/2` check of the phase 7 gate in
+`SKILL.md`), not at
 compile time and not in `mix openapi.dump`. OpenApiSpex ignored unknown
 formats. The inventory lists formats unknown to JSV and Oaskit. Typos seen
 in practice: `:date_time`/`:datetime` (→ `:"date-time"`), `"url"` (→

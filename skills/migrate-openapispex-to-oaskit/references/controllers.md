@@ -145,11 +145,13 @@ inventory lists the code reading it:
 - `conn.private.open_api_spex.spec_module` (often in `ConnCase`) →
   `Oaskit.Plugs.SpecProvider.fetch_spec_module!(conn)`;
 - `OpenApiSpex.Plug.Cache.adapter().erase(Spec)` (tests that change the
-  spec): Oaskit caches each built spec in `:persistent_term`. Build it
-  without the cache with `Oaskit.build_spec!(Spec, cache: false)`, or drop
-  that code if it only served OpenApiSpex. When it is the last expression
-  of a function, keep the function's return value (callers may match on
-  `:ok`).
+  spec): Oaskit caches each built spec under a key that ends with the value
+  of the `cache_variant/0` callback of the spec module. Override
+  `cache_variant/0` to return the state the spec depends on (for instance
+  the application environment value the test changes), so that a changed
+  spec gets its own cache entry, and drop the erase call. Drop it as well if
+  it only served OpenApiSpex. When it is the last expression of a function,
+  keep the function's return value (callers may match on `:ok`).
 
 ## Security
 

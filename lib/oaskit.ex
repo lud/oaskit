@@ -2,6 +2,8 @@ defmodule Oaskit do
   alias Oaskit.Internal.Normalizer
   alias Oaskit.Internal.Normalizer.ExtensionPoint
   alias Oaskit.Internal.SpecBuilder
+  alias Oaskit.Plugs.ValidateRequest
+  require Logger
 
   @moduledoc """
   Oaskit is an OpenAPI 3.1 library for Elixir and Phoenix: spec generation,
@@ -31,6 +33,11 @@ defmodule Oaskit do
     end
   end
   ```
+
+  The specification and its validators are built on first use and then cached.
+  Call `warmup_spec_cache/2` from your application `start/2` callback, or
+  add `#{inspect(Oaskit.SpecCacheWarmup)}` to your supervision tree, to build
+  them at boot. See that function for more information.
   """
 
   @typedoc """
@@ -256,27 +263,153 @@ defmodule Oaskit do
     end
   end
 
+  @doc """
+  Builds the OpenAPI specification and the validators for the given spec module
+  and stores them in the cache. Returns `:ok`.
+
+  The build normally happens on the first request served by a controller using
+  `#{inspect(ValidateRequest)}`. Calling this function in the `start/2`
+  callback of your application makes the first requests faster and lets the
+  application fail at boot if the specification cannot be built.
+
+      def start(_type, _args) do
+        :ok = Oaskit.warmup_spec_cache(MyAppWeb.OpenAPISpec)
+
+        children = [
+          # ...
+          MyAppWeb.Endpoint
+        ]
+
+        opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+        Supervisor.start_link(children, opts)
+      end
+
+  If your specification depends on processes started by your application, add
+  `#{inspect(Oaskit.SpecCacheWarmup)}` to your supervision tree instead.
+
+  ### Options
+
+  * `:responses` - When `true`, also builds the response validators used by
+    `Oaskit.Test.valid_response/3`. This is only useful in tests, for instance
+    in your `test/test_helper.exs` file:
+
+        :ok = Oaskit.warmup_spec_cache(MyAppWeb.OpenAPISpec, responses: true)
+
+    Defaults to `false`.
+  """
+  @spec warmup_spec_cache(module, [{:responses, boolean}]) :: :ok
+  def warmup_spec_cache(spec_module, opts \\ []) do
+    # Tests use both builds: requests go through ValidateRequest and responses
+    # through Oaskit.Test. This is a cache hit when the application start/2
+    # callback already warmed the request build.
+    _ = build_spec!(spec_module, responses: false)
+
+    if Keyword.get(opts, :responses, false) do
+      _ = build_spec!(spec_module, responses: true)
+    end
+
+    :ok
+  end
+
   @spec cache_key(module, keyword) :: cache_key
   defp cache_key(spec_module, opts) do
     {:oaskit_cache, spec_module, !!opts[:responses], spec_module.cache_variant()}
   end
 
-  @doc """
-  Retrieves a cached from the implementation module.
+  @lock_registry Oaskit.SpecBuilderLockRegistry
+  @lock_retry_sleep 50
+  @lock_max_time :timer.seconds(30)
 
-  If the value is not in catche, the `generator` is called and the generated
+  @doc """
+  Retrieves a cached value from the implementation module.
+
+  If the value is not in cache, the `generator` is called and the generated
   value is put in cache before being returned.
+
+  Concurrent calls with the same `cache_key` are serialized: only one process
+  calls the generator, the other ones wait for the value to be put in cache.
+  This requires the `:oaskit` application to be started. If a process waits for
+  more than #{div(@lock_max_time, 1000)} seconds, it
+  calls the generator itself and returns the value without putting it in cache.
   """
   def cached(spec_module, cache_key, generator) do
-    case spec_module.cache({:get, cache_key}) do
-      {:ok, value} ->
-        value
+    cached_loop(spec_module, cache_key, generator, lock_deadline())
+  end
 
-      :error ->
-        value = generator.()
-        :ok = spec_module.cache({:put, cache_key, value})
-        value
+  defp lock_deadline do
+    System.monotonic_time(:millisecond) + @lock_max_time
+  end
+
+  defp cached_loop(spec_module, cache_key, generator, deadline) do
+    with :cache_miss <- cache_lookup(spec_module, cache_key),
+         :lock_busy <- lock_and_build(spec_module, cache_key, generator),
+         :continue <- check_lock_deadline(cache_key, generator, deadline) do
+      Process.sleep(@lock_retry_sleep)
+      cached_loop(spec_module, cache_key, generator, deadline)
+    else
+      {:halt, value} -> value
     end
+  end
+
+  defp cache_lookup(spec_module, cache_key) do
+    case spec_module.cache({:get, cache_key}) do
+      {:ok, value} -> {:halt, value}
+      :error -> :cache_miss
+    end
+  end
+
+  defp lock_and_build(spec_module, cache_key, generator) do
+    case lock_cache_key(cache_key) do
+      :locked ->
+        try do
+          # Another process may have built the value between our cache lookup
+          # and the lock acquisition.
+          case cache_lookup(spec_module, cache_key) do
+            {:halt, value} -> {:halt, value}
+            :cache_miss -> {:halt, generate_and_put(spec_module, cache_key, generator)}
+          end
+        after
+          unlock_cache_key(cache_key)
+        end
+
+      :no_registry ->
+        {:halt, generate_and_put(spec_module, cache_key, generator)}
+
+      :busy ->
+        :lock_busy
+    end
+  end
+
+  defp check_lock_deadline(cache_key, generator, deadline) do
+    if System.monotonic_time(:millisecond) < deadline do
+      :continue
+    else
+      Logger.warning(
+        "timeout waiting for concurrent build of #{inspect(cache_key)}, building without cache"
+      )
+
+      {:halt, generator.()}
+    end
+  end
+
+  defp generate_and_put(spec_module, cache_key, generator) do
+    value = generator.()
+    :ok = spec_module.cache({:put, cache_key, value})
+    value
+  end
+
+  defp lock_cache_key(cache_key) do
+    case Registry.register(@lock_registry, cache_key, nil) do
+      {:ok, _owner} -> :locked
+      {:error, _} -> :busy
+    end
+  rescue
+    # The registry is not started when the :oaskit application is not running.
+    _ in ArgumentError -> :no_registry
+  end
+
+  defp unlock_cache_key(cache_key) do
+    :ok = Registry.unregister(@lock_registry, cache_key)
   end
 
   defp do_build_spec!(spec_module, opts) do

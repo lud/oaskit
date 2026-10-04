@@ -19,6 +19,8 @@ of each index):
 | Validation plug options | https://oaskit.hexdocs.pm/Oaskit.Plugs.ValidateRequest.md |
 | Error handler behaviour | https://oaskit.hexdocs.pm/Oaskit.ErrorHandler.md |
 | Default error handler | https://oaskit.hexdocs.pm/Oaskit.ErrorHandler.Default.md |
+| Building the spec at boot (`Oaskit.warmup_spec_cache/2`) | https://oaskit.hexdocs.pm/Oaskit.md |
+| Supervision tree child building the spec | https://oaskit.hexdocs.pm/Oaskit.SpecCacheWarmup.md |
 | `valid_response/3` | https://oaskit.hexdocs.pm/Oaskit.Test.md |
 | `mix openapi.dump` | https://oaskit.hexdocs.pm/Mix.Tasks.Openapi.Dump.md |
 | Oaskit changelog | https://oaskit.hexdocs.pm/changelog.md |
