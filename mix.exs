@@ -34,7 +34,8 @@ defmodule Oaskit.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {Oaskit.Application, []}
     ]
   end
 
@@ -146,7 +147,7 @@ defmodule Oaskit.MixProject do
 
   defp groups_for_modules do
     [
-      "Main API": [Oaskit, Oaskit.Controller],
+      "Main API": [Oaskit, Oaskit.Controller, Oaskit.SpecCacheWarmup],
       Plugs: [~r{Oaskit\.Plugs\.}, Oaskit.SpecController],
       "Error Handling": ~r{Oaskit\.ErrorHandler},
       Testing: [Oaskit.Test],

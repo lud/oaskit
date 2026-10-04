@@ -68,6 +68,45 @@ paths from your Phoenix router, focusing only on controller actions that have
 operations defined. The optional `:filter` function lets you limit which routes
 are included in your specification.
 
+### Building the specification at startup
+
+The specification and its validators are built on the first request that needs
+them, then cached. To build them before your application starts serving
+requests, and fail at boot if the specification is invalid, call
+`Oaskit.warmup_spec_cache/2` in the `start/2` callback of your
+application:
+
+```elixir
+def start(_type, _args) do
+  :ok = Oaskit.warmup_spec_cache(MyAppWeb.ApiSpec)
+
+  children = [
+    # ...
+    MyAppWeb.Endpoint
+  ]
+
+  opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+  Supervisor.start_link(children, opts)
+end
+```
+
+If your specification depends on processes started by your application, for
+instance if it loads schemas from the database, add `Oaskit.SpecCacheWarmup` to
+your children instead. The build runs when the supervisor starts that child, so
+place it after the processes your specification depends on, and before your
+endpoint:
+
+```elixir
+children = [
+  MyApp.Repo,
+  {Oaskit.SpecCacheWarmup, spec: MyAppWeb.ApiSpec},
+  MyAppWeb.Endpoint
+]
+```
+
+If your specification reads the runtime configuration of your endpoint, for
+instance with `MyAppWeb.Endpoint.url()`, place the child after the endpoint.
+
 
 ## Setting Up Router Pipelines
 
@@ -312,6 +351,15 @@ parameter :per_page, in: :query, schema: %{type: :integer}
 The `valid_response/3` helper validates that the response matches your OpenAPI
 specification, including status code, content type, and response body schema. It
 returns the parsed response data for further assertions.
+
+Response validation uses validators that are not built for request validation.
+Build them before the test suite starts, so concurrent test cases do not wait
+for the build, by adding this line to your `test/test_helper.exs` file, after
+`ExUnit.start()`:
+
+```elixir
+:ok = Oaskit.warmup_spec_cache(MyAppWeb.ApiSpec, responses: true)
+```
 
 <!-- rdmx :section name:test_example format: true -->
 ```elixir

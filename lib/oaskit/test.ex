@@ -6,6 +6,12 @@ defmodule Oaskit.Test do
   @moduledoc """
   Provides the `valid_response/3` test helper to validate API responses in your
   ExUnit tests.
+
+  Response validators are built on the first call and then cached. To build
+  them before the test suite starts, add this line to your `test/test_helper.exs`
+  file, after `ExUnit.start()`:
+
+      :ok = Oaskit.warmup_spec_cache(MyAppWeb.OpenAPISpec, responses: true)
   """
 
   @doc ~S"""

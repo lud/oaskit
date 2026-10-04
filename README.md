@@ -229,6 +229,10 @@ end
 ```
 <!-- rdmx /:section -->
 
+Build the response validators before the suite starts by adding
+`:ok = Oaskit.warmup_spec_cache(MyAppWeb.ApiSpec, responses: true)` to
+your `test/test_helper.exs` file.
+
 ### Generating and serving the spec
 
 Write the spec to a file, for client generators or CI checks:
