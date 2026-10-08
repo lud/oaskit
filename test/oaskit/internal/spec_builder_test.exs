@@ -115,6 +115,47 @@ defmodule Oaskit.Internal.SpecBuilderTest do
     %{module: JSV.Cast, name: :string_to_integer, arity: 1} = Map.new(Function.info(precast_fun))
   end
 
+  defmodule FlagSchema do
+    def json_schema do
+      %{type: :boolean}
+    end
+  end
+
+  test "precast parameters whose schema is a module referenced for the first time" do
+    # Module schemas are normalized to a $ref into components. The reference is
+    # not resolved yet when the first parameter using it is built.
+    assert {built, _} =
+             %OpenAPI{
+               openapi: "some version",
+               info: %{title: "some title", version: "some vsn"},
+               paths: %{
+                 "/items": %{
+                   get: %Operation{
+                     operationId: "list_items",
+                     parameters: [%Parameter{name: :flag, in: :query, schema: FlagSchema}],
+                     responses: %{ok: %{description: "some response"}}
+                   }
+                 }
+               }
+             }
+             |> Normalizer.normalize!()
+             |> SpecBuilder.build_operations(%{
+               responses: false,
+               jsv_opts: Oaskit.default_jsv_opts()
+             })
+
+    assert %{
+             "list_items" => %{
+               validation: [{:parameters, %{query: [%{bin_key: "flag", precast: precast}]}}]
+             }
+           } = built
+
+    assert [precast_fun] = precast
+
+    assert %{module: JSV.Cast, name: :string_to_boolean, arity: 1} =
+             Map.new(Function.info(precast_fun))
+  end
+
   test "duplicate operation ids" do
     defmodule DupAController do
       alias Oaskit.TestWeb.Helpers
