@@ -533,7 +533,7 @@ defmodule Oaskit.Internal.SpecBuilder do
     {:build, builder, jsv_validators} = jsv_ctx
     new_builder = Builder.ensure_resolved!(builder, ref)
     key = Key.of(ref)
-    resolved = Builder.fetch_resolved!(builder, key)
+    resolved = Builder.fetch_resolved!(new_builder, key)
     {resolved.raw, sub_ns, {:build, new_builder, jsv_validators}}
   rescue
     # bail and let users handle more complex spec structure
