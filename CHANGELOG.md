@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.1] - 2026-10-08
+
+### 🐛 Bug Fixes
+
+- Precast parameters whose schema reference is not resolved yet (#161) (_Stefan Fochler_)
+
 ## [0.17.0] - 2026-10-04
 
 This release brings a migration path for OpenApiSpex users.
@@ -27,7 +33,6 @@ requires JSV 0.26.
 Breaking: parameters with a type union including `string` no longer pass
 numeric or boolean strings unchanged. With `[:integer, :string]`, `"007"` is
 cast to `7`.
-
 
 ### 🚀 Features
 
