@@ -9,9 +9,11 @@ defmodule Oaskit.JsonSchema.Formats do
     "byte",
     "char",
     "commonmark",
+    "date-time-local",
     "html",
     "media-range",
-    "password"
+    "password",
+    "time-local"
   ]
 
   @number_formats [
@@ -157,6 +159,19 @@ defmodule Oaskit.JsonSchema.Formats do
     {:ok, data}
   end
 
+  def validate_cast("date-time-local", <<date::binary-size(10), sep, time::binary>>)
+      when sep in [?T, ?t] do
+    if full_date?(date) and partial_time?(time) do
+      NaiveDateTime.from_iso8601(date <> "T" <> time)
+    else
+      {:error, "invalid local date-time"}
+    end
+  end
+
+  def validate_cast("date-time-local", _data) do
+    {:error, "invalid local date-time"}
+  end
+
   def validate_cast("html", data) do
     # No validation
     {:ok, data}
@@ -171,6 +186,14 @@ defmodule Oaskit.JsonSchema.Formats do
 
   def validate_cast("password", data) do
     {:ok, data}
+  end
+
+  def validate_cast("time-local", data) do
+    if partial_time?(data) do
+      Time.from_iso8601(data)
+    else
+      {:error, "invalid local time"}
+    end
   end
 
   # --
@@ -334,6 +357,48 @@ defmodule Oaskit.JsonSchema.Formats do
 
   defp integer_in_range(_n, _min, _max) do
     {:error, "not an integer"}
+  end
+
+  defp full_date?(<<y::binary-size(4), ?-, m::binary-size(2), ?-, d::binary-size(2)>>) do
+    digits?(y) and digits?(m) and digits?(d)
+  end
+
+  defp full_date?(_) do
+    false
+  end
+
+  defp partial_time?(
+         <<h::binary-size(2), ?:, m::binary-size(2), ?:, s::binary-size(2), decimal_part::binary>>
+       ) do
+    digits?(h) and digits?(m) and digits?(s) and decimal_part?(decimal_part)
+  end
+
+  defp partial_time?(_) do
+    false
+  end
+
+  defp decimal_part?("") do
+    true
+  end
+
+  defp decimal_part?("." <> digits) do
+    digits != "" and digits?(digits)
+  end
+
+  defp decimal_part?(_) do
+    false
+  end
+
+  defp digits?(<<c, rest::binary>>) when c in ?0..?9 do
+    digits?(rest)
+  end
+
+  defp digits?(<<>>) do
+    true
+  end
+
+  defp digits?(_) do
+    false
   end
 
   defp expect_sf_item(data, expected_type) do
