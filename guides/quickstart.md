@@ -449,18 +449,18 @@ get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
 This will serve your OpenAPI specification at `/openapi.json`. Pass `?pretty=1`
 to get pretty printed JSON.
 
-You can also use that controller to serve Redoc UI. Pass the full URL path to
-the json route you just defined:
+You can also use that controller to serve the Redoc UI. Pass the full URL path
+to the JSON route you just defined:
 
 <!-- rdmx :section name:redoc_controller format: true -->
 ```elixir
-get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
+get "/docs", Oaskit.SpecController, redoc3: "/openapi.json"
 ```
 <!-- rdmx /:section -->
 
-Redoc allows you to browse your API endpoints, view request/response schemas,
-and see examples, but note that it is read-only and doesn't allow testing the
-API directly.
+Redoc lets you browse your API endpoints, view request and response schemas,
+and see examples. The `Oaskit.SpecController` documentation lists the Redoc
+options, including Redoc 2 support with the `:redoc` option.
 
 ## Ask for help!
 

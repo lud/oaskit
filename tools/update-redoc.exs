@@ -3,14 +3,18 @@ Mix.install([:req])
 
 defmodule UpdateRedoc do
   @moduledoc """
-  Pins the Redoc CDN bundle used by `Oaskit.SpecController` to the latest
-  published version and refreshes its Subresource Integrity (SRI) hash.
+  Pins each Redoc major version used by `Oaskit.SpecController` to its latest
+  published release and refreshes its Subresource Integrity (SRI) hash.
 
-  It fetches the latest `redoc` version from the npm registry, downloads the
-  exact bundle served by the CDN for that version, computes its `sha384` SRI
-  hash, and rewrites the `@redoc_version` and `@redoc_sri` module attributes in
-  the source file. It then compiles the project and runs the test suite so a
-  bad bundle or a broken pin fails loudly.
+  For each pinned major version, it finds the latest stable `redoc` release of
+  that major in the npm registry, downloads the exact bundle served by the CDN
+  for that version, checks that it is byte-identical to the bundle in the npm
+  tarball (itself checked against the registry integrity hash), computes its
+  `sha384` SRI hash, and rewrites the matching
+  `@*_version` and `@*_sri` module attributes in the source file. It then
+  compiles the project and runs the test suite so a bad bundle or a broken pin
+  fails loudly. It fails before changing anything when npm publishes a major
+  version that has no pin yet.
 
   Run it locally to update the library:
 
@@ -23,20 +27,31 @@ defmodule UpdateRedoc do
   @root Path.expand("..", __DIR__)
   @source Path.join(@root, "lib/oaskit/spec_controller.ex")
 
-  @npm_latest "https://registry.npmjs.org/redoc/latest"
+  @npm_package "https://registry.npmjs.org/redoc"
   @cdn_bundle "https://cdn.redoc.ly/redoc/v~s/bundles/redoc.standalone.js"
 
+  # Major version => attribute prefix in the source file
+  @pins %{2 => "redoc", 3 => "redoc3"}
+
   def run do
-    version = fetch_latest_version()
-    url = bundle_url(version)
-    bundle = fetch_bundle(url)
-    sri = sri_hash(bundle)
+    releases = fetch_stable_releases()
 
-    log("latest redoc version: #{version}")
-    log("bundle: #{url} (#{byte_size(bundle)} bytes)")
-    log("sri: #{sri}")
+    check_unpinned_major!(releases)
 
-    update_source!(version, sri)
+    Enum.each(@pins, fn {major, prefix} ->
+      {version, dist} = latest_of_major!(releases, major)
+      version = Version.to_string(version)
+      url = bundle_url(version)
+      bundle = fetch_bundle(url)
+      verify_against_npm!(bundle, dist)
+      sri = sri_hash(bundle)
+
+      log("latest redoc #{major}.x version: #{version}")
+      log("bundle: #{url} (#{byte_size(bundle)} bytes, matches npm tarball)")
+      log("sri: #{sri}")
+
+      update_source!(prefix, version, sri)
+    end)
 
     log("updated #{Path.relative_to(@source, @root)}")
 
@@ -46,21 +61,33 @@ defmodule UpdateRedoc do
     log("done")
   end
 
-  defp fetch_latest_version do
-    case Req.get!(@npm_latest) do
-      %{status: 200, body: %{"version" => version}} when is_binary(version) ->
-        validate_version!(version)
+  defp fetch_stable_releases do
+    case Req.get!(@npm_package) do
+      %{status: 200, body: %{"versions" => versions}} when is_map(versions) ->
+        Enum.flat_map(versions, fn {vsn, meta} ->
+          case Version.parse(vsn) do
+            {:ok, %Version{pre: [], build: nil} = version} -> [{version, meta["dist"]}]
+            _ -> []
+          end
+        end)
 
       other ->
         fail("unexpected response from npm registry: #{inspect(other.status)}")
     end
   end
 
-  defp validate_version!(version) do
-    if version =~ ~r/^\d+\.\d+\.\d+/ do
-      version
-    else
-      fail("npm returned an unexpected version string: #{inspect(version)}")
+  defp latest_of_major!(releases, major) do
+    case Enum.filter(releases, fn {version, _} -> version.major == major end) do
+      [] -> fail("npm has no stable redoc #{major}.x version")
+      list -> Enum.max_by(list, &elem(&1, 0), Version)
+    end
+  end
+
+  defp check_unpinned_major!(releases) do
+    {latest, _} = Enum.max_by(releases, &elem(&1, 0), Version)
+
+    if latest.major > Enum.max(Map.keys(@pins)) do
+      fail("redoc #{latest.major}.x is published but has no pin in #{@source}")
     end
   end
 
@@ -80,16 +107,47 @@ defmodule UpdateRedoc do
     end
   end
 
+  # The CDN bundle must be byte-identical to the one in the npm tarball, and the
+  # tarball must match the integrity hash published by the registry.
+  defp verify_against_npm!(bundle, %{"tarball" => tarball_url, "integrity" => integrity}) do
+    tarball =
+      case Req.get!(tarball_url, decode_body: false, raw: true) do
+        %{status: 200, body: body} -> body
+        other -> fail("could not download #{tarball_url} (status #{other.status})")
+      end
+
+    if integrity != "sha512-" <> Base.encode64(:crypto.hash(:sha512, tarball)) do
+      fail("#{tarball_url} does not match the npm integrity #{integrity}")
+    end
+
+    if bundle != extract_bundle!(tarball, tarball_url) do
+      fail("CDN bundle differs from the bundle in #{tarball_url}")
+    end
+  end
+
+  defp verify_against_npm!(_bundle, dist) do
+    fail("npm dist metadata lacks tarball or integrity: #{inspect(dist)}")
+  end
+
+  defp extract_bundle!(tarball, tarball_url) do
+    file = ~c"package/bundles/redoc.standalone.js"
+
+    case :erl_tar.extract({:binary, tarball}, [:compressed, :memory, files: [file]]) do
+      {:ok, [{^file, bundle}]} -> bundle
+      other -> fail("could not extract #{file} from #{tarball_url}: #{inspect(other)}")
+    end
+  end
+
   defp sri_hash(bundle) do
     "sha384-" <> Base.encode64(:crypto.hash(:sha384, bundle))
   end
 
-  defp update_source!(version, sri) do
+  defp update_source!(prefix, version, sri) do
     source = File.read!(@source)
 
     source
-    |> replace_attr!(:redoc_version, version)
-    |> replace_attr!(:redoc_sri, sri)
+    |> replace_attr!("#{prefix}_version", version)
+    |> replace_attr!("#{prefix}_sri", sri)
     |> then(&File.write!(@source, &1))
   end
 

@@ -129,7 +129,7 @@ defmodule MyAppWeb.Router do
 
   # README: serving the spec
   get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
-  get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
+  get "/docs", Oaskit.SpecController, redoc3: "/openapi.json"
 end
 
 defmodule MyAppWeb.Endpoint do

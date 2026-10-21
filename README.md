@@ -248,7 +248,7 @@ Or serve it, with a Redoc UI:
 <!-- rdmx :section name:spec_controller format: true -->
 ```elixir
 get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
-get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
+get "/docs", Oaskit.SpecController, redoc3: "/openapi.json"
 ```
 <!-- rdmx /:section -->
 

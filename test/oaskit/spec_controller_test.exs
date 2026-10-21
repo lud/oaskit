@@ -1,4 +1,5 @@
 defmodule Oaskit.SpecControllerTest do
+  alias Oaskit.SpecController
   use Oaskit.ConnCase, async: true
 
   defp assert_json_content_type(conn) do
@@ -116,6 +117,57 @@ defmodule Oaskit.SpecControllerTest do
       refute body =~ "redoc/latest/"
       assert body =~ ~r{integrity="sha384-[A-Za-z0-9+/=]+"}
       assert body =~ ~s{crossorigin="anonymous"}
+    end
+
+    test "serves Redoc 3 as a module pinned with subresource integrity", %{conn: conn} do
+      conn = get(conn, ~p"/generated/redoc3")
+
+      assert conn.status == 200
+      body = conn.resp_body
+
+      [_, src] =
+        Regex.run(
+          ~r{import \{init\} from "(https://cdn\.redoc\.ly/redoc/v3\.\d+\.\d+/bundles/redoc\.standalone\.js)"},
+          body
+        )
+
+      [_, sri] =
+        Regex.run(~r{"integrity":\{"#{Regex.escape(src)}":"(sha384-[A-Za-z0-9+/=]+)"\}}, body)
+
+      assert body =~
+               ~s{<link rel="modulepreload" href="#{src}" integrity="#{sri}" crossorigin="anonymous">}
+
+      assert body =~ ~s{init("/generated/openapi.json",}
+      refute body =~ "Redoc.init"
+    end
+
+    test "Redoc 3 disables telemetry unless configured", %{conn: conn} do
+      body = get(conn, ~p"/generated/redoc3").resp_body
+      assert body =~ ~s{"disableTelemetry":true}
+      assert body =~ ~s{"hideDownloadButtons":true}
+
+      opts =
+        SpecController.init(redoc3: "/x.json", redoc_config: %{disableTelemetry: false})
+
+      body = SpecController.call(conn, opts).resp_body
+      assert body =~ ~s{"disableTelemetry":false}
+      refute body =~ ~s{"disableTelemetry":true}
+    end
+
+    for option <- [:redoc, :redoc3] do
+      test "#{option} escapes script end tags in path and config", %{conn: conn} do
+        opts =
+          SpecController.init([
+            {unquote(option), "/</script><script>alert(1)//"},
+            {:redoc_config, %{"x" => "</script><script>alert(2)//"}}
+          ])
+
+        body = SpecController.call(conn, opts).resp_body
+
+        refute body =~ "<script>alert"
+        assert body =~ ~S{"/\u003c/script>\u003cscript>alert(1)//"}
+        assert body =~ ~S{"x":"\u003c/script>\u003cscript>alert(2)//"}
+      end
     end
   end
 

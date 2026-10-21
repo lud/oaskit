@@ -305,7 +305,7 @@ as with generated specs:
 scope "/" do
   pipe_through :api
   get "/openapi.json", Oaskit.SpecController, :show
-  get "/docs", Oaskit.SpecController, redoc: "/openapi.json"
+  get "/docs", Oaskit.SpecController, redoc3: "/openapi.json"
 end
 ```
 <!-- rdmx /:section -->

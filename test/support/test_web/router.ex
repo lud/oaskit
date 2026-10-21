@@ -38,6 +38,10 @@ defmodule Oaskit.TestWeb.Router do
         "hideDownloadButtons" => true
       }
 
+    get "/redoc3", Oaskit.SpecController,
+      redoc3: "/generated/openapi.json",
+      redoc_config: %{"hideDownloadButtons" => true}
+
     scope "/meta", Oaskit.TestWeb do
       get "/before-metas", MetaController, :before_metas
       get "/after-metas", MetaController, :after_metas

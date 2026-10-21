@@ -43,32 +43,61 @@ defmodule Oaskit.SpecController do
   behavior. Note that if your spec is obtained from a static file, you don't
   really need that controller and can just serve that file.
 
-  ## Showing Redoc
+  ## Showing Redoc 3
 
-  Redoc is a simple documentation generator that will display an OpenAPI
-  specification in a nice way. It does not allow to test the routes though.
+  [Redoc](https://redocly.com/docs/redoc) renders an OpenAPI specification as a
+  browsable documentation website, with request and response schemas, examples
+  and search.
 
-  Pass the absolute URL path to the controller with the `:redoc` option, and
-  optionally a redoc configuration object:
+  Pass the absolute URL path of your JSON spec route with the `:redoc3` option:
 
-      get "/redoc", Oaskit.SpecController, redoc: "/url/to/openapi.json"
-      get "/redoc", Oaskit.SpecController,
-        redoc: "/generated/openapi.json",
+      get "/openapi.json", Oaskit.SpecController, spec: MyAppWeb.ApiSpec
+      get "/docs", Oaskit.SpecController, redoc3: "/openapi.json"
+
+  The `:redoc_config` option takes a map of [Redoc 3
+  options](https://redocly.com/docs/redoc/v3.x/config), given to Redoc as is:
+
+      get "/docs", Oaskit.SpecController,
+        redoc3: "/openapi.json",
         redoc_config: %{
-          "minCharacterLengthToInitSearch" => 1,
+          "layout" => "stacked",
           "hideDownloadButtons" => true
         }
+
+  The controller sets `"disableTelemetry" => true` in the Redoc options, which
+  turns off the [usage telemetry](https://redocly.com/docs/redoc/telemetry) that
+  Redoc 3 sends to Redocly. Define `"disableTelemetry"` in `:redoc_config` to
+  choose the value yourself.
+
+  The page loads a bundle pinned to an exact Redoc version from
+  `https://cdn.redoc.ly`, checked with Subresource Integrity, and starts Redoc
+  from an inline module script. If your application sets a Content Security
+  Policy on this route, allow that origin and `'unsafe-inline'` in `script-src`.
+
+  ## Showing Redoc 2
+
+  The `:redoc` option serves Redoc 2. It accepts the `:redoc_config` option as
+  well, with [Redoc 2 options](https://redocly.com/docs/redoc/v2.x/config):
+
+      get "/docs", Oaskit.SpecController,
+        redoc: "/openapi.json",
+        redoc_config: %{
+          "expandResponses" => "200,201",
+          "hideDownloadButton" => true
+        }
+
+  To switch a route from `:redoc` to `:redoc3`, update its `:redoc_config`
+  following the [Redoc 3 migration
+  guide](https://redocly.com/docs/redoc/v3.x/config-migration).
 
   ## Other options
 
   A `:resp_headers` option can be provided to set the response headers for the
-  JSON or Redoc routes.
+  JSON spec route.
 
-      pipeline :api do
-        get "/openapi.json", Oaskit.SpecController,
-          spec: MyApp.ApiSpec,
-          resp_headers: %{"access-control-allow-origin" => "*"}
-      end
+      get "/openapi.json", Oaskit.SpecController,
+        spec: MyApp.ApiSpec,
+        resp_headers: %{"access-control-allow-origin" => "*"}
 
   """
 
@@ -79,6 +108,7 @@ defmodule Oaskit.SpecController do
       %{spec: true} -> Map.merge(opts, %{action: :serve_spec, spec: :__provided__})
       %{spec: module} -> Map.merge(opts, %{action: :serve_spec, spec: module})
       %{redoc: path} -> Map.merge(opts, %{action: :redoc, path: path})
+      %{redoc3: path} -> Map.merge(opts, %{action: :redoc3, path: path})
     end
   end
 
@@ -86,6 +116,7 @@ defmodule Oaskit.SpecController do
     case opts do
       %{action: :serve_spec} -> serve_spec(conn, opts)
       %{action: :redoc} -> serve_redoc(conn, opts)
+      %{action: :redoc3} -> serve_redoc3(conn, opts)
     end
   end
 
@@ -138,14 +169,14 @@ defmodule Oaskit.SpecController do
 
   # Redoc is loaded from the CDN pinned to an exact version and guarded with a
   # Subresource Integrity hash, so a compromised or swapped CDN bundle cannot
-  # execute in the browser. When bumping the version, recompute the hash from
-  # the exact bytes served at the pinned URL:
-  #
-  #     curl -s https://cdn.redoc.ly/redoc/vVERSION/bundles/redoc.standalone.js \
-  #       | openssl dgst -sha384 -binary | openssl base64 -A
+  # execute in the browser. Both pins are maintained by ./tools/update-redoc.exs
   @redoc_version "2.5.4"
   @redoc_sri "sha384-w447zOpYfw/1Tv/5AK9NfHTlQIqE3RVR6KY62jCyy9zNDgO64cMwGGP1Fj0zJVf5"
   @redoc_src "https://cdn.redoc.ly/redoc/v#{@redoc_version}/bundles/redoc.standalone.js"
+
+  @redoc3_version "3.0.1"
+  @redoc3_sri "sha384-j07qRKHNNmcwU1/Y1elJc7pDLHXP/QfbQXTtSkbOJ7uYGJikqAzsFVbY2zR9FqOT"
+  @redoc3_src "https://cdn.redoc.ly/redoc/v#{@redoc3_version}/bundles/redoc.standalone.js"
 
   @redoc_ui """
   <!DOCTYPE html>
@@ -168,14 +199,73 @@ defmodule Oaskit.SpecController do
 
   EEx.function_from_string(:defp, :redoc_ui, @redoc_ui, [:path, :config])
 
+  # The v3 bundle is an ES module. The import map integrity entry and the
+  # modulepreload link both bind the SRI hash to the URL that the inline module
+  # imports.
+  @redoc3_ui """
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Redoc</title>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>body {margin: 0;padding: 0;}</style>
+      <script type="importmap">{"integrity":{"#{@redoc3_src}":"#{@redoc3_sri}"}}</script>
+      <link rel="modulepreload" href="#{@redoc3_src}" integrity="#{@redoc3_sri}" crossorigin="anonymous">
+    </head>
+    <body>
+      <div id="redoc-root"></div>
+      <script type="module">
+      import {init} from "#{@redoc3_src}"
+      init(<%= path %>,<%= config %>,document.getElementById("redoc-root"))
+      </script>
+    </body>
+  </html>
+  """
+
+  EEx.function_from_string(:defp, :redoc3_ui, @redoc3_ui, [:path, :config])
+
   # sobelow_skip ["XSS.SendResp"]
   defp serve_redoc(conn, params) do
-    path = Codec.encode!(params.path)
-    config = Codec.encode!(Map.get(params, :redoc_config, %{}))
+    path = encode_for_script(params.path)
+    config = encode_for_script(Map.get(params, :redoc_config, %{}))
     html = redoc_ui(path, config)
 
     conn
     |> put_resp_content_type("text/html")
     |> send_resp(200, html)
+  end
+
+  # sobelow_skip ["XSS.SendResp"]
+  defp serve_redoc3(conn, params) do
+    path = encode_for_script(params.path)
+
+    config =
+      params
+      |> Map.get(:redoc_config, %{})
+      |> disable_telemetry_by_default()
+      |> encode_for_script()
+
+    html = redoc3_ui(path, config)
+
+    conn
+    |> put_resp_content_type("text/html")
+    |> send_resp(200, html)
+  end
+
+  defp disable_telemetry_by_default(config) do
+    case config do
+      %{"disableTelemetry" => _} -> config
+      %{disableTelemetry: _} -> config
+      _ -> Map.put(config, "disableTelemetry", true)
+    end
+  end
+
+  # A "<" can only appear in JSON strings, where "\u003c" is equivalent, so
+  # "</script>" cannot close the inline script.
+  defp encode_for_script(data) do
+    data
+    |> Codec.encode!()
+    |> String.replace("<", "\\u003c")
   end
 end
