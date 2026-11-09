@@ -174,8 +174,8 @@ defmodule Oaskit.SpecController do
   @redoc_sri "sha384-w447zOpYfw/1Tv/5AK9NfHTlQIqE3RVR6KY62jCyy9zNDgO64cMwGGP1Fj0zJVf5"
   @redoc_src "https://cdn.redoc.ly/redoc/v#{@redoc_version}/bundles/redoc.standalone.js"
 
-  @redoc3_version "3.0.1"
-  @redoc3_sri "sha384-j07qRKHNNmcwU1/Y1elJc7pDLHXP/QfbQXTtSkbOJ7uYGJikqAzsFVbY2zR9FqOT"
+  @redoc3_version "3.1.0"
+  @redoc3_sri "sha384-JeMYOUn7XELj12XQpz8IRcyCi5pih2IAwvXmTcH3IAFVWrAXJVRNa64PuS3MIj9/"
   @redoc3_src "https://cdn.redoc.ly/redoc/v#{@redoc3_version}/bundles/redoc.standalone.js"
 
   @redoc_ui """
