@@ -26,7 +26,6 @@ defmodule Oaskit.MixProject do
   defp elixirc_paths(env) do
     case env do
       :prod -> ["lib"]
-      :docs -> ["lib"]
       _ -> ["lib", "test/support"]
     end
   end
@@ -55,7 +54,6 @@ defmodule Oaskit.MixProject do
       # Dev
       {:phoenix, ">= 1.7.0", only: [:dev, :test]},
       {:readmix, "~> 0.3", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: [:dev, :test, :docs], runtime: false},
       {:libdev, ">= 0.0.0", only: [:dev, :test], runtime: false}
     ]
   end
@@ -87,10 +85,15 @@ defmodule Oaskit.MixProject do
       extras: doc_extras(),
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules(),
-      groups_for_modules: groups_for_modules(),
+      filter_modules: &documented_module?/2,
       nest_modules_by_prefix: [Oaskit.Spec],
       before_closing_body_tag: &before_closing_body_tag/1
     ]
+  end
+
+  defp documented_module?(module, _meta) do
+    source = to_string(module.module_info(:compile)[:source])
+    not String.contains?(source, "/test/support/")
   end
 
   defp before_closing_body_tag(:html) do
@@ -163,8 +166,7 @@ defmodule Oaskit.MixProject do
     [
       preferred_envs: [
         dialyzer: :test,
-        "oapi.phx.test": :test,
-        docs: :docs
+        "oapi.phx.test": :test
       ]
     ]
   end
